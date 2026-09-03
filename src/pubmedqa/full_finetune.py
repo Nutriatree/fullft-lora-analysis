@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import gc
+import atexit
 import math
 import os
 import time
@@ -2182,6 +2183,12 @@ class PubMedQAFullFineTuner:
         if not dist.is_initialized():
             dist.init_process_group(backend="nccl")
             self._distributed_initialized_here = True
+            atexit.register(self._destroy_distributed_process_group)
+
+    def _destroy_distributed_process_group(self) -> None:
+        if self._distributed_initialized_here and dist.is_available() and dist.is_initialized():
+            dist.destroy_process_group()
+            self._distributed_initialized_here = False
 
     def _barrier(self) -> None:
         if self.fsdp_enabled and dist.is_available() and dist.is_initialized():

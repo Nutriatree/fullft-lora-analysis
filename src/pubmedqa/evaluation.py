@@ -746,7 +746,7 @@ def save_results(output_dir: Path, items: Sequence[EvalItem], summary: EvalSumma
 def write_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as file:
-        json.dump(data, file, indent=2, ensure_ascii=False)
+        json.dump(data, file, indent=2, ensure_ascii=False, default=str)
         file.write("\n")
 
 
@@ -754,7 +754,7 @@ def write_jsonl(path: Path, rows: Iterable[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as file:
         for row in rows:
-            file.write(json.dumps(row, ensure_ascii=False) + "\n")
+            file.write(json.dumps(row, ensure_ascii=False, default=str) + "\n")
 
 
 def safe_name(value: str) -> str:
