@@ -1,33 +1,40 @@
-"""Torch-based PubMedQA evaluation for baseline QA experiments.
+""""Dynamic PubMedQA baseline evaluator for NVIDIA CUDA and Apple Silicon.
 
-Core evaluation objects are configured explicitly and receive environment
-credentials via injected objects. The CLI entrypoint may still read environment
-variables, but model loading, prompting, inference, metrics, and persistence do
-not depend on implicit global state.
+Backends
+--------
+- torch: CUDA -> MPS -> CPU (automatic device resolution)
+- mlx: Apple Silicon using mlx-lm; Gemma 3 uses mlx-vlm
+- auto: prefers MLX on Apple Silicon when available, otherwise torch
+
+The evaluation protocol is shared across backends:
+- same JSONL test/validation file
+- same prompt_builder
+- same parser
+- same metrics
+- same result format
 """
 
 from __future__ import annotations
 
 import gc
+import importlib.util
 import json
 import os
+import platform
 import re
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import Any, Iterable, Protocol, Sequence
 
 import torch
 from datasets import load_dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from pubmedqa.answer_parser import parse_pubmedqa_answer
-from pubmedqa.prompt_builder import (
-    PubMedQAExample,
-    build_tokenizer_prompt,
-    example_from_record,
-)
+from pubmedqa.prompt_builder import PubMedQAExample, build_tokenizer_prompt, example_from_record
+
 
 DEFAULT_BASE_MODELS: tuple[str, ...] = (
     "Qwen/Qwen3-0.6B",
@@ -37,6 +44,17 @@ DEFAULT_BASE_MODELS: tuple[str, ...] = (
     "Qwen/Qwen3-4B",
     "google/gemma-3-4b-it",
 )
+
+# BF16 MLX conversions intended to preserve model-selection accuracy as much as possible.
+DEFAULT_MLX_MODEL_MAP: dict[str, str] = {
+    "Qwen/Qwen3-0.6B": "mlx-community/Qwen3-0.6B-bf16",
+    "meta-llama/Llama-3.2-1B-Instruct": "mlx-community/Llama-3.2-1B-Instruct-bf16",
+    "Qwen/Qwen3-1.7B": "mlx-community/Qwen3-1.7B-bf16",
+    "meta-llama/Llama-3.2-3B-Instruct": "mlx-community/Llama-3.2-3B-Instruct-bf16",
+    "Qwen/Qwen3-4B": "mlx-community/Qwen3-4B-bf16",
+    "google/gemma-3-4b-it": "mlx-community/gemma-3-4b-it-bf16",
+}
+
 VALID_LABELS = ("yes", "no", "maybe")
 
 
@@ -52,25 +70,23 @@ def _env_int(name: str, default: int) -> int:
     return default if value is None else int(value)
 
 
-def _resolve_dtype(name: str) -> torch.dtype:
-    normalized = name.strip().lower()
-    mapping = {
-        "bf16": torch.bfloat16,
-        "bfloat16": torch.bfloat16,
-        "fp16": torch.float16,
-        "float16": torch.float16,
-        "fp32": torch.float32,
-        "float32": torch.float32,
-    }
-    if normalized not in mapping:
-        raise ValueError(f"Unsupported dtype {name!r}. Use bf16, fp16, or fp32.")
-    return mapping[normalized]
+def _env_optional_int(name: str) -> int | None:
+    value = os.getenv(name)
+    if not value:
+        return None
+    return int(value)
 
 
 def _safe_rate(numerator: int, denominator: int) -> float:
-    if denominator == 0:
-        return 0.0
-    return numerator / denominator
+    return 0.0 if denominator == 0 else numerator / denominator
+
+
+def _is_apple_silicon() -> bool:
+    return platform.system() == "Darwin" and platform.machine() in {"arm64", "aarch64"}
+
+
+def _module_available(name: str) -> bool:
+    return importlib.util.find_spec(name) is not None
 
 
 @dataclass(frozen=True)
@@ -85,13 +101,13 @@ class EnvironmentConfig:
 @dataclass(frozen=True)
 class ModelRuntimeConfig:
     model_name: str
-    torch_dtype: torch.dtype = torch.bfloat16
-    device_map: str | None = None
+    backend: str = "auto"  # auto | torch | mlx
+    device: str = "auto"  # auto | cuda:0 | mps | cpu
+    dtype: str = "auto"  # auto | bf16 | fp16 | fp32
     max_new_tokens: int = 4
-    batch_size: int = 8
+    batch_size: int | None = None
     max_input_tokens: int | None = None
-    use_cuda: bool = True
-    attn_implementation: str | None = "sdpa"
+    attn_implementation: str | None = "auto"  # auto | sdpa | eager | ... | none
     trust_remote_code: bool = False
     cpu_threads: int = max(1, (os.cpu_count() or 1) - 2)
     strict_parser: bool = False
@@ -102,6 +118,8 @@ class EvalItem:
     index: int
     run_id: str
     model_name: str
+    resolved_model_name: str
+    backend: str
     condition: str
     title: str
     start_time: str
@@ -121,6 +139,8 @@ class EvalItem:
 class EvalSummary:
     run_id: str
     model_name: str
+    resolved_model_name: str
+    backend: str
     condition: str
     title: str
     start_time: str
@@ -134,25 +154,7 @@ class EvalSummary:
     examples_per_second: float
     device: str
     dtype: str
-    peak_cuda_memory_gb: float | None
-
-
-@dataclass
-class ModelBundle:
-    tokenizer: Any
-    model: Any
-    device: torch.device
-    uses_device_map: bool
-
-
-@dataclass(frozen=True)
-class BatchRunContext:
-    run_id: str
-    model_name: str
-    condition: str
-    title: str
-    start_time: str
-    end_time: str
+    device_memory_gb: float | None
 
 
 @dataclass(frozen=True)
@@ -171,7 +173,7 @@ class CliBatchConfig:
         test_path_raw = os.getenv("PUBMEDQA_TEST_PATH")
         if not test_path_raw:
             raise RuntimeError(
-                "PUBMEDQA_TEST_PATH is required. Point it to the PubMedQA test JSONL."
+                "PUBMEDQA_TEST_PATH is required. Point it to the model-selection/validation or test JSONL."
             )
 
         expected_raw = os.getenv("PUBMEDQA_EXPECTED_TEST_SIZE", "500").strip().lower()
@@ -185,22 +187,21 @@ class CliBatchConfig:
         else:
             models = DEFAULT_BASE_MODELS
 
-        attn = os.getenv("PUBMEDQA_ATTN_IMPLEMENTATION", "sdpa").strip()
-        if attn.lower() in {"", "none", "auto"}:
+        attn = os.getenv("PUBMEDQA_ATTN_IMPLEMENTATION", "auto").strip().lower()
+        if attn in {"", "none"}:
             attn = None
+
+        batch_raw = os.getenv("PUBMEDQA_BATCH_SIZE")
+        batch_size = int(batch_raw) if batch_raw else None
 
         runtime_defaults = ModelRuntimeConfig(
             model_name=models[0],
-            torch_dtype=_resolve_dtype(os.getenv("PUBMEDQA_DTYPE", "bf16")),
-            device_map=os.getenv("PUBMEDQA_DEVICE_MAP", "").strip() or None,
+            backend=os.getenv("PUBMEDQA_BACKEND", "auto").strip().lower(),
+            device=os.getenv("PUBMEDQA_DEVICE", "auto").strip().lower(),
+            dtype=os.getenv("PUBMEDQA_DTYPE", "auto").strip().lower(),
             max_new_tokens=_env_int("PUBMEDQA_MAX_NEW_TOKENS", 4),
-            batch_size=_env_int("PUBMEDQA_BATCH_SIZE", 8),
-            max_input_tokens=(
-                int(os.getenv("PUBMEDQA_MAX_INPUT_TOKENS"))
-                if os.getenv("PUBMEDQA_MAX_INPUT_TOKENS")
-                else None
-            ),
-            use_cuda=_env_bool("PUBMEDQA_USE_CUDA", True),
+            batch_size=batch_size,
+            max_input_tokens=_env_optional_int("PUBMEDQA_MAX_INPUT_TOKENS"),
             attn_implementation=attn,
             trust_remote_code=_env_bool("PUBMEDQA_TRUST_REMOTE_CODE", False),
             cpu_threads=_env_int("PUBMEDQA_CPU_THREADS", max(1, (os.cpu_count() or 1) - 2)),
@@ -221,9 +222,9 @@ class CliBatchConfig:
 
 def load_local_jsonl(path: Path, expected_size: int | None = None) -> list[PubMedQAExample]:
     if not path.is_file():
-        raise FileNotFoundError(f"Test JSONL not found: {path}")
+        raise FileNotFoundError(f"JSONL not found: {path}")
 
-    dataset = load_dataset("json", data_files={"test": str(path)}, split="test")
+    dataset = load_dataset("json", data_files={"eval": str(path)}, split="eval")
     examples = [example_from_record(row) for row in dataset]
 
     if not examples:
@@ -240,61 +241,358 @@ def load_local_jsonl(path: Path, expected_size: int | None = None) -> list[PubMe
     return examples
 
 
-def resolve_device(use_cuda: bool) -> torch.device:
-    if use_cuda and torch.cuda.is_available():
+def resolve_backend(requested: str) -> str:
+    requested = requested.strip().lower()
+    if requested not in {"auto", "torch", "mlx"}:
+        raise ValueError("PUBMEDQA_BACKEND must be one of: auto, torch, mlx")
+
+    if requested == "mlx":
+        if not _is_apple_silicon():
+            raise RuntimeError("MLX backend requires Apple Silicon.")
+        if not _module_available("mlx_lm"):
+            raise RuntimeError("MLX backend requested but mlx-lm is not installed.")
+        return "mlx"
+
+    if requested == "torch":
+        return "torch"
+
+    # auto
+    if _is_apple_silicon() and _module_available("mlx_lm"):
+        return "mlx"
+    return "torch"
+
+
+def resolve_torch_device(requested: str) -> torch.device:
+    requested = requested.strip().lower()
+    if requested != "auto":
+        device = torch.device(requested)
+        if device.type == "cuda" and not torch.cuda.is_available():
+            raise RuntimeError(f"CUDA device requested but CUDA is unavailable: {requested}")
+        if device.type == "mps" and not torch.backends.mps.is_available():
+            raise RuntimeError("MPS device requested but MPS is unavailable.")
+        return device
+
+    if torch.cuda.is_available():
         return torch.device("cuda:0")
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
     return torch.device("cpu")
 
 
-def load_model_bundle(
-    runtime: ModelRuntimeConfig,
-    environment: EnvironmentConfig,
-) -> ModelBundle:
-    device = resolve_device(runtime.use_cuda)
-    uses_device_map = bool(runtime.device_map)
+def resolve_torch_dtype(device: torch.device, requested: str) -> torch.dtype:
+    requested = requested.strip().lower()
+    if requested == "auto":
+        if device.type == "cuda":
+            return torch.bfloat16
+        if device.type == "mps":
+            return torch.float16
+        return torch.float32
 
-    common_kwargs: dict[str, Any] = {
-        "token": environment.hf_token,
-        "trust_remote_code": runtime.trust_remote_code,
+    mapping = {
+        "bf16": torch.bfloat16,
+        "bfloat16": torch.bfloat16,
+        "fp16": torch.float16,
+        "float16": torch.float16,
+        "fp32": torch.float32,
+        "float32": torch.float32,
     }
-    model_kwargs: dict[str, Any] = {
-        **common_kwargs,
-        "torch_dtype": runtime.torch_dtype,
-    }
-    if runtime.attn_implementation is not None:
-        model_kwargs["attn_implementation"] = runtime.attn_implementation
-    if uses_device_map:
-        model_kwargs["device_map"] = runtime.device_map
+    if requested not in mapping:
+        raise ValueError("PUBMEDQA_DTYPE must be one of: auto, bf16, fp16, fp32")
+    return mapping[requested]
 
-    if runtime.model_name.startswith("google/gemma-3-"):
-        try:
-            from transformers import AutoModelForMultimodalLM, AutoProcessor
-        except ImportError as exc:
-            raise RuntimeError(
-                "Gemma 3 requires a recent transformers version with multimodal support."
-            ) from exc
 
-        processor = AutoProcessor.from_pretrained(runtime.model_name, **common_kwargs)
-        tokenizer = getattr(processor, "tokenizer", None)
-        if tokenizer is None:
-            raise RuntimeError("Gemma 3 AutoProcessor does not expose a tokenizer.")
-        model = AutoModelForMultimodalLM.from_pretrained(runtime.model_name, **model_kwargs)
-    else:
-        tokenizer = AutoTokenizer.from_pretrained(runtime.model_name, **common_kwargs)
-        model = AutoModelForCausalLM.from_pretrained(runtime.model_name, **model_kwargs)
+def resolve_attention(device: torch.device, requested: str | None) -> str | None:
+    if requested is None:
+        return None
+    requested = requested.strip().lower()
+    if requested == "auto":
+        return "sdpa" if device.type == "cuda" else None
+    return requested
 
-    tokenizer.padding_side = "left"
-    if tokenizer.pad_token_id is None:
-        if tokenizer.eos_token_id is None:
-            raise RuntimeError(
-                f"Tokenizer for {runtime.model_name} has neither pad_token_id nor eos_token_id."
+
+def resolve_batch_size(model_name: str, backend: str, device: str, requested: int | None) -> int:
+    if requested is not None:
+        return max(1, requested)
+
+    # MLX generate() is kept sequential here for compatibility and deterministic screening.
+    if backend == "mlx":
+        return 1
+
+    if device.startswith("cuda"):
+        return 8
+
+    if device == "mps":
+        # Conservative defaults for an M1 Pro 32 GB. Override with PUBMEDQA_BATCH_SIZE if desired.
+        if "0.6B" in model_name or "1B-Instruct" in model_name:
+            return 16
+        if "1.7B" in model_name:
+            return 8
+        if "3B-Instruct" in model_name:
+            return 4
+        if "4B" in model_name or "4b" in model_name:
+            return 2
+        return 2
+
+    return 1
+
+
+def synchronize_device(device: torch.device) -> None:
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
+    elif device.type == "mps" and hasattr(torch, "mps"):
+        torch.mps.synchronize()
+
+
+def empty_device_cache(device: torch.device) -> None:
+    if device.type == "cuda":
+        torch.cuda.empty_cache()
+    elif device.type == "mps" and hasattr(torch, "mps"):
+        torch.mps.empty_cache()
+
+
+def reset_device_memory_stats(device: torch.device) -> None:
+    if device.type == "cuda":
+        torch.cuda.reset_peak_memory_stats(device)
+
+
+def get_device_memory_gb(device: torch.device) -> float | None:
+    if device.type == "cuda":
+        return torch.cuda.max_memory_allocated(device) / (1024**3)
+    if device.type == "mps" and hasattr(torch, "mps") and hasattr(torch.mps, "current_allocated_memory"):
+        # MPS exposes current allocated memory, not the same peak metric as CUDA.
+        return torch.mps.current_allocated_memory() / (1024**3)
+    return None
+
+
+class InferenceBackend(Protocol):
+    backend_name: str
+    resolved_model_name: str
+    tokenizer: Any
+    device_label: str
+    dtype_label: str
+
+    def generate(self, prompts: Sequence[str]) -> list[str]: ...
+    def memory_gb(self) -> float | None: ...
+    def release(self) -> None: ...
+
+
+class TorchBackend:
+    backend_name = "torch"
+
+    def __init__(self, runtime: ModelRuntimeConfig, environment: EnvironmentConfig) -> None:
+        self.runtime = runtime
+        self.environment = environment
+        self.resolved_model_name = runtime.model_name
+        self.device = resolve_torch_device(runtime.device)
+        self.device_label = str(self.device)
+        self.dtype = resolve_torch_dtype(self.device, runtime.dtype)
+        self.dtype_label = str(self.dtype).replace("torch.", "")
+        self.attn_implementation = resolve_attention(self.device, runtime.attn_implementation)
+        self.batch_size = resolve_batch_size(runtime.model_name, "torch", self.device.type, runtime.batch_size)
+
+        common_kwargs: dict[str, Any] = {
+            "token": environment.hf_token,
+            "trust_remote_code": runtime.trust_remote_code,
+        }
+        model_kwargs: dict[str, Any] = {
+            **common_kwargs,
+            "torch_dtype": self.dtype,
+        }
+        if self.attn_implementation is not None:
+            model_kwargs["attn_implementation"] = self.attn_implementation
+
+        if runtime.model_name.startswith("google/gemma-3-"):
+            try:
+                from transformers import AutoModelForMultimodalLM, AutoProcessor
+            except ImportError as exc:
+                raise RuntimeError(
+                    "Gemma 3 requires a recent transformers version with AutoModelForMultimodalLM."
+                ) from exc
+            processor = AutoProcessor.from_pretrained(runtime.model_name, **common_kwargs)
+            tokenizer = getattr(processor, "tokenizer", None)
+            if tokenizer is None:
+                raise RuntimeError("Gemma 3 processor does not expose a tokenizer.")
+            model = AutoModelForMultimodalLM.from_pretrained(runtime.model_name, **model_kwargs)
+        else:
+            tokenizer = AutoTokenizer.from_pretrained(runtime.model_name, **common_kwargs)
+            model = AutoModelForCausalLM.from_pretrained(runtime.model_name, **model_kwargs)
+
+        tokenizer.padding_side = "left"
+        if tokenizer.pad_token_id is None:
+            if tokenizer.eos_token_id is None:
+                raise RuntimeError(
+                    f"Tokenizer for {runtime.model_name} has neither pad_token_id nor eos_token_id."
+                )
+            tokenizer.pad_token = tokenizer.eos_token
+
+        model.to(self.device)
+        model.eval()
+        self.tokenizer = tokenizer
+        self.model = model
+
+        empty_device_cache(self.device)
+        reset_device_memory_stats(self.device)
+        synchronize_device(self.device)
+
+    def generate(self, prompts: Sequence[str]) -> list[str]:
+        outputs: list[str] = []
+        batch_size = max(1, self.batch_size)
+
+        for start in range(0, len(prompts), batch_size):
+            batch_prompts = prompts[start : start + batch_size]
+            tokenize_kwargs: dict[str, Any] = {
+                "return_tensors": "pt",
+                "padding": True,
+                "truncation": self.runtime.max_input_tokens is not None,
+            }
+            if self.runtime.max_input_tokens is not None:
+                tokenize_kwargs["max_length"] = self.runtime.max_input_tokens
+
+            encoded = self.tokenizer(batch_prompts, **tokenize_kwargs)
+            encoded = {
+                key: value.to(self.device)
+                for key, value in encoded.items()
+                if isinstance(value, torch.Tensor)
+            }
+            input_width = encoded["input_ids"].shape[1]
+
+            generation_kwargs: dict[str, Any] = {
+                "max_new_tokens": self.runtime.max_new_tokens,
+                "do_sample": False,
+                "pad_token_id": self.tokenizer.pad_token_id,
+                "use_cache": True,
+            }
+            if self.tokenizer.eos_token_id is not None:
+                generation_kwargs["eos_token_id"] = self.tokenizer.eos_token_id
+
+            with torch.inference_mode():
+                generated = self.model.generate(**encoded, **generation_kwargs)
+
+            response_ids = generated[:, input_width:]
+            outputs.extend(
+                text.strip()
+                for text in self.tokenizer.batch_decode(response_ids, skip_special_tokens=True)
             )
-        tokenizer.pad_token = tokenizer.eos_token
 
-    if not uses_device_map:
-        model.to(device)
-    model.eval()
-    return ModelBundle(tokenizer=tokenizer, model=model, device=device, uses_device_map=uses_device_map)
+        synchronize_device(self.device)
+        return outputs
+
+    def memory_gb(self) -> float | None:
+        return get_device_memory_gb(self.device)
+
+    def release(self) -> None:
+        del self.model
+        del self.tokenizer
+        gc.collect()
+        empty_device_cache(self.device)
+
+
+class MLXBackend:
+    backend_name = "mlx"
+
+    def __init__(self, runtime: ModelRuntimeConfig, environment: EnvironmentConfig) -> None:
+        del environment  # HF auth is handled by the local/HF tooling used by mlx-lm/mlx-vlm.
+        if not _is_apple_silicon():
+            raise RuntimeError("MLX backend requires Apple Silicon.")
+
+        self.runtime = runtime
+        self.resolved_model_name = DEFAULT_MLX_MODEL_MAP.get(runtime.model_name, runtime.model_name)
+        self.device_label = "mlx"
+        self.dtype_label = "model-native"
+        self.batch_size = 1
+        self.is_gemma_vlm = runtime.model_name.startswith("google/gemma-3-")
+
+        if self.is_gemma_vlm:
+            if not _module_available("mlx_vlm"):
+                raise RuntimeError("Gemma 3 MLX evaluation requires mlx-vlm: pip install -U mlx-vlm")
+            from mlx_vlm import load as vlm_load
+
+            self.model, self.processor = vlm_load(self.resolved_model_name)
+            tokenizer = getattr(self.processor, "tokenizer", None)
+            if tokenizer is None:
+                raise RuntimeError("MLX-VLM Gemma processor does not expose a tokenizer.")
+            self.tokenizer = tokenizer
+        else:
+            if not _module_available("mlx_lm"):
+                raise RuntimeError("MLX backend requires mlx-lm: pip install -U mlx-lm")
+            from mlx_lm import load as lm_load
+
+            self.model, self.tokenizer = lm_load(self.resolved_model_name)
+            self.processor = None
+
+    def generate(self, prompts: Sequence[str]) -> list[str]:
+        outputs: list[str] = []
+
+        if self.is_gemma_vlm:
+            from mlx_vlm import generate as vlm_generate
+            from mlx_vlm.prompt_utils import apply_chat_template as vlm_apply_chat_template
+
+            for prompt in prompts:
+                # The common prompt_builder has already built a full text prompt. For Gemma 3
+                # in MLX-VLM we wrap that text using its model-specific text-only template.
+                formatted = vlm_apply_chat_template(
+                    self.processor,
+                    self.model.config,
+                    prompt,
+                    num_images=0,
+                )
+                result = vlm_generate(
+                    self.model,
+                    self.processor,
+                    formatted,
+                    max_tokens=self.runtime.max_new_tokens,
+                    temperature=0.0,
+                    verbose=False,
+                )
+                text = result.text if hasattr(result, "text") else str(result)
+                outputs.append(text.strip())
+            return outputs
+
+        from mlx_lm import generate as lm_generate
+
+        for prompt in prompts:
+            text = lm_generate(
+                self.model,
+                self.tokenizer,
+                prompt=prompt,
+                max_tokens=self.runtime.max_new_tokens,
+                verbose=False,
+            )
+            outputs.append(str(text).strip())
+        return outputs
+
+    def memory_gb(self) -> float | None:
+        try:
+            import mlx.core as mx
+
+            if hasattr(mx, "get_active_memory"):
+                return float(mx.get_active_memory()) / (1024**3)
+        except Exception:
+            pass
+        return None
+
+    def release(self) -> None:
+        if hasattr(self, "model"):
+            del self.model
+        if hasattr(self, "tokenizer"):
+            del self.tokenizer
+        if hasattr(self, "processor"):
+            del self.processor
+        gc.collect()
+        try:
+            import mlx.core as mx
+
+            if hasattr(mx, "clear_cache"):
+                mx.clear_cache()
+        except Exception:
+            pass
+
+
+def create_backend(runtime: ModelRuntimeConfig, environment: EnvironmentConfig) -> InferenceBackend:
+    backend_name = resolve_backend(runtime.backend)
+    if backend_name == "mlx":
+        return MLXBackend(runtime, environment)
+    return TorchBackend(runtime, environment)
 
 
 class PubMedQAEvaluationRunner:
@@ -306,164 +604,51 @@ class PubMedQAEvaluationRunner:
         condition: str,
         output_dir: Path,
         runtime: ModelRuntimeConfig,
-        environment: EnvironmentConfig | None = None,
-        hf_token: str | None = None,
+        environment: EnvironmentConfig,
     ) -> None:
         self.run_id = run_id
         self.model_name = model_name
         self.condition = condition
         self.output_dir = Path(output_dir)
         self.runtime = runtime
-        self.environment = environment or EnvironmentConfig(hf_token=hf_token)
+        self.environment = environment
 
     @property
     def title(self) -> str:
         return build_title(self.run_id, self.model_name, self.condition)
 
-    def load_model(self) -> tuple[Any, Any]:
-        bundle = load_model_bundle(self.runtime, self.environment)
-        return bundle.tokenizer, bundle.model
-
-    def load_bundle(self) -> ModelBundle:
-        return load_model_bundle(self.runtime, self.environment)
-
-    def load_local_jsonl(self, path: Path, expected_size: int | None = None) -> list[PubMedQAExample]:
-        return load_local_jsonl(path, expected_size)
-
-    def evaluate(
-        self,
-        examples: Sequence[PubMedQAExample],
-        *,
-        tokenizer: Any | None = None,
-        model: Any | None = None,
-    ) -> tuple[list[EvalItem], EvalSummary]:
-        if tokenizer is None or model is None:
-            bundle = self.load_bundle()
-            owns_bundle = True
-        else:
-            bundle = ModelBundle(
-                tokenizer=tokenizer,
-                model=model,
-                device=resolve_device(self.runtime.use_cuda),
-                uses_device_map=bool(self.runtime.device_map),
-            )
-            owns_bundle = False
-
-        if bundle.device.type == "cuda" and not bundle.uses_device_map:
-            torch.cuda.empty_cache()
-            torch.cuda.reset_peak_memory_stats(bundle.device)
-            torch.cuda.synchronize(bundle.device)
-
+    def evaluate(self, examples: Sequence[PubMedQAExample]) -> tuple[list[EvalItem], EvalSummary]:
+        backend = create_backend(self.runtime, self.environment)
         started_at = current_time_iso()
         started = time.perf_counter()
-        items = self._generate_all(examples, bundle, start_time=started_at)
-        if bundle.device.type == "cuda" and not bundle.uses_device_map:
-            torch.cuda.synchronize(bundle.device)
-        elapsed = time.perf_counter() - started
-        ended_at = current_time_iso()
 
-        title = self.title
-        items = [
-            EvalItem(
-                **{
-                    **asdict(item),
-                    "title": title,
-                    "end_time": ended_at,
-                }
-            )
-            for item in items
-        ]
+        try:
+            prompts = [build_tokenizer_prompt(backend.tokenizer, example) for example in examples]
+            response_texts = backend.generate(prompts)
+            elapsed = time.perf_counter() - started
+            ended_at = current_time_iso()
 
-        gold = [example.final_decision for example in examples]
-        predicted = [item.predicted_label for item in items]
-        num_parsed = sum(label in VALID_LABELS for label in predicted)
-        peak_gb: float | None = None
-        if bundle.device.type == "cuda" and not bundle.uses_device_map:
-            peak_gb = torch.cuda.max_memory_allocated(bundle.device) / (1024**3)
+            if len(response_texts) != len(examples):
+                raise RuntimeError(
+                    f"Backend returned {len(response_texts)} responses for {len(examples)} examples."
+                )
 
-        summary = EvalSummary(
-            run_id=self.run_id,
-            model_name=self.model_name,
-            condition=self.condition,
-            title=title,
-            start_time=started_at,
-            end_time=ended_at,
-            elapsed_seconds=elapsed,
-            num_examples=len(examples),
-            num_parsed=num_parsed,
-            accuracy=accuracy(gold, predicted),
-            macro_f1=macro_f1(gold, predicted),
-            invalid_rate=1.0 - _safe_rate(num_parsed, len(examples)),
-            examples_per_second=(len(examples) / elapsed) if elapsed > 0 else 0.0,
-            device=str(bundle.device),
-            dtype=str(self.runtime.torch_dtype).replace("torch.", ""),
-            peak_cuda_memory_gb=peak_gb,
-        )
-
-        if owns_bundle:
-            self.release_bundle(bundle)
-        return items, summary
-
-    def save_results(self, items: Sequence[EvalItem], summary: EvalSummary) -> Path:
-        return save_results(self.output_dir, items, summary)
-
-    def _generate_all(
-        self,
-        examples: Sequence[PubMedQAExample],
-        bundle: ModelBundle,
-        *,
-        start_time: str,
-    ) -> list[EvalItem]:
-        items: list[EvalItem] = []
-        batch_size = max(1, self.runtime.batch_size)
-
-        for batch_start in range(0, len(examples), batch_size):
-            batch = examples[batch_start : batch_start + batch_size]
-            prompts = [build_tokenizer_prompt(bundle.tokenizer, example) for example in batch]
-
-            tokenize_kwargs: dict[str, Any] = {
-                "return_tensors": "pt",
-                "padding": True,
-                "truncation": self.runtime.max_input_tokens is not None,
-            }
-            if self.runtime.max_input_tokens is not None:
-                tokenize_kwargs["max_length"] = self.runtime.max_input_tokens
-
-            encoded = bundle.tokenizer(prompts, **tokenize_kwargs)
-            encoded = {
-                key: value.to(bundle.device, non_blocking=True)
-                for key, value in encoded.items()
-                if isinstance(value, torch.Tensor)
-            }
-            input_width = encoded["input_ids"].shape[1]
-
-            generation_kwargs: dict[str, Any] = {
-                "max_new_tokens": self.runtime.max_new_tokens,
-                "do_sample": False,
-                "pad_token_id": bundle.tokenizer.pad_token_id,
-                "use_cache": True,
-            }
-            if bundle.tokenizer.eos_token_id is not None:
-                generation_kwargs["eos_token_id"] = bundle.tokenizer.eos_token_id
-
-            with torch.inference_mode():
-                generated = bundle.model.generate(**encoded, **generation_kwargs)
-
-            response_ids = generated[:, input_width:]
-            response_texts = bundle.tokenizer.batch_decode(response_ids, skip_special_tokens=True)
-
-            for offset, (example, prompt, text) in enumerate(zip(batch, prompts, response_texts)):
-                response_text = text.strip()
+            items: list[EvalItem] = []
+            for index, (example, prompt, response_text) in enumerate(
+                zip(examples, prompts, response_texts)
+            ):
                 parsed = parse_pubmedqa_answer(response_text, strict=self.runtime.strict_parser)
                 items.append(
                     EvalItem(
-                        index=batch_start + offset,
+                        index=index,
                         run_id=self.run_id,
                         model_name=self.model_name,
+                        resolved_model_name=backend.resolved_model_name,
+                        backend=backend.backend_name,
                         condition=self.condition,
                         title=self.title,
-                        start_time=start_time,
-                        end_time="",
+                        start_time=started_at,
+                        end_time=ended_at,
                         pubid=example.pubid,
                         question=example.question,
                         context=list(example.contexts),
@@ -475,15 +660,37 @@ class PubMedQAEvaluationRunner:
                         parse_error=parsed.error,
                     )
                 )
-        return items
 
-    @staticmethod
-    def release_bundle(bundle: ModelBundle) -> None:
-        del bundle.model
-        del bundle.tokenizer
-        gc.collect()
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+            gold = [example.final_decision for example in examples]
+            predicted = [item.predicted_label for item in items]
+            num_parsed = sum(label in VALID_LABELS for label in predicted)
+
+            summary = EvalSummary(
+                run_id=self.run_id,
+                model_name=self.model_name,
+                resolved_model_name=backend.resolved_model_name,
+                backend=backend.backend_name,
+                condition=self.condition,
+                title=self.title,
+                start_time=started_at,
+                end_time=ended_at,
+                elapsed_seconds=elapsed,
+                num_examples=len(examples),
+                num_parsed=num_parsed,
+                accuracy=accuracy(gold, predicted),
+                macro_f1=macro_f1(gold, predicted),
+                invalid_rate=1.0 - _safe_rate(num_parsed, len(examples)),
+                examples_per_second=(len(examples) / elapsed) if elapsed > 0 else 0.0,
+                device=backend.device_label,
+                dtype=backend.dtype_label,
+                device_memory_gb=backend.memory_gb(),
+            )
+            return items, summary
+        finally:
+            backend.release()
+
+    def save_results(self, items: Sequence[EvalItem], summary: EvalSummary) -> Path:
+        return save_results(self.output_dir, items, summary)
 
 
 def build_title(run_id: str, model_name: str, condition: str) -> str:
@@ -525,6 +732,8 @@ def save_results(output_dir: Path, items: Sequence[EvalItem], summary: EvalSumma
         {
             "run_id": summary.run_id,
             "model_name": summary.model_name,
+            "resolved_model_name": summary.resolved_model_name,
+            "backend": summary.backend,
             "condition": summary.condition,
             "title": summary.title,
             "start_time": summary.start_time,
@@ -565,39 +774,58 @@ def configure_parallelism(cpu_threads: int) -> None:
         pass
 
 
+def print_runtime(runtime: ModelRuntimeConfig) -> None:
+    backend = resolve_backend(runtime.backend)
+    print(f"[runtime] backend={backend}")
+    print(f"[runtime] apple_silicon={_is_apple_silicon()}")
+    print(f"[runtime] cuda_available={torch.cuda.is_available()}")
+    print(f"[runtime] mps_available={torch.backends.mps.is_available()}")
+
+    if backend == "torch":
+        device = resolve_torch_device(runtime.device)
+        dtype = resolve_torch_dtype(device, runtime.dtype)
+        attn = resolve_attention(device, runtime.attn_implementation)
+        print(f"[runtime] device={device}")
+        if device.type == "cuda":
+            print(f"[runtime] gpu={torch.cuda.get_device_name(0)}")
+        print(f"[runtime] dtype={dtype}")
+        print(f"[runtime] attention={attn or 'model-default'}")
+    else:
+        print("[runtime] device=mlx")
+        print("[runtime] dtype=model-native")
+
+    print(f"[runtime] cpu_threads={runtime.cpu_threads}")
+
+
 def main() -> None:
     config = CliBatchConfig.from_env()
     configure_parallelism(config.runtime_defaults.cpu_threads)
-
-    device = resolve_device(config.runtime_defaults.use_cuda)
-    print(f"[runtime] device={device}")
-    print(f"[runtime] cuda_available={torch.cuda.is_available()}")
-    if torch.cuda.is_available():
-        print(f"[runtime] gpu={torch.cuda.get_device_name(0)}")
-    print(f"[runtime] dtype={config.runtime_defaults.torch_dtype}")
-    print(f"[runtime] batch_size={config.runtime_defaults.batch_size}")
-    print(f"[runtime] cpu_threads={config.runtime_defaults.cpu_threads}")
+    print_runtime(config.runtime_defaults)
     print(f"[runtime] hf_token_set={bool(config.environment.hf_token)}")
 
     examples = load_local_jsonl(config.test_path, config.expected_test_size)
-    print(f"[dataset] test_path={config.test_path}")
-    print(f"[dataset] num_test_examples={len(examples)}")
+    print(f"[dataset] path={config.test_path}")
+    print(f"[dataset] num_examples={len(examples)}")
 
     summaries: list[dict[str, Any]] = []
+
+    # Models are intentionally evaluated sequentially. Each backend performs its own
+    # device-level parallelism/batching, avoiding cross-model memory contention.
     for model_name in config.models:
-        runtime = ModelRuntimeConfig(
-            model_name=model_name,
-            torch_dtype=config.runtime_defaults.torch_dtype,
-            device_map=config.runtime_defaults.device_map,
-            max_new_tokens=config.runtime_defaults.max_new_tokens,
-            batch_size=config.runtime_defaults.batch_size,
-            max_input_tokens=config.runtime_defaults.max_input_tokens,
-            use_cuda=config.runtime_defaults.use_cuda,
-            attn_implementation=config.runtime_defaults.attn_implementation,
-            trust_remote_code=config.runtime_defaults.trust_remote_code,
-            cpu_threads=config.runtime_defaults.cpu_threads,
-            strict_parser=config.runtime_defaults.strict_parser,
-        )
+        runtime = replace(config.runtime_defaults, model_name=model_name)
+        resolved_backend = resolve_backend(runtime.backend)
+
+        if resolved_backend == "torch":
+            device = resolve_torch_device(runtime.device)
+            batch_size = resolve_batch_size(model_name, "torch", device.type, runtime.batch_size)
+        else:
+            batch_size = 1
+
+        print(f"\n[model] evaluating {model_name}")
+        print(f"[model] backend={resolved_backend} batch_size={batch_size}")
+        if resolved_backend == "mlx":
+            print(f"[model] resolved_model={DEFAULT_MLX_MODEL_MAP.get(model_name, model_name)}")
+
         runner = PubMedQAEvaluationRunner(
             run_id=config.run_id,
             model_name=model_name,
@@ -606,16 +834,17 @@ def main() -> None:
             runtime=runtime,
             environment=config.environment,
         )
-        print(f"\n[model] evaluating {model_name}")
+
         items, summary = runner.evaluate(examples)
         run_dir = runner.save_results(items, summary)
         summaries.append(asdict(summary))
+
         print(
-            f"[result] title={summary.title} "
-            f"acc={summary.accuracy:.4f} "
+            f"[result] acc={summary.accuracy:.4f} "
             f"macro_f1={summary.macro_f1:.4f} "
             f"invalid={summary.invalid_rate:.4f} "
             f"time={summary.elapsed_seconds:.1f}s "
+            f"examples/s={summary.examples_per_second:.2f} "
             f"saved={run_dir}"
         )
 
