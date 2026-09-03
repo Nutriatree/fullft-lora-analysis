@@ -1,0 +1,14 @@
+torch>=2.2
+transformers>=4.44
+datasets>=2.20
+accelerate>=0.33
+peft>=0.12
+evaluate>=0.4
+scikit-learn>=1.4
+pandas>=2.2
+numpy>=1.26
+tqdm>=4.66
+safetensors>=0.4
+sentencepiece>=0.2
+protobuf>=4.25
+tensorboard>=2.16

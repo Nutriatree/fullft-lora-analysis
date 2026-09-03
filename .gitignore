@@ -203,6 +203,9 @@ cython_debug/
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
 
+# Generated PubMedQA splits
+data/processed/
+
 # Ruff stuff:
 .ruff_cache/
 
@@ -216,3 +219,5 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+/outputs/**
+/pyproject.toml
