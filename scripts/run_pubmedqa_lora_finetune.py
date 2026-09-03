@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run torch-based full fine-tuning for PubMedQA."""
+"""Run torch-based LoRA fine-tuning for PubMedQA."""
 
 from __future__ import annotations
 
@@ -7,11 +7,11 @@ import argparse
 from pathlib import Path
 
 from pubmedqa.evaluation import EnvironmentConfig
-from pubmedqa.full_finetune import (
+from pubmedqa.lora_finetune import (
     DEFAULT_ATTN_IMPLEMENTATION,
     DEFAULT_CHECKPOINT_PERCENTS,
-    DEFAULT_CPU_THREADS,
     DEFAULT_CONDITION,
+    DEFAULT_CPU_THREADS,
     DEFAULT_DATA_FRACTION,
     DEFAULT_DATA_REGIME,
     DEFAULT_DEVICE,
@@ -20,16 +20,20 @@ from pubmedqa.full_finetune import (
     DEFAULT_EVAL_BATCH_SIZE,
     DEFAULT_FSDP_CPU_OFFLOAD,
     DEFAULT_GRAD_ACCUM_STEPS,
-    DEFAULT_LEARNING_RATE,
     DEFAULT_LAYER_SCOPE,
+    DEFAULT_LEARNING_RATE,
     DEFAULT_LOG_EVERY_STEPS,
     DEFAULT_LORA_ALPHA,
+    DEFAULT_LORA_BIAS,
     DEFAULT_LORA_DROPOUT,
+    DEFAULT_LORA_MERGE_FOR_EVAL,
     DEFAULT_LORA_RANK,
+    DEFAULT_LORA_TARGET_MODULES,
+    DEFAULT_LORA_TASK_TYPE,
     DEFAULT_MAX_GRAD_NORM,
     DEFAULT_MAX_NEW_TOKENS,
-    DEFAULT_MODEL_NAME,
     DEFAULT_METHOD_NAME,
+    DEFAULT_MODEL_NAME,
     DEFAULT_NOTES,
     DEFAULT_NUM_EPOCHS,
     DEFAULT_NUM_WORKERS,
@@ -40,8 +44,10 @@ from pubmedqa.full_finetune import (
     DEFAULT_TRAIN_BATCH_SIZE,
     DEFAULT_WARMUP_RATIO,
     DEFAULT_WEIGHT_DECAY,
-    FullFineTuneConfig,
-    PubMedQAFullFineTuner,
+    LoRAFineTuneConfig,
+    PubMedQALoRAFineTuner,
+    _load_target_layers,
+    _normalize_lora_target_modules,
     _resolve_dtype,
 )
 
@@ -87,12 +93,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--gradient-checkpointing", action="store_true")
     parser.add_argument("--no-save-optimizer-state", action="store_true")
     parser.add_argument("--strict-parser", action="store_true")
-    parser.add_argument("--target-modules", default="")
+    parser.add_argument("--target-modules", default=",".join(DEFAULT_LORA_TARGET_MODULES))
     parser.add_argument("--target-layers", default="")
+    parser.add_argument("--target-layers-file", default=None)
     parser.add_argument("--layer-scope", default=DEFAULT_LAYER_SCOPE)
     parser.add_argument("--lora-rank", type=int, default=DEFAULT_LORA_RANK)
     parser.add_argument("--lora-alpha", type=float, default=DEFAULT_LORA_ALPHA)
     parser.add_argument("--lora-dropout", type=float, default=DEFAULT_LORA_DROPOUT)
+    parser.add_argument("--lora-bias", default=DEFAULT_LORA_BIAS)
+    parser.add_argument("--lora-task-type", default=DEFAULT_LORA_TASK_TYPE)
+    parser.add_argument("--modules-to-save", default="")
+    parser.add_argument("--merge-for-eval", action="store_true", default=DEFAULT_LORA_MERGE_FOR_EVAL)
     parser.add_argument("--notes", default=DEFAULT_NOTES)
     parser.add_argument("--no-track-layerwise-updates", action="store_true")
     parser.add_argument("--checkpoint-percents", default="25,50,75,100")
@@ -102,7 +113,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    config = FullFineTuneConfig(
+    config = LoRAFineTuneConfig(
         run_id=args.run_id,
         run_tag=args.run_tag,
         method_name=args.method_name,
@@ -140,12 +151,18 @@ def main() -> None:
         save_optimizer_state=DEFAULT_SAVE_OPTIMIZER_STATE and not args.no_save_optimizer_state,
         strict_parser=args.strict_parser,
         seed=args.seed,
-        target_modules=tuple(part.strip() for part in args.target_modules.split(",") if part.strip()),
-        target_layers=tuple(int(part.strip()) for part in args.target_layers.split(",") if part.strip()),
+        target_modules=_normalize_lora_target_modules(
+            tuple(part.strip() for part in args.target_modules.split(",") if part.strip())
+        ),
+        target_layers=_load_target_layers(args.target_layers, args.target_layers_file),
         layer_scope=args.layer_scope,
         lora_rank=args.lora_rank,
         lora_alpha=args.lora_alpha,
         lora_dropout=args.lora_dropout,
+        lora_bias=args.lora_bias,
+        lora_task_type=args.lora_task_type,
+        modules_to_save=tuple(part.strip() for part in args.modules_to_save.split(",") if part.strip()),
+        merge_for_eval=args.merge_for_eval,
         notes=args.notes,
         track_layerwise_updates=not args.no_track_layerwise_updates,
         checkpoint_percents=tuple(
@@ -154,9 +171,8 @@ def main() -> None:
         distributed_mode=args.distributed_mode,
         fsdp_cpu_offload=args.fsdp_cpu_offload,
     )
-    trainer = PubMedQAFullFineTuner(config, EnvironmentConfig(hf_token=args.hf_token))
+    trainer = PubMedQALoRAFineTuner(config, EnvironmentConfig(hf_token=args.hf_token))
     summary = trainer.run()
-
     print(summary.title)
     print(f"Best checkpoint: {summary.best_checkpoint_dir}")
     print(f"Best validation ACC: {summary.best_validation_accuracy:.4f}")

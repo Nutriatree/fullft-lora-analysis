@@ -12,9 +12,23 @@ from pathlib import Path
 from typing import Any, Sequence
 
 import torch
+import torch.distributed as dist
 from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader, Dataset
+from torch.utils.data.distributed import DistributedSampler
 from transformers import AutoModelForCausalLM, AutoTokenizer, get_linear_schedule_with_warmup
+
+try:
+    from torch.distributed.fsdp import (
+        CPUOffload,
+        FullStateDictConfig,
+        FullyShardedDataParallel as FSDP,
+        MixedPrecision,
+        ShardingStrategy,
+        StateDictType,
+    )
+except ImportError:  # pragma: no cover - available in supported CUDA PyTorch builds.
+    FSDP = None  # type: ignore[assignment,misc]
 
 from pubmedqa.answer_parser import parse_pubmedqa_answer
 from pubmedqa.evaluation import (
@@ -79,6 +93,8 @@ ENV_LORA_DROPOUT = "PUBMEDQA_LORA_DROPOUT"
 ENV_NOTES = "PUBMEDQA_NOTES"
 ENV_TRACK_LAYERWISE_UPDATES = "PUBMEDQA_TRACK_LAYERWISE_UPDATES"
 ENV_CHECKPOINT_PERCENTS = "PUBMEDQA_CHECKPOINT_PERCENTS"
+ENV_DISTRIBUTED_MODE = "PUBMEDQA_DISTRIBUTED_MODE"
+ENV_FSDP_CPU_OFFLOAD = "PUBMEDQA_FSDP_CPU_OFFLOAD"
 
 DEFAULT_MODEL_NAME = "meta-llama/Llama-3.2-3B-Instruct"
 DEFAULT_CONDITION = "full-ft"
@@ -117,6 +133,8 @@ DEFAULT_LORA_DROPOUT: float | None = None
 DEFAULT_NOTES: str | None = None
 DEFAULT_TRACK_LAYERWISE_UPDATES = True
 DEFAULT_CHECKPOINT_PERCENTS: tuple[int, ...] = (25, 50, 75, 100)
+DEFAULT_DISTRIBUTED_MODE = "single"  # single | fsdp
+DEFAULT_FSDP_CPU_OFFLOAD = False
 DEFAULT_TRACKED_MODULE_SUFFIXES: dict[str, tuple[str, str]] = {
     "self_attn.q_proj.weight": ("Q", "attention"),
     "self_attn.k_proj.weight": ("K", "attention"),
@@ -375,6 +393,8 @@ class FullFineTuneConfig:
     notes: str | None
     track_layerwise_updates: bool
     checkpoint_percents: tuple[int, ...]
+    distributed_mode: str = DEFAULT_DISTRIBUTED_MODE
+    fsdp_cpu_offload: bool = DEFAULT_FSDP_CPU_OFFLOAD
 
 
 @dataclass(frozen=True)
@@ -453,6 +473,8 @@ class FullFineTuneCliConfig:
             checkpoint_percents=_normalize_checkpoint_percents(
                 _env_int_tuple(ENV_CHECKPOINT_PERCENTS) or DEFAULT_CHECKPOINT_PERCENTS
             ),
+            distributed_mode=os.getenv(ENV_DISTRIBUTED_MODE, DEFAULT_DISTRIBUTED_MODE),
+            fsdp_cpu_offload=_env_bool(ENV_FSDP_CPU_OFFLOAD, DEFAULT_FSDP_CPU_OFFLOAD),
         )
         return cls(config=config, environment=EnvironmentConfig.from_env())
 
@@ -706,6 +728,10 @@ class PubMedQAFullFineTuner:
         self.config = config
         self.environment = environment
         self.device = _resolve_device(config.device)
+        self.rank = 0
+        self.local_rank = 0
+        self.world_size = 1
+        self._distributed_initialized_here = False
         self.output_root = (
             config.output_dir / config.run_id / safe_name(config.model_name) / safe_name(config.condition)
         )
@@ -720,6 +746,7 @@ class PubMedQAFullFineTuner:
         return f"{self.config.run_id}__{safe_name(self.config.model_name)}__{safe_name(self.config.condition)}"
 
     def run(self) -> TrainingSummary:
+        self._initialize_runtime_topology()
         self._prepare_output_dirs()
         self._set_runtime()
 
@@ -733,6 +760,8 @@ class PubMedQAFullFineTuner:
             if hasattr(model.config, "use_cache"):
                 model.config.use_cache = False
         base_references = self.capture_layerwise_references(model)
+        total_params, trainable_params, trainable_ratio = _count_parameters(model)
+        model = self.wrap_model_for_training(model)
 
         train_examples = self._limit_examples(
             load_local_jsonl(self.config.train_path), self.config.max_train_examples
@@ -749,7 +778,6 @@ class PubMedQAFullFineTuner:
         train_loader = self.build_train_dataloader(train_dataset, tokenizer)
         validation_loader = self.build_eval_dataloader(validation_dataset, tokenizer)
 
-        total_params, trainable_params, trainable_ratio = _count_parameters(model)
         loaded_memory = _memory_snapshot(self.device)
 
         optimizer = torch.optim.AdamW(
@@ -771,14 +799,16 @@ class PubMedQAFullFineTuner:
         )
         next_schedule_index = 0
 
-        write_json(
-            self.output_root / "config.json",
-            {
-                **asdict(self.config),
-                "dtype": str(self.config.dtype).replace("torch.", ""),
-                "environment": {"hf_token_set": bool(self.environment.hf_token)},
-            },
-        )
+        if self.is_main_process:
+            write_json(
+                self.output_root / "config.json",
+                {
+                    **asdict(self.config),
+                    "dtype": str(self.config.dtype).replace("torch.", ""),
+                    "environment": {"hf_token_set": bool(self.environment.hf_token)},
+                    "distributed": self._distributed_metadata(),
+                },
+            )
 
         if self.device.type == "cuda":
             torch.cuda.empty_cache()
@@ -837,14 +867,21 @@ class PubMedQAFullFineTuner:
         previous_validation_split_name = "validation_reference"
 
         for epoch in range(1, self.config.num_epochs + 1):
+            if isinstance(train_loader.sampler, DistributedSampler):
+                train_loader.sampler.set_epoch(epoch)
             model.train()
             epoch_loss_total = 0.0
             epoch_loss_count = 0
+            optimizer_step_started = time.perf_counter()
+            accumulated_batch_size = 0
+            accumulated_input_tokens = 0
+            accumulated_target_tokens = 0
+            accumulated_step_loss = 0.0
+            accumulated_step_loss_count = 0
             optimizer.zero_grad(set_to_none=True)
 
             for batch_index, batch in enumerate(train_loader, start=1):
                 batch = self._move_batch_to_device(batch)
-                step_start = time.perf_counter()
 
                 with self._autocast_context():
                     outputs = model(**batch)
@@ -856,6 +893,16 @@ class PubMedQAFullFineTuner:
                 epoch_loss_count += 1
                 cumulative_train_loss_total += float(raw_loss.detach().item())
                 cumulative_train_loss_count += 1
+                micro_batch_size = int(batch["input_ids"].shape[0])
+                micro_input_tokens = int(batch["attention_mask"].sum().item())
+                micro_target_tokens = int((batch["labels"] != -100).sum().item())
+                accumulated_batch_size += micro_batch_size
+                accumulated_input_tokens += micro_input_tokens
+                accumulated_target_tokens += micro_target_tokens
+                accumulated_step_loss += float(raw_loss.detach().item())
+                accumulated_step_loss_count += 1
+                total_seen_samples += micro_batch_size
+                total_seen_tokens += micro_input_tokens
 
                 should_step = (
                     batch_index % self.config.gradient_accumulation_steps == 0
@@ -864,38 +911,45 @@ class PubMedQAFullFineTuner:
                 if not should_step:
                     continue
 
-                gradient_norm = float(
-                    clip_grad_norm_(model.parameters(), self.config.max_grad_norm).detach().item()
-                )
+                if self._is_fsdp_model(model):
+                    gradient_norm = float(model.clip_grad_norm_(self.config.max_grad_norm).detach().item())
+                else:
+                    gradient_norm = float(
+                        clip_grad_norm_(model.parameters(), self.config.max_grad_norm).detach().item()
+                    )
                 optimizer.step()
                 scheduler.step()
                 optimizer.zero_grad(set_to_none=True)
                 global_step += 1
 
-                step_elapsed = time.perf_counter() - step_start
-                batch_size = int(batch["input_ids"].shape[0])
-                input_tokens = int(batch["attention_mask"].sum().item())
-                target_tokens = int((batch["labels"] != -100).sum().item())
-                total_seen_samples += batch_size
-                total_seen_tokens += input_tokens
+                step_elapsed = time.perf_counter() - optimizer_step_started
 
                 step_log = TrainStepLog(
                     global_step=global_step,
                     epoch=epoch,
                     step_in_epoch=batch_index,
                     learning_rate=float(scheduler.get_last_lr()[0]),
-                    train_loss=float(raw_loss.detach().item()),
+                    train_loss=accumulated_step_loss / max(1, accumulated_step_loss_count),
                     gradient_norm=gradient_norm,
-                    batch_size=batch_size,
-                    input_tokens=input_tokens,
-                    target_tokens=target_tokens,
+                    batch_size=accumulated_batch_size,
+                    input_tokens=accumulated_input_tokens,
+                    target_tokens=accumulated_target_tokens,
                     step_time_seconds=step_elapsed,
-                    samples_per_second=(batch_size / step_elapsed) if step_elapsed > 0 else 0.0,
-                    tokens_per_second=(input_tokens / step_elapsed) if step_elapsed > 0 else 0.0,
+                    samples_per_second=(accumulated_batch_size / step_elapsed) if step_elapsed > 0 else 0.0,
+                    tokens_per_second=(accumulated_input_tokens / step_elapsed) if step_elapsed > 0 else 0.0,
                 )
                 step_logs.append(step_log)
+                accumulated_batch_size = 0
+                accumulated_input_tokens = 0
+                accumulated_target_tokens = 0
+                accumulated_step_loss = 0.0
+                accumulated_step_loss_count = 0
 
-                if self.config.log_every_steps > 0 and global_step % self.config.log_every_steps == 0:
+                if (
+                    self.is_main_process
+                    and self.config.log_every_steps > 0
+                    and global_step % self.config.log_every_steps == 0
+                ):
                     write_jsonl(
                         self.logs_dir / "train_steps.jsonl",
                         (asdict(record) for record in step_logs),
@@ -916,7 +970,11 @@ class PubMedQAFullFineTuner:
                     )
                     validation_metrics = validation_result.metrics
                     last_validation_metrics = validation_metrics
-                    if previous_validation_predictions is not None and previous_validation_split_name is not None:
+                    if (
+                        self.is_main_process
+                        and previous_validation_predictions is not None
+                        and previous_validation_split_name is not None
+                    ):
                         self.write_prediction_transition_artifacts(
                             from_split=previous_validation_split_name,
                             to_split=split_name,
@@ -954,6 +1012,10 @@ class PubMedQAFullFineTuner:
                         best_checkpoint = checkpoint_record
                     next_schedule_index += 1
 
+                # Checkpoint evaluation and serialization are intentionally
+                # excluded from the next optimizer-step throughput interval.
+                optimizer_step_started = time.perf_counter()
+
             train_loss = epoch_loss_total / max(1, epoch_loss_count)
             validation_metrics: EvalMetrics | None = None
             if (
@@ -970,7 +1032,11 @@ class PubMedQAFullFineTuner:
                 )
                 validation_metrics = validation_result.metrics
                 last_validation_metrics = validation_metrics
-                if previous_validation_predictions is not None and previous_validation_split_name is not None:
+                if (
+                    self.is_main_process
+                    and previous_validation_predictions is not None
+                    and previous_validation_split_name is not None
+                ):
                     self.write_prediction_transition_artifacts(
                         from_split=previous_validation_split_name,
                         to_split=split_name,
@@ -1007,15 +1073,16 @@ class PubMedQAFullFineTuner:
                     best_checkpoint = checkpoint_record
                 saved_checkpoint_steps.add(global_step)
 
-            write_jsonl(
-                self.logs_dir / "train_steps.jsonl",
-                (asdict(record) for record in step_logs),
-            )
-            if checkpoint_records:
+            if self.is_main_process:
                 write_jsonl(
-                    self.logs_dir / "checkpoints.jsonl",
-                    (asdict(record) for record in checkpoint_records),
+                    self.logs_dir / "train_steps.jsonl",
+                    (asdict(record) for record in step_logs),
                 )
+                if checkpoint_records:
+                    write_jsonl(
+                        self.logs_dir / "checkpoints.jsonl",
+                        (asdict(record) for record in checkpoint_records),
+                    )
 
         if last_validation_metrics is None:
             final_validation_result = self.evaluate_split(
@@ -1026,7 +1093,11 @@ class PubMedQAFullFineTuner:
                 split_name="validation",
             )
             last_validation_metrics = final_validation_result.metrics
-            if previous_validation_predictions is not None and previous_validation_split_name is not None:
+            if (
+                self.is_main_process
+                and previous_validation_predictions is not None
+                and previous_validation_split_name is not None
+            ):
                 self.write_prediction_transition_artifacts(
                     from_split=previous_validation_split_name,
                     to_split="validation",
@@ -1056,10 +1127,11 @@ class PubMedQAFullFineTuner:
             )
             checkpoint_records.append(checkpoint_record)
             best_checkpoint = checkpoint_record
-            write_jsonl(
-                self.logs_dir / "checkpoints.jsonl",
-                (asdict(record) for record in checkpoint_records),
-            )
+            if self.is_main_process:
+                write_jsonl(
+                    self.logs_dir / "checkpoints.jsonl",
+                    (asdict(record) for record in checkpoint_records),
+                )
 
         final_validation_metrics = last_validation_metrics
         self.release_model(model)
@@ -1069,25 +1141,37 @@ class PubMedQAFullFineTuner:
 
         test_metrics: EvalMetrics | None = None
         if test_examples:
-            best_tokenizer, best_model = self.load_model_and_tokenizer(best_checkpoint.checkpoint_dir)
-            best_test_dataset = PubMedQASupervisedDataset(test_examples, best_tokenizer)
-            best_test_loader = self.build_eval_dataloader(best_test_dataset, best_tokenizer)
-            test_result = self.evaluate_split(
-                model=best_model,
-                tokenizer=best_tokenizer,
-                supervised_loader=best_test_loader,
-                examples=test_examples,
-                split_name="test",
-            )
-            test_metrics = test_result.metrics
-            self.release_model(best_model)
+            if not self.fsdp_enabled or self.is_main_process:
+                best_tokenizer, best_model = self.load_model_and_tokenizer(best_checkpoint.checkpoint_dir)
+                best_test_dataset = PubMedQASupervisedDataset(test_examples, best_tokenizer)
+                best_test_loader = self.build_eval_dataloader(best_test_dataset, best_tokenizer)
+                test_result = self.evaluate_split(
+                    model=best_model,
+                    tokenizer=best_tokenizer,
+                    supervised_loader=best_test_loader,
+                    examples=test_examples,
+                    split_name="test",
+                )
+                test_metrics = test_result.metrics
+                self.release_model(best_model)
+            if self.fsdp_enabled:
+                payload: list[Any] = [test_metrics]
+                dist.broadcast_object_list(payload, src=0)
+                test_metrics = payload[0]
 
         end_time = current_time_iso()
         total_elapsed = time.perf_counter() - run_started
+        total_seen_samples = self._all_reduce_int(total_seen_samples)
+        total_seen_tokens = self._all_reduce_int(total_seen_tokens)
         total_checkpoint_size = sum(record.checkpoint_size_bytes for record in checkpoint_records)
         final_checkpoint_size = checkpoint_records[-1].checkpoint_size_bytes
         best_checkpoint_size = best_checkpoint.checkpoint_size_bytes
         peak_train_memory = _memory_snapshot(self.device)
+        distributed_runtime = self._collect_distributed_runtime(
+            idle_memory=idle_memory,
+            loaded_memory=loaded_memory,
+            peak_train_memory=peak_train_memory,
+        )
 
         summary = TrainingSummary(
             run_id=self.config.run_id,
@@ -1156,38 +1240,41 @@ class PubMedQAFullFineTuner:
             inference_peak_reserved_gb=final_validation_metrics.peak_reserved_gb,
         )
 
-        write_json(self.output_root / "summary.json", asdict(summary))
-        write_json(
-            self.output_root / "run_metadata.json",
-            {
-                "run_id": self.config.run_id,
-                "run_tag": self.config.run_tag,
-                "method_name": self.config.method_name,
-                "condition": self.config.condition,
-                "model_name": self.config.model_name,
-                "data_regime": self.config.data_regime,
-                "data_fraction": self.config.data_fraction,
-                "target_modules": list(self.config.target_modules),
-                "target_layers": list(self.config.target_layers),
-                "layer_scope": self.config.layer_scope,
-                "lora_rank": self.config.lora_rank,
-                "lora_alpha": self.config.lora_alpha,
-                "lora_dropout": self.config.lora_dropout,
-                "notes": self.config.notes,
-                "track_layerwise_updates": self.config.track_layerwise_updates,
-                "created_at": current_time_iso(),
-            },
-        )
-        self.write_analysis_groups(summary, checkpoint_records, step_logs)
-        write_json(
-            self.output_root / "artifacts.json",
-            {
-                "checkpoints": [asdict(record) for record in checkpoint_records],
-                "best_checkpoint": asdict(best_checkpoint),
-            },
-        )
-        if test_metrics is not None:
-            write_json(self.evaluations_dir / "test_summary.json", asdict(test_metrics))
+        if self.is_main_process:
+            write_json(self.output_root / "summary.json", asdict(summary))
+            write_json(self.output_root / "distributed_runtime.json", distributed_runtime)
+            write_json(
+                self.output_root / "run_metadata.json",
+                {
+                    "run_id": self.config.run_id,
+                    "run_tag": self.config.run_tag,
+                    "method_name": self.config.method_name,
+                    "condition": self.config.condition,
+                    "model_name": self.config.model_name,
+                    "data_regime": self.config.data_regime,
+                    "data_fraction": self.config.data_fraction,
+                    "target_modules": list(self.config.target_modules),
+                    "target_layers": list(self.config.target_layers),
+                    "layer_scope": self.config.layer_scope,
+                    "lora_rank": self.config.lora_rank,
+                    "lora_alpha": self.config.lora_alpha,
+                    "lora_dropout": self.config.lora_dropout,
+                    "notes": self.config.notes,
+                    "track_layerwise_updates": self.config.track_layerwise_updates,
+                    "created_at": current_time_iso(),
+                    "distributed": self._distributed_metadata(),
+                },
+            )
+            self.write_analysis_groups(summary, checkpoint_records, step_logs)
+            write_json(
+                self.output_root / "artifacts.json",
+                {
+                    "checkpoints": [asdict(record) for record in checkpoint_records],
+                    "best_checkpoint": asdict(best_checkpoint),
+                },
+            )
+            if test_metrics is not None:
+                write_json(self.evaluations_dir / "test_summary.json", asdict(test_metrics))
         return summary
 
     def load_model_and_tokenizer(self, model_name_or_path: str) -> tuple[Any, torch.nn.Module]:
@@ -1222,16 +1309,20 @@ class PubMedQAFullFineTuner:
     def build_train_dataloader(self, dataset: PubMedQASupervisedDataset, tokenizer: Any) -> DataLoader[Any]:
         generator = torch.Generator()
         generator.manual_seed(self.config.seed)
+        sampler = self._distributed_sampler(dataset, shuffle=True)
         return DataLoader(
             dataset,
             batch_size=self.config.train_batch_size,
-            shuffle=True,
+            shuffle=sampler is None,
+            sampler=sampler,
             num_workers=self.config.num_workers,
             collate_fn=SupervisedDataCollator(tokenizer, self.config.max_input_tokens),
             generator=generator,
         )
 
     def build_eval_dataloader(self, dataset: PubMedQASupervisedDataset, tokenizer: Any) -> DataLoader[Any]:
+        # Validation itself runs on rank 0 inside a full-parameter FSDP context.
+        # Sharding this loader would make loss and generation metrics incomplete.
         return DataLoader(
             dataset,
             batch_size=self.config.eval_batch_size,
@@ -1249,6 +1340,26 @@ class PubMedQAFullFineTuner:
         examples: Sequence[PubMedQAExample],
         split_name: str,
     ) -> EvalResult:
+        if self._is_fsdp_model(model):
+            # FSDP collectives require every rank to enter the full-parameter
+            # context. Rank 0 performs the deterministic validation/generation;
+            # its complete result is then shared with the other training ranks.
+            assert FSDP is not None
+            result: EvalResult | None = None
+            with FSDP.summon_full_params(model, recurse=True, writeback=False, rank0_only=False):
+                if self.is_main_process:
+                    result = self.evaluate_split(
+                        model=self._unwrap_model(model),
+                        tokenizer=tokenizer,
+                        supervised_loader=supervised_loader,
+                        examples=examples,
+                        split_name=split_name,
+                    )
+            payload: list[Any] = [result]
+            dist.broadcast_object_list(payload, src=0)
+            model.train()
+            return payload[0]
+
         model.eval()
         loss_total = 0.0
         loss_count = 0
@@ -1364,31 +1475,54 @@ class PubMedQAFullFineTuner:
             f"{checkpoint_kind}_pct_{int(round(checkpoint_percent)):03d}_"
             f"epoch_{epoch:03d}_step_{global_step:06d}"
         )
-        checkpoint_dir.mkdir(parents=True, exist_ok=True)
-        if save_model_files:
+        if self.is_main_process:
+            checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        self._barrier()
+        if save_model_files and self._is_fsdp_model(model):
+            assert FSDP is not None
+            state_config = FullStateDictConfig(offload_to_cpu=True, rank0_only=True)
+            with FSDP.state_dict_type(model, StateDictType.FULL_STATE_DICT, state_config):
+                full_state = model.state_dict()
+            if self.is_main_process:
+                self._unwrap_model(model).save_pretrained(checkpoint_dir, state_dict=full_state)
+                tokenizer.save_pretrained(checkpoint_dir)
+            if self.config.save_optimizer_state:
+                full_optim_state = FSDP.full_optim_state_dict(
+                    model,
+                    optimizer,
+                    rank0_only=True,
+                )
+                if self.is_main_process:
+                    torch.save(full_optim_state, checkpoint_dir / "optimizer.pt")
+                    torch.save(scheduler.state_dict(), checkpoint_dir / "scheduler.pt")
+        elif save_model_files and self.is_main_process:
             model.save_pretrained(checkpoint_dir)
             tokenizer.save_pretrained(checkpoint_dir)
-        if save_model_files and self.config.save_optimizer_state:
-            torch.save(optimizer.state_dict(), checkpoint_dir / "optimizer.pt")
-            torch.save(scheduler.state_dict(), checkpoint_dir / "scheduler.pt")
-        write_json(
-            checkpoint_dir / "training_state.json",
-            {
-                "checkpoint_kind": checkpoint_kind,
-                "checkpoint_percent": checkpoint_percent,
-                "epoch": epoch,
-                "step_in_epoch": step_in_epoch,
-                "global_step": global_step,
-                "elapsed_seconds": elapsed_seconds,
-                "validation_metrics": asdict(validation_metrics),
-                "title": self.title,
-                "run_id": self.config.run_id,
-                "run_tag": self.config.run_tag,
-                "model_name": self.config.model_name,
-                "condition": self.config.condition,
-                "saved_at": current_time_iso(),
-            },
-        )
+            if self.config.save_optimizer_state:
+                torch.save(optimizer.state_dict(), checkpoint_dir / "optimizer.pt")
+                torch.save(scheduler.state_dict(), checkpoint_dir / "scheduler.pt")
+        self._barrier()
+        if self.is_main_process:
+            write_json(
+                checkpoint_dir / "training_state.json",
+                {
+                    "checkpoint_kind": checkpoint_kind,
+                    "checkpoint_percent": checkpoint_percent,
+                    "epoch": epoch,
+                    "step_in_epoch": step_in_epoch,
+                    "global_step": global_step,
+                    "elapsed_seconds": elapsed_seconds,
+                    "validation_metrics": asdict(validation_metrics),
+                    "title": self.title,
+                    "run_id": self.config.run_id,
+                    "run_tag": self.config.run_tag,
+                    "model_name": self.config.model_name,
+                    "condition": self.config.condition,
+                    "distributed": self._distributed_metadata(),
+                    "saved_at": current_time_iso(),
+                },
+            )
+        self._barrier()
         return checkpoint_dir
 
     def record_checkpoint(
@@ -1461,6 +1595,10 @@ class PubMedQAFullFineTuner:
         )
 
     def capture_layerwise_references(self, model: torch.nn.Module) -> list[LayerwiseReference]:
+        # Only rank 0 writes and retains full baseline tensors. Other ranks
+        # participate in FSDP training but never emit analysis artifacts.
+        if self.fsdp_enabled and not self.is_main_process:
+            return []
         references: list[LayerwiseReference] = []
         for parameter_name, parameter in model.named_parameters():
             match = _match_tracked_module(parameter_name)
@@ -1517,6 +1655,25 @@ class PubMedQAFullFineTuner:
         previous_snapshots: dict[str, torch.Tensor],
         previous_incremental_updates: dict[str, torch.Tensor],
     ) -> None:
+        if self._is_fsdp_model(model):
+            assert FSDP is not None
+            # Original parameter names and complete tensors are available only
+            # while all ranks participate in summon_full_params.
+            with FSDP.summon_full_params(model, recurse=True, writeback=False, rank0_only=False):
+                if self.is_main_process:
+                    self.write_layerwise_update_artifacts(
+                        model=self._unwrap_model(model),
+                        checkpoint_kind=checkpoint_kind,
+                        checkpoint_percent=checkpoint_percent,
+                        epoch=epoch,
+                        global_step=global_step,
+                        checkpoint_dir=checkpoint_dir,
+                        references=references,
+                        previous_snapshots=previous_snapshots,
+                        previous_incremental_updates=previous_incremental_updates,
+                    )
+            self._barrier()
+            return
         if not self.config.track_layerwise_updates or not references:
             return
 
@@ -1971,11 +2128,13 @@ class PubMedQAFullFineTuner:
         return torch.autocast(device_type="cuda", dtype=self.config.dtype, enabled=True)
 
     def _prepare_output_dirs(self) -> None:
-        self.checkpoints_dir.mkdir(parents=True, exist_ok=True)
-        self.logs_dir.mkdir(parents=True, exist_ok=True)
-        self.evaluations_dir.mkdir(parents=True, exist_ok=True)
-        self.layerwise_dir.mkdir(parents=True, exist_ok=True)
-        self.transitions_dir.mkdir(parents=True, exist_ok=True)
+        if self.is_main_process:
+            self.checkpoints_dir.mkdir(parents=True, exist_ok=True)
+            self.logs_dir.mkdir(parents=True, exist_ok=True)
+            self.evaluations_dir.mkdir(parents=True, exist_ok=True)
+            self.layerwise_dir.mkdir(parents=True, exist_ok=True)
+            self.transitions_dir.mkdir(parents=True, exist_ok=True)
+        self._barrier()
 
     def _set_runtime(self) -> None:
         os.environ.setdefault("TOKENIZERS_PARALLELISM", "true")
@@ -1987,6 +2146,138 @@ class PubMedQAFullFineTuner:
             torch.set_num_interop_threads(max(1, min(4, self.config.cpu_threads)))
         except RuntimeError:
             pass
+
+    @property
+    def is_main_process(self) -> bool:
+        return self.rank == 0
+
+    @property
+    def fsdp_enabled(self) -> bool:
+        return self.config.distributed_mode.strip().lower() == "fsdp"
+
+    def _initialize_runtime_topology(self) -> None:
+        mode = self.config.distributed_mode.strip().lower()
+        if mode not in {"single", "fsdp"}:
+            raise ValueError("distributed_mode must be 'single' or 'fsdp'.")
+        if mode == "single":
+            return
+        if FSDP is None:
+            raise RuntimeError("FSDP is unavailable in this PyTorch installation.")
+        if not torch.cuda.is_available():
+            raise RuntimeError("FSDP mode requires CUDA and must be launched with torchrun.")
+        required = ("RANK", "LOCAL_RANK", "WORLD_SIZE")
+        missing = [name for name in required if name not in os.environ]
+        if missing:
+            raise RuntimeError(
+                "FSDP mode must be launched with torchrun; missing environment variables: "
+                + ", ".join(missing)
+            )
+        self.rank = int(os.environ["RANK"])
+        self.local_rank = int(os.environ["LOCAL_RANK"])
+        self.world_size = int(os.environ["WORLD_SIZE"])
+        if self.world_size < 2:
+            raise RuntimeError("FSDP mode requires at least two processes/GPU devices.")
+        torch.cuda.set_device(self.local_rank)
+        self.device = torch.device(f"cuda:{self.local_rank}")
+        if not dist.is_initialized():
+            dist.init_process_group(backend="nccl")
+            self._distributed_initialized_here = True
+
+    def _barrier(self) -> None:
+        if self.fsdp_enabled and dist.is_available() and dist.is_initialized():
+            dist.barrier()
+
+    def _all_reduce_int(self, value: int) -> int:
+        if not self.fsdp_enabled:
+            return value
+        tensor = torch.tensor(value, device=self.device, dtype=torch.long)
+        dist.all_reduce(tensor, op=dist.ReduceOp.SUM)
+        return int(tensor.item())
+
+    def _distributed_metadata(self) -> dict[str, Any]:
+        return {
+            "mode": self.config.distributed_mode,
+            "world_size": self.world_size,
+            "rank": self.rank,
+            "local_rank": self.local_rank,
+            "sharding_strategy": "FULL_SHARD" if self.fsdp_enabled else None,
+            "fsdp_cpu_offload": self.config.fsdp_cpu_offload if self.fsdp_enabled else None,
+        }
+
+    def _collect_distributed_runtime(
+        self,
+        *,
+        idle_memory: dict[str, float | None],
+        loaded_memory: dict[str, float | None],
+        peak_train_memory: dict[str, float | None],
+    ) -> dict[str, Any]:
+        local_record = {
+            "rank": self.rank,
+            "local_rank": self.local_rank,
+            "device": str(self.device),
+            "gpu_name": torch.cuda.get_device_name(self.device) if self.device.type == "cuda" else None,
+            "idle_memory": idle_memory,
+            "model_loaded_memory": loaded_memory,
+            "peak_training_memory": peak_train_memory,
+        }
+        records = [local_record]
+        if self.fsdp_enabled:
+            records = [None for _ in range(self.world_size)]
+            dist.all_gather_object(records, local_record)
+        return {
+            **self._distributed_metadata(),
+            "per_rank": records,
+            "max_peak_allocated_gb": max(
+                (record["peak_training_memory"]["max_allocated_gb"] or 0.0 for record in records),
+                default=0.0,
+            ),
+            "max_peak_reserved_gb": max(
+                (record["peak_training_memory"]["max_reserved_gb"] or 0.0 for record in records),
+                default=0.0,
+            ),
+        }
+
+    def _distributed_sampler(self, dataset: Dataset[Any], *, shuffle: bool) -> DistributedSampler | None:
+        if not self.fsdp_enabled:
+            return None
+        return DistributedSampler(
+            dataset,
+            num_replicas=self.world_size,
+            rank=self.rank,
+            shuffle=shuffle,
+            seed=self.config.seed,
+            drop_last=False,
+        )
+
+    def wrap_model_for_training(self, model: torch.nn.Module) -> torch.nn.Module:
+        if not self.fsdp_enabled:
+            return model
+        assert FSDP is not None
+        if self.config.dtype not in {torch.float16, torch.bfloat16}:
+            raise ValueError("FSDP mode requires bf16 or fp16 mixed precision.")
+        mixed_precision = MixedPrecision(
+            param_dtype=self.config.dtype,
+            reduce_dtype=self.config.dtype,
+            buffer_dtype=self.config.dtype,
+        )
+        return FSDP(
+            model,
+            sharding_strategy=ShardingStrategy.FULL_SHARD,
+            mixed_precision=mixed_precision,
+            cpu_offload=CPUOffload(offload_params=self.config.fsdp_cpu_offload),
+            device_id=self.device,
+            sync_module_states=True,
+            use_orig_params=True,
+            limit_all_gathers=True,
+        )
+
+    @staticmethod
+    def _is_fsdp_model(model: torch.nn.Module) -> bool:
+        return FSDP is not None and isinstance(model, FSDP)
+
+    @staticmethod
+    def _unwrap_model(model: torch.nn.Module) -> torch.nn.Module:
+        return model.module if FSDP is not None and isinstance(model, FSDP) else model
 
     @staticmethod
     def _limit_examples(
