@@ -1,0 +1,28 @@
+{
+  "run_tag": "L3",
+  "method_name": "lora",
+  "best_checkpoint_dir": "outputs/pubmedqa_train/study_single_epoch1/Qwen_Qwen3-1.7B/lora-r4/checkpoints/scheduled_pct_100_epoch_001_step_001250",
+  "best_checkpoint_kind": "scheduled",
+  "best_checkpoint_percent": 100.0,
+  "best_epoch": 1,
+  "best_validation_accuracy": 0.9095,
+  "best_validation_macro_f1": 0.909499434371465,
+  "best_validation_class_f1": {
+    "yes": 0.9092731829573936,
+    "no": 0.9097256857855364
+  },
+  "final_validation_accuracy": 0.9095,
+  "final_validation_macro_f1": 0.909499434371465,
+  "final_validation_class_f1": {
+    "yes": 0.9092731829573936,
+    "no": 0.9097256857855364
+  },
+  "test_accuracy": 0.714,
+  "test_macro_f1": 0.5007641581096091,
+  "test_class_f1": {
+    "yes": 0.7893738140417458,
+    "no": 0.7129186602870814,
+    "maybe": 0.0
+  },
+  "test_invalid_rate": 0.0
+}

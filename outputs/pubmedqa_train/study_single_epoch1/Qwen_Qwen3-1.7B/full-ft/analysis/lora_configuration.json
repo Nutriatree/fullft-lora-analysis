@@ -1,0 +1,12 @@
+{
+  "run_tag": "F1",
+  "method_name": "full-ft",
+  "target_modules": [],
+  "target_layers": [],
+  "layer_scope": "all",
+  "lora_rank": null,
+  "lora_alpha": null,
+  "lora_dropout": null,
+  "data_regime": "full-data",
+  "data_fraction": 1.0
+}

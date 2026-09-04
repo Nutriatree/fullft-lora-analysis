@@ -1,0 +1,38 @@
+{
+  "run_id": "study_single_epoch1",
+  "model_name": "Qwen/Qwen3-1.7B",
+  "gpu_ids": "0",
+  "distributed_mode": "single",
+  "train_file": "data/processed/posttrain_v1/pqa_artificial/train.jsonl",
+  "validation_file": "data/processed/posttrain_v1/pqa_artificial/validation.jsonl",
+  "test_file": "data/processed/pqa_labeled/test.jsonl",
+  "full_study_runs": [
+    "B0",
+    "F1",
+    "L1",
+    "L2",
+    "L3",
+    "L4",
+    "LL1",
+    "LL2"
+  ],
+  "include_ll2": true,
+  "include_low_data": false,
+  "selective_layer_count": 4,
+  "selective_layer_selection": {
+    "high_update_file": "outputs/pubmedqa_train/study_single_epoch1/Qwen_Qwen3-1.7B/lora/analysis/selective_layers_high.json",
+    "low_update_file": "outputs/pubmedqa_train/study_single_epoch1/Qwen_Qwen3-1.7B/lora/analysis/selective_layers_low.json",
+    "high_update_layers": [
+      7,
+      8,
+      9,
+      10
+    ],
+    "low_update_layers": [
+      21,
+      22,
+      26,
+      27
+    ]
+  }
+}

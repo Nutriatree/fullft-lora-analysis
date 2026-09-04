@@ -1,0 +1,47 @@
+{
+  "run_tag": "L4",
+  "method_name": "lora",
+  "layerwise_update_dir": "outputs/pubmedqa_train/study_single_epoch1/Qwen_Qwen3-1.7B/lora-r16/layerwise_updates",
+  "checkpoint_timeline": [
+    {
+      "checkpoint_kind": "reference",
+      "checkpoint_percent": 0.0,
+      "epoch": 0,
+      "global_step": 0,
+      "layerwise_jsonl": "outputs/pubmedqa_train/study_single_epoch1/Qwen_Qwen3-1.7B/lora-r16/layerwise_updates/reference_pct_000_epoch_000_step_000000.jsonl",
+      "layerwise_summary_json": "outputs/pubmedqa_train/study_single_epoch1/Qwen_Qwen3-1.7B/lora-r16/layerwise_updates/reference_pct_000_epoch_000_step_000000_summary.json"
+    },
+    {
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 25.0,
+      "epoch": 1,
+      "global_step": 313,
+      "layerwise_jsonl": "outputs/pubmedqa_train/study_single_epoch1/Qwen_Qwen3-1.7B/lora-r16/layerwise_updates/scheduled_pct_025_epoch_001_step_000313.jsonl",
+      "layerwise_summary_json": "outputs/pubmedqa_train/study_single_epoch1/Qwen_Qwen3-1.7B/lora-r16/layerwise_updates/scheduled_pct_025_epoch_001_step_000313_summary.json"
+    },
+    {
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 50.0,
+      "epoch": 1,
+      "global_step": 625,
+      "layerwise_jsonl": "outputs/pubmedqa_train/study_single_epoch1/Qwen_Qwen3-1.7B/lora-r16/layerwise_updates/scheduled_pct_050_epoch_001_step_000625.jsonl",
+      "layerwise_summary_json": "outputs/pubmedqa_train/study_single_epoch1/Qwen_Qwen3-1.7B/lora-r16/layerwise_updates/scheduled_pct_050_epoch_001_step_000625_summary.json"
+    },
+    {
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 75.0,
+      "epoch": 1,
+      "global_step": 938,
+      "layerwise_jsonl": "outputs/pubmedqa_train/study_single_epoch1/Qwen_Qwen3-1.7B/lora-r16/layerwise_updates/scheduled_pct_075_epoch_001_step_000938.jsonl",
+      "layerwise_summary_json": "outputs/pubmedqa_train/study_single_epoch1/Qwen_Qwen3-1.7B/lora-r16/layerwise_updates/scheduled_pct_075_epoch_001_step_000938_summary.json"
+    },
+    {
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 100.0,
+      "epoch": 1,
+      "global_step": 1250,
+      "layerwise_jsonl": "outputs/pubmedqa_train/study_single_epoch1/Qwen_Qwen3-1.7B/lora-r16/layerwise_updates/scheduled_pct_100_epoch_001_step_001250.jsonl",
+      "layerwise_summary_json": "outputs/pubmedqa_train/study_single_epoch1/Qwen_Qwen3-1.7B/lora-r16/layerwise_updates/scheduled_pct_100_epoch_001_step_001250_summary.json"
+    }
+  ]
+}

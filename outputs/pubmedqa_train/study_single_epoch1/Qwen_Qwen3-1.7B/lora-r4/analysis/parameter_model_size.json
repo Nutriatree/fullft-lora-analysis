@@ -1,0 +1,10 @@
+{
+  "run_tag": "L3",
+  "method_name": "lora",
+  "total_params": 1721377792,
+  "trainable_params": 802816,
+  "trainable_ratio": 0.00046637989855047464,
+  "best_checkpoint_size_bytes": 19116505,
+  "final_checkpoint_size_bytes": 19116505,
+  "total_checkpoint_size_bytes": 76468054
+}

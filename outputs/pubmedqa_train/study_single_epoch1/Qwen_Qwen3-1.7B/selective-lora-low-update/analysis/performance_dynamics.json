@@ -1,0 +1,92 @@
+{
+  "run_tag": "LL2",
+  "method_name": "lora",
+  "checkpoint_timeline": [
+    {
+      "checkpoint_kind": "reference",
+      "checkpoint_percent": 0.0,
+      "epoch": 0,
+      "step_in_epoch": 0,
+      "global_step": 0,
+      "elapsed_seconds": 0.0,
+      "train_loss": 0.0,
+      "validation_loss": 5.920904718399048,
+      "validation_accuracy": 0.7045,
+      "validation_macro_f1": 0.7019761584257345,
+      "validation_class_f1": {
+        "yes": 0.7858921161825727,
+        "no": 0.6180602006688963
+      },
+      "validation_invalid_rate": 0.0
+    },
+    {
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 25.0,
+      "epoch": 1,
+      "step_in_epoch": 2504,
+      "global_step": 313,
+      "elapsed_seconds": 411.62862526718527,
+      "train_loss": 0.7743783169558046,
+      "validation_loss": 0.15318017465481534,
+      "validation_accuracy": 0.7995,
+      "validation_macro_f1": 0.7977317201303091,
+      "validation_class_f1": {
+        "yes": 0.8166438042981253,
+        "no": 0.778819635962493
+      },
+      "validation_invalid_rate": 0.0
+    },
+    {
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 50.0,
+      "epoch": 1,
+      "step_in_epoch": 5000,
+      "global_step": 625,
+      "elapsed_seconds": 822.94432327291,
+      "train_loss": 0.450821270011193,
+      "validation_loss": 0.12439584311470389,
+      "validation_accuracy": 0.8255,
+      "validation_macro_f1": 0.8253773712589667,
+      "validation_class_f1": {
+        "yes": 0.830004870920604,
+        "no": 0.8207498715973294
+      },
+      "validation_invalid_rate": 0.0
+    },
+    {
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 75.0,
+      "epoch": 1,
+      "step_in_epoch": 7504,
+      "global_step": 938,
+      "elapsed_seconds": 1234.823626424186,
+      "train_loss": 0.3424889182821844,
+      "validation_loss": 0.12291838492359966,
+      "validation_accuracy": 0.827,
+      "validation_macro_f1": 0.8264360908592014,
+      "validation_class_f1": {
+        "yes": 0.816542948038176,
+        "no": 0.836329233680227
+      },
+      "validation_invalid_rate": 0.0
+    },
+    {
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 100.0,
+      "epoch": 1,
+      "step_in_epoch": 10000,
+      "global_step": 1250,
+      "elapsed_seconds": 1645.5608355267905,
+      "train_loss": 0.28551403975939865,
+      "validation_loss": 0.12001394795347005,
+      "validation_accuracy": 0.834,
+      "validation_macro_f1": 0.833850465418877,
+      "validation_class_f1": {
+        "yes": 0.8288659793814432,
+        "no": 0.8388349514563106
+      },
+      "validation_invalid_rate": 0.0
+    }
+  ],
+  "step_logs_file": "outputs/pubmedqa_train/study_single_epoch1/Qwen_Qwen3-1.7B/selective-lora-low-update/logs/train_steps.jsonl"
+}

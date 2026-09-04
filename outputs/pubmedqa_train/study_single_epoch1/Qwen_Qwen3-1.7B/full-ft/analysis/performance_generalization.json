@@ -1,0 +1,28 @@
+{
+  "run_tag": "F1",
+  "method_name": "full-ft",
+  "best_checkpoint_dir": "outputs/pubmedqa_train/study_single_epoch1/Qwen_Qwen3-1.7B/full-ft/checkpoints/scheduled_pct_100_epoch_001_step_001250",
+  "best_checkpoint_kind": "scheduled",
+  "best_checkpoint_percent": 100.0,
+  "best_epoch": 1,
+  "best_validation_accuracy": 0.9275,
+  "best_validation_macro_f1": 0.9274724213882328,
+  "best_validation_class_f1": {
+    "yes": 0.9288867091711622,
+    "no": 0.9260581336053035
+  },
+  "final_validation_accuracy": 0.9275,
+  "final_validation_macro_f1": 0.9274724213882328,
+  "final_validation_class_f1": {
+    "yes": 0.9288867091711622,
+    "no": 0.9260581336053035
+  },
+  "test_accuracy": 0.726,
+  "test_macro_f1": 0.5085407203633805,
+  "test_class_f1": {
+    "yes": 0.8014842300556586,
+    "no": 0.7241379310344828,
+    "maybe": 0.0
+  },
+  "test_invalid_rate": 0.0
+}

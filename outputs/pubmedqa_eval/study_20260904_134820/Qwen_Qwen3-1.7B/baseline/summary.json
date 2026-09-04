@@ -1,0 +1,20 @@
+{
+  "run_id": "study_20260904_134820",
+  "model_name": "Qwen/Qwen3-1.7B",
+  "resolved_model_name": "Qwen/Qwen3-1.7B",
+  "backend": "torch",
+  "condition": "baseline",
+  "title": "study_20260904_134820__Qwen_Qwen3-1.7B__baseline",
+  "start_time": "2026-09-04T04:48:26.687762+00:00",
+  "end_time": "2026-09-04T04:48:47.619520+00:00",
+  "elapsed_seconds": 20.931735862977803,
+  "num_examples": 500,
+  "num_parsed": 500,
+  "accuracy": 0.612,
+  "macro_f1": 0.41222444204958686,
+  "invalid_rate": 0.0,
+  "examples_per_second": 23.88717320307656,
+  "device": "cuda",
+  "dtype": "bfloat16",
+  "device_memory_gb": 3.6901397705078125
+}

@@ -1,0 +1,371 @@
+{
+  "run_tag": "LL1",
+  "method_name": "lora",
+  "checkpoint_timeline": [
+    {
+      "checkpoint_id": "reference_pct_000_epoch_000_step_000000",
+      "checkpoint_kind": "reference",
+      "checkpoint_percent": 0.0,
+      "epoch": 0,
+      "global_step": 0,
+      "records": [
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.q_proj.weight",
+          "a_norm": 1.6374403238296509,
+          "b_norm": 0.0,
+          "scaling": 2.0,
+          "delta_w_norm": 0.0,
+          "delta_w_relative_norm": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.v_proj.weight",
+          "a_norm": 1.6317592859268188,
+          "b_norm": 0.0,
+          "scaling": 2.0,
+          "delta_w_norm": 0.0,
+          "delta_w_relative_norm": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.q_proj.weight",
+          "a_norm": 1.633622646331787,
+          "b_norm": 0.0,
+          "scaling": 2.0,
+          "delta_w_norm": 0.0,
+          "delta_w_relative_norm": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.v_proj.weight",
+          "a_norm": 1.6358157396316528,
+          "b_norm": 0.0,
+          "scaling": 2.0,
+          "delta_w_norm": 0.0,
+          "delta_w_relative_norm": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.q_proj.weight",
+          "a_norm": 1.6334896087646484,
+          "b_norm": 0.0,
+          "scaling": 2.0,
+          "delta_w_norm": 0.0,
+          "delta_w_relative_norm": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.v_proj.weight",
+          "a_norm": 1.627681851387024,
+          "b_norm": 0.0,
+          "scaling": 2.0,
+          "delta_w_norm": 0.0,
+          "delta_w_relative_norm": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.q_proj.weight",
+          "a_norm": 1.6332346200942993,
+          "b_norm": 0.0,
+          "scaling": 2.0,
+          "delta_w_norm": 0.0,
+          "delta_w_relative_norm": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.v_proj.weight",
+          "a_norm": 1.6341534852981567,
+          "b_norm": 0.0,
+          "scaling": 2.0,
+          "delta_w_norm": 0.0,
+          "delta_w_relative_norm": 0.0
+        }
+      ]
+    },
+    {
+      "checkpoint_id": "scheduled_pct_025_epoch_001_step_000313",
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 25.0,
+      "epoch": 1,
+      "global_step": 313,
+      "records": [
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.q_proj.weight",
+          "a_norm": 1.6821835041046143,
+          "b_norm": 0.2646450102329254,
+          "scaling": 2.0,
+          "delta_w_norm": 0.3227171301841736,
+          "delta_w_relative_norm": 0.00471564338425881
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.v_proj.weight",
+          "a_norm": 1.7076551914215088,
+          "b_norm": 0.22456946969032288,
+          "scaling": 2.0,
+          "delta_w_norm": 0.3068086504936218,
+          "delta_w_relative_norm": 0.006132041535659683
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.q_proj.weight",
+          "a_norm": 1.697324514389038,
+          "b_norm": 0.30011293292045593,
+          "scaling": 2.0,
+          "delta_w_norm": 0.38028496503829956,
+          "delta_w_relative_norm": 0.00542350726059992
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.v_proj.weight",
+          "a_norm": 1.7357721328735352,
+          "b_norm": 0.24139654636383057,
+          "scaling": 2.0,
+          "delta_w_norm": 0.3452647626399994,
+          "delta_w_relative_norm": 0.006816203881901579
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.q_proj.weight",
+          "a_norm": 1.687658429145813,
+          "b_norm": 0.30272260308265686,
+          "scaling": 2.0,
+          "delta_w_norm": 0.38163965940475464,
+          "delta_w_relative_norm": 0.005367374097502364
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.v_proj.weight",
+          "a_norm": 1.7324366569519043,
+          "b_norm": 0.23719479143619537,
+          "scaling": 2.0,
+          "delta_w_norm": 0.3480154573917389,
+          "delta_w_relative_norm": 0.007014636833651066
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.q_proj.weight",
+          "a_norm": 1.694214105606079,
+          "b_norm": 0.3107847273349762,
+          "scaling": 2.0,
+          "delta_w_norm": 0.40895605087280273,
+          "delta_w_relative_norm": 0.005843487792083431
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.v_proj.weight",
+          "a_norm": 1.7258195877075195,
+          "b_norm": 0.23966842889785767,
+          "scaling": 2.0,
+          "delta_w_norm": 0.3213411569595337,
+          "delta_w_relative_norm": 0.006509462803690653
+        }
+      ]
+    },
+    {
+      "checkpoint_id": "scheduled_pct_050_epoch_001_step_000625",
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 50.0,
+      "epoch": 1,
+      "global_step": 625,
+      "records": [
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.q_proj.weight",
+          "a_norm": 1.6854324340820312,
+          "b_norm": 0.2868468165397644,
+          "scaling": 2.0,
+          "delta_w_norm": 0.34988173842430115,
+          "delta_w_relative_norm": 0.0051125811144017205
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.v_proj.weight",
+          "a_norm": 1.757049560546875,
+          "b_norm": 0.26623454689979553,
+          "scaling": 2.0,
+          "delta_w_norm": 0.4102012515068054,
+          "delta_w_relative_norm": 0.008198501274890246
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.q_proj.weight",
+          "a_norm": 1.7023993730545044,
+          "b_norm": 0.3360137343406677,
+          "scaling": 2.0,
+          "delta_w_norm": 0.428623765707016,
+          "delta_w_relative_norm": 0.006112900374968962
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.v_proj.weight",
+          "a_norm": 1.7804478406906128,
+          "b_norm": 0.2821982800960541,
+          "scaling": 2.0,
+          "delta_w_norm": 0.44513678550720215,
+          "delta_w_relative_norm": 0.008787873578964158
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.q_proj.weight",
+          "a_norm": 1.6926186084747314,
+          "b_norm": 0.32735738158226013,
+          "scaling": 2.0,
+          "delta_w_norm": 0.416524201631546,
+          "delta_w_relative_norm": 0.005857989744323095
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.v_proj.weight",
+          "a_norm": 1.7611836194992065,
+          "b_norm": 0.26693159341812134,
+          "scaling": 2.0,
+          "delta_w_norm": 0.4145905077457428,
+          "delta_w_relative_norm": 0.008356530679158331
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.q_proj.weight",
+          "a_norm": 1.75328528881073,
+          "b_norm": 0.4000026285648346,
+          "scaling": 2.0,
+          "delta_w_norm": 0.6061189770698547,
+          "delta_w_relative_norm": 0.008660707759424768
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.v_proj.weight",
+          "a_norm": 1.7630908489227295,
+          "b_norm": 0.2768828868865967,
+          "scaling": 2.0,
+          "delta_w_norm": 0.3966478407382965,
+          "delta_w_relative_norm": 0.008034963183303968
+        }
+      ]
+    },
+    {
+      "checkpoint_id": "scheduled_pct_075_epoch_001_step_000938",
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 75.0,
+      "epoch": 1,
+      "global_step": 938,
+      "records": [
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.q_proj.weight",
+          "a_norm": 1.6863373517990112,
+          "b_norm": 0.2947133779525757,
+          "scaling": 2.0,
+          "delta_w_norm": 0.35912832617759705,
+          "delta_w_relative_norm": 0.0052476951393092735
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.v_proj.weight",
+          "a_norm": 1.7797032594680786,
+          "b_norm": 0.2800423204898834,
+          "scaling": 2.0,
+          "delta_w_norm": 0.4528559148311615,
+          "delta_w_relative_norm": 0.009051020155220737
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.q_proj.weight",
+          "a_norm": 1.700334906578064,
+          "b_norm": 0.3410116732120514,
+          "scaling": 2.0,
+          "delta_w_norm": 0.4312293231487274,
+          "delta_w_relative_norm": 0.0061500600341777055
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.v_proj.weight",
+          "a_norm": 1.8018320798873901,
+          "b_norm": 0.2951136827468872,
+          "scaling": 2.0,
+          "delta_w_norm": 0.4860605299472809,
+          "delta_w_relative_norm": 0.009595788593463517
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.q_proj.weight",
+          "a_norm": 1.6917754411697388,
+          "b_norm": 0.3332265317440033,
+          "scaling": 2.0,
+          "delta_w_norm": 0.42390355467796326,
+          "delta_w_relative_norm": 0.005961772848153136
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.v_proj.weight",
+          "a_norm": 1.7778613567352295,
+          "b_norm": 0.2779258191585541,
+          "scaling": 2.0,
+          "delta_w_norm": 0.44636070728302,
+          "delta_w_relative_norm": 0.008996894223803342
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.q_proj.weight",
+          "a_norm": 1.7713762521743774,
+          "b_norm": 0.41966548562049866,
+          "scaling": 2.0,
+          "delta_w_norm": 0.6616502404212952,
+          "delta_w_relative_norm": 0.009454182409770607
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.v_proj.weight",
+          "a_norm": 1.783356785774231,
+          "b_norm": 0.2912498116493225,
+          "scaling": 2.0,
+          "delta_w_norm": 0.4292896091938019,
+          "delta_w_relative_norm": 0.008696193072491655
+        }
+      ]
+    },
+    {
+      "checkpoint_id": "scheduled_pct_100_epoch_001_step_001250",
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 100.0,
+      "epoch": 1,
+      "global_step": 1250,
+      "records": [
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.q_proj.weight",
+          "a_norm": 1.687027931213379,
+          "b_norm": 0.297741174697876,
+          "scaling": 2.0,
+          "delta_w_norm": 0.36296847462654114,
+          "delta_w_relative_norm": 0.005303808586455696
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.v_proj.weight",
+          "a_norm": 1.7938777208328247,
+          "b_norm": 0.2858392298221588,
+          "scaling": 2.0,
+          "delta_w_norm": 0.4761587083339691,
+          "delta_w_relative_norm": 0.009516762230700736
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.q_proj.weight",
+          "a_norm": 1.7014609575271606,
+          "b_norm": 0.3442881405353546,
+          "scaling": 2.0,
+          "delta_w_norm": 0.4361642897129059,
+          "delta_w_relative_norm": 0.006220441010162239
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.v_proj.weight",
+          "a_norm": 1.8081014156341553,
+          "b_norm": 0.29796066880226135,
+          "scaling": 2.0,
+          "delta_w_norm": 0.4956916272640228,
+          "delta_w_relative_norm": 0.00978592535232471
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.q_proj.weight",
+          "a_norm": 1.692692518234253,
+          "b_norm": 0.335966020822525,
+          "scaling": 2.0,
+          "delta_w_norm": 0.4283052980899811,
+          "delta_w_relative_norm": 0.006023678897462492
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.v_proj.weight",
+          "a_norm": 1.784429907798767,
+          "b_norm": 0.28063148260116577,
+          "scaling": 2.0,
+          "delta_w_norm": 0.4563789963722229,
+          "delta_w_relative_norm": 0.009198823931701872
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.q_proj.weight",
+          "a_norm": 1.771177053451538,
+          "b_norm": 0.42198577523231506,
+          "scaling": 2.0,
+          "delta_w_norm": 0.6641945242881775,
+          "delta_w_relative_norm": 0.009490537151763031
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.v_proj.weight",
+          "a_norm": 1.7939391136169434,
+          "b_norm": 0.2962633967399597,
+          "scaling": 2.0,
+          "delta_w_norm": 0.44377413392066956,
+          "delta_w_relative_norm": 0.008989608568442446
+        }
+      ]
+    }
+  ]
+}

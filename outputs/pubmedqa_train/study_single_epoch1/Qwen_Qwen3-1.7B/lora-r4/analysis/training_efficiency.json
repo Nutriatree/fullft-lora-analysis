@@ -1,0 +1,10 @@
+{
+  "run_tag": "L3",
+  "method_name": "lora",
+  "total_training_time_seconds": 2497.462942207232,
+  "training_seconds_per_step": 1.9979703537657858,
+  "training_samples_per_second": 4.004063416117039,
+  "training_tokens_per_second": 1711.4812507377442,
+  "optimizer_steps": 1250,
+  "steps_per_epoch": 1250
+}

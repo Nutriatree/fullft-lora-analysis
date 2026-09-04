@@ -1,0 +1,2011 @@
+{
+  "run_tag": "L4",
+  "method_name": "lora",
+  "checkpoint_timeline": [
+    {
+      "checkpoint_id": "reference_pct_000_epoch_000_step_000000",
+      "checkpoint_kind": "reference",
+      "checkpoint_percent": 0.0,
+      "epoch": 0,
+      "global_step": 0,
+      "records": [
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.q_proj.weight",
+          "layer_index": 0,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.v_proj.weight",
+          "layer_index": 0,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.q_proj.weight",
+          "layer_index": 1,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.v_proj.weight",
+          "layer_index": 1,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.q_proj.weight",
+          "layer_index": 2,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.v_proj.weight",
+          "layer_index": 2,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.q_proj.weight",
+          "layer_index": 3,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.v_proj.weight",
+          "layer_index": 3,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.q_proj.weight",
+          "layer_index": 4,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.v_proj.weight",
+          "layer_index": 4,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.q_proj.weight",
+          "layer_index": 5,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.v_proj.weight",
+          "layer_index": 5,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.q_proj.weight",
+          "layer_index": 6,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.v_proj.weight",
+          "layer_index": 6,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.q_proj.weight",
+          "layer_index": 7,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.v_proj.weight",
+          "layer_index": 7,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.q_proj.weight",
+          "layer_index": 8,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.v_proj.weight",
+          "layer_index": 8,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.q_proj.weight",
+          "layer_index": 9,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.v_proj.weight",
+          "layer_index": 9,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.q_proj.weight",
+          "layer_index": 10,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.v_proj.weight",
+          "layer_index": 10,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.q_proj.weight",
+          "layer_index": 11,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.v_proj.weight",
+          "layer_index": 11,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.q_proj.weight",
+          "layer_index": 12,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.v_proj.weight",
+          "layer_index": 12,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.q_proj.weight",
+          "layer_index": 13,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.v_proj.weight",
+          "layer_index": 13,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.q_proj.weight",
+          "layer_index": 14,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.v_proj.weight",
+          "layer_index": 14,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.q_proj.weight",
+          "layer_index": 15,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.v_proj.weight",
+          "layer_index": 15,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.q_proj.weight",
+          "layer_index": 16,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.v_proj.weight",
+          "layer_index": 16,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.q_proj.weight",
+          "layer_index": 17,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.v_proj.weight",
+          "layer_index": 17,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.q_proj.weight",
+          "layer_index": 18,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.v_proj.weight",
+          "layer_index": 18,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.q_proj.weight",
+          "layer_index": 19,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.v_proj.weight",
+          "layer_index": 19,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.q_proj.weight",
+          "layer_index": 20,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.v_proj.weight",
+          "layer_index": 20,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.q_proj.weight",
+          "layer_index": 21,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.v_proj.weight",
+          "layer_index": 21,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.q_proj.weight",
+          "layer_index": 22,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.v_proj.weight",
+          "layer_index": 22,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.q_proj.weight",
+          "layer_index": 23,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.v_proj.weight",
+          "layer_index": 23,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.q_proj.weight",
+          "layer_index": 24,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.v_proj.weight",
+          "layer_index": 24,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.q_proj.weight",
+          "layer_index": 25,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.v_proj.weight",
+          "layer_index": 25,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.q_proj.weight",
+          "layer_index": 26,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.v_proj.weight",
+          "layer_index": 26,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.q_proj.weight",
+          "layer_index": 27,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.v_proj.weight",
+          "layer_index": 27,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 0.0
+        }
+      ]
+    },
+    {
+      "checkpoint_id": "scheduled_pct_025_epoch_001_step_000313",
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 25.0,
+      "epoch": 1,
+      "global_step": 313,
+      "records": [
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.q_proj.weight",
+          "layer_index": 0,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 13.271963223375131
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.v_proj.weight",
+          "layer_index": 0,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 12.824950805702635
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.q_proj.weight",
+          "layer_index": 1,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 13.933462453186909
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.v_proj.weight",
+          "layer_index": 1,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 12.101371534743055
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.q_proj.weight",
+          "layer_index": 2,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 13.990287814771277
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.v_proj.weight",
+          "layer_index": 2,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 12.004392757765011
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.q_proj.weight",
+          "layer_index": 3,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 14.567231599570494
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.v_proj.weight",
+          "layer_index": 3,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 12.903725885814522
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.q_proj.weight",
+          "layer_index": 4,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 13.957561098444437
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.v_proj.weight",
+          "layer_index": 4,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.952287695084216
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.q_proj.weight",
+          "layer_index": 5,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 13.44209625758716
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.v_proj.weight",
+          "layer_index": 5,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.303293321701956
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.q_proj.weight",
+          "layer_index": 6,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 14.28727427570596
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.v_proj.weight",
+          "layer_index": 6,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.047256341022361
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.q_proj.weight",
+          "layer_index": 7,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 13.19147477106015
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.v_proj.weight",
+          "layer_index": 7,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.120334118439626
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.q_proj.weight",
+          "layer_index": 8,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.371891841436472
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.v_proj.weight",
+          "layer_index": 8,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 8.606543640431639
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.q_proj.weight",
+          "layer_index": 9,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 10.921444428535185
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.v_proj.weight",
+          "layer_index": 9,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.924712780935646
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.q_proj.weight",
+          "layer_index": 10,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 11.278782732849296
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.v_proj.weight",
+          "layer_index": 10,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 8.867034254455774
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.q_proj.weight",
+          "layer_index": 11,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 11.41207899756789
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.v_proj.weight",
+          "layer_index": 11,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.6150720763324
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.q_proj.weight",
+          "layer_index": 12,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 13.404348206447558
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.v_proj.weight",
+          "layer_index": 12,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.143519332353693
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.q_proj.weight",
+          "layer_index": 13,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.027655278687226
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.v_proj.weight",
+          "layer_index": 13,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 12.34897630936235
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.q_proj.weight",
+          "layer_index": 14,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.235903064353318
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.v_proj.weight",
+          "layer_index": 14,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.17441899528399
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.q_proj.weight",
+          "layer_index": 15,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 9.14647586975275
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.v_proj.weight",
+          "layer_index": 15,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.723925711257397
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.q_proj.weight",
+          "layer_index": 16,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 9.688125542627215
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.v_proj.weight",
+          "layer_index": 16,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.465796711435313
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.q_proj.weight",
+          "layer_index": 17,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 9.686760529784816
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.v_proj.weight",
+          "layer_index": 17,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.407534470152347
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.q_proj.weight",
+          "layer_index": 18,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 9.878182157300031
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.v_proj.weight",
+          "layer_index": 18,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 8.521463842475928
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.q_proj.weight",
+          "layer_index": 19,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 7.496172930430753
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.v_proj.weight",
+          "layer_index": 19,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.556868748985625
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.q_proj.weight",
+          "layer_index": 20,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.594786962659388
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.v_proj.weight",
+          "layer_index": 20,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.04508624435891
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.q_proj.weight",
+          "layer_index": 21,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 8.152825804192258
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.v_proj.weight",
+          "layer_index": 21,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.720498639296997
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.q_proj.weight",
+          "layer_index": 22,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 10.843932626179772
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.v_proj.weight",
+          "layer_index": 22,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.888828422468707
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.q_proj.weight",
+          "layer_index": 23,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 10.566974117475421
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.v_proj.weight",
+          "layer_index": 23,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.014105565154015
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.q_proj.weight",
+          "layer_index": 24,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 11.230335897650587
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.v_proj.weight",
+          "layer_index": 24,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.572025675980473
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.q_proj.weight",
+          "layer_index": 25,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 10.344050009902865
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.v_proj.weight",
+          "layer_index": 25,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.730828689693151
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.q_proj.weight",
+          "layer_index": 26,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 6.584696341362874
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.v_proj.weight",
+          "layer_index": 26,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.232160745516229
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.q_proj.weight",
+          "layer_index": 27,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 9.984662705302197
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.v_proj.weight",
+          "layer_index": 27,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.100617489216074
+        }
+      ]
+    },
+    {
+      "checkpoint_id": "scheduled_pct_050_epoch_001_step_000625",
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 50.0,
+      "epoch": 1,
+      "global_step": 625,
+      "records": [
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.q_proj.weight",
+          "layer_index": 0,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 13.010522676791124
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.v_proj.weight",
+          "layer_index": 0,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 12.752769608538145
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.q_proj.weight",
+          "layer_index": 1,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 13.696248112017006
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.v_proj.weight",
+          "layer_index": 1,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.489651735309627
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.q_proj.weight",
+          "layer_index": 2,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 13.17187026504178
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.v_proj.weight",
+          "layer_index": 2,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.747012660415503
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.q_proj.weight",
+          "layer_index": 3,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 14.626585889488922
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.v_proj.weight",
+          "layer_index": 3,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 12.8142624622249
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.q_proj.weight",
+          "layer_index": 4,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 14.090538178602587
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.v_proj.weight",
+          "layer_index": 4,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.987455537429872
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.q_proj.weight",
+          "layer_index": 5,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.8222511350028
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.v_proj.weight",
+          "layer_index": 5,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.206376262020132
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.q_proj.weight",
+          "layer_index": 6,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 14.256456234526986
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.v_proj.weight",
+          "layer_index": 6,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.846813138732042
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.q_proj.weight",
+          "layer_index": 7,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 11.855466261946662
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.v_proj.weight",
+          "layer_index": 7,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 8.13734660607006
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.q_proj.weight",
+          "layer_index": 8,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.119270062118316
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.v_proj.weight",
+          "layer_index": 8,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 7.7005772223634406
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.q_proj.weight",
+          "layer_index": 9,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 10.476382918315487
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.v_proj.weight",
+          "layer_index": 9,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.524417306289454
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.q_proj.weight",
+          "layer_index": 10,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 9.559176681501835
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.v_proj.weight",
+          "layer_index": 10,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 8.426795415393816
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.q_proj.weight",
+          "layer_index": 11,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 11.53493172260114
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.v_proj.weight",
+          "layer_index": 11,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.703794622253815
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.q_proj.weight",
+          "layer_index": 12,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.666964851991697
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.v_proj.weight",
+          "layer_index": 12,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.098099174639042
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.q_proj.weight",
+          "layer_index": 13,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.148653862487393
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.v_proj.weight",
+          "layer_index": 13,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 12.36631818533531
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.q_proj.weight",
+          "layer_index": 14,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.465983043750557
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.v_proj.weight",
+          "layer_index": 14,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.738014639045682
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.q_proj.weight",
+          "layer_index": 15,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 8.685394222379005
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.v_proj.weight",
+          "layer_index": 15,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.266414412997351
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.q_proj.weight",
+          "layer_index": 16,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 8.503403130334258
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.v_proj.weight",
+          "layer_index": 16,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.465525896693128
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.q_proj.weight",
+          "layer_index": 17,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 9.280038504240693
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.v_proj.weight",
+          "layer_index": 17,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.636451254485424
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.q_proj.weight",
+          "layer_index": 18,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 9.835012800417317
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.v_proj.weight",
+          "layer_index": 18,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 8.437840668360268
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.q_proj.weight",
+          "layer_index": 19,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 7.102444117784591
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.v_proj.weight",
+          "layer_index": 19,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.530832818571545
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.q_proj.weight",
+          "layer_index": 20,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.611553911518246
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.v_proj.weight",
+          "layer_index": 20,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.044736013860584
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.q_proj.weight",
+          "layer_index": 21,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 8.315390161334607
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.v_proj.weight",
+          "layer_index": 21,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.67407119710976
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.q_proj.weight",
+          "layer_index": 22,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 10.830910061053462
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.v_proj.weight",
+          "layer_index": 22,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.969693268348447
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.q_proj.weight",
+          "layer_index": 23,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 10.440456870593607
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.v_proj.weight",
+          "layer_index": 23,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.12832052345129
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.q_proj.weight",
+          "layer_index": 24,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 11.18906564071347
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.v_proj.weight",
+          "layer_index": 24,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.627050649035981
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.q_proj.weight",
+          "layer_index": 25,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 9.998357750608276
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.v_proj.weight",
+          "layer_index": 25,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.66351353974464
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.q_proj.weight",
+          "layer_index": 26,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 6.47068691024586
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.v_proj.weight",
+          "layer_index": 26,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.269624830294317
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.q_proj.weight",
+          "layer_index": 27,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 10.297072058127146
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.v_proj.weight",
+          "layer_index": 27,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.776293201070033
+        }
+      ]
+    },
+    {
+      "checkpoint_id": "scheduled_pct_075_epoch_001_step_000938",
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 75.0,
+      "epoch": 1,
+      "global_step": 938,
+      "records": [
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.q_proj.weight",
+          "layer_index": 0,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.919748945808399
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.v_proj.weight",
+          "layer_index": 0,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 12.470525273437206
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.q_proj.weight",
+          "layer_index": 1,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 13.829274176798027
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.v_proj.weight",
+          "layer_index": 1,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.221835310622291
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.q_proj.weight",
+          "layer_index": 2,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 13.164821911783958
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.v_proj.weight",
+          "layer_index": 2,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.640414274078818
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.q_proj.weight",
+          "layer_index": 3,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 14.633603919270062
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.v_proj.weight",
+          "layer_index": 3,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 12.638632371821348
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.q_proj.weight",
+          "layer_index": 4,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 14.088096072945774
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.v_proj.weight",
+          "layer_index": 4,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.95923715510707
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.q_proj.weight",
+          "layer_index": 5,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.675550713493568
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.v_proj.weight",
+          "layer_index": 5,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.004105838797624
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.q_proj.weight",
+          "layer_index": 6,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 14.239742939084161
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.v_proj.weight",
+          "layer_index": 6,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.48511874261005
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.q_proj.weight",
+          "layer_index": 7,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 11.239298456463876
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.v_proj.weight",
+          "layer_index": 7,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 7.7301026860570365
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.q_proj.weight",
+          "layer_index": 8,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.024647525135062
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.v_proj.weight",
+          "layer_index": 8,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 7.446625684898126
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.q_proj.weight",
+          "layer_index": 9,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 10.077157845593632
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.v_proj.weight",
+          "layer_index": 9,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.367221339462684
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.q_proj.weight",
+          "layer_index": 10,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 9.424849740675782
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.v_proj.weight",
+          "layer_index": 10,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 8.31383599248244
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.q_proj.weight",
+          "layer_index": 11,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 11.359944490031868
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.v_proj.weight",
+          "layer_index": 11,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.658160631984227
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.q_proj.weight",
+          "layer_index": 12,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.507370033897965
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.v_proj.weight",
+          "layer_index": 12,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.011006284165179
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.q_proj.weight",
+          "layer_index": 13,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.065112939114714
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.v_proj.weight",
+          "layer_index": 13,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 12.345570310386373
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.q_proj.weight",
+          "layer_index": 14,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.205732027296644
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.v_proj.weight",
+          "layer_index": 14,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.9579484349909
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.q_proj.weight",
+          "layer_index": 15,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 8.471889448012801
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.v_proj.weight",
+          "layer_index": 15,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.474477566937916
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.q_proj.weight",
+          "layer_index": 16,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 8.387208874795862
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.v_proj.weight",
+          "layer_index": 16,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.588505549483042
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.q_proj.weight",
+          "layer_index": 17,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 8.95351262223285
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.v_proj.weight",
+          "layer_index": 17,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.838832841390847
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.q_proj.weight",
+          "layer_index": 18,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 10.004421577440214
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.v_proj.weight",
+          "layer_index": 18,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 8.46398338383721
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.q_proj.weight",
+          "layer_index": 19,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 7.010728214644469
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.v_proj.weight",
+          "layer_index": 19,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.50511656702134
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.q_proj.weight",
+          "layer_index": 20,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.553942761510505
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.v_proj.weight",
+          "layer_index": 20,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.056426016156818
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.q_proj.weight",
+          "layer_index": 21,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 8.275154953287931
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.v_proj.weight",
+          "layer_index": 21,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.733861524490157
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.q_proj.weight",
+          "layer_index": 22,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 10.943229316169344
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.v_proj.weight",
+          "layer_index": 22,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.957540153845036
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.q_proj.weight",
+          "layer_index": 23,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 10.421337437460512
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.v_proj.weight",
+          "layer_index": 23,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.141530732001327
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.q_proj.weight",
+          "layer_index": 24,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 11.18089218479753
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.v_proj.weight",
+          "layer_index": 24,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.690190749953624
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.q_proj.weight",
+          "layer_index": 25,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 9.949459751118658
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.v_proj.weight",
+          "layer_index": 25,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.584912073604704
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.q_proj.weight",
+          "layer_index": 26,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 6.466465830205629
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.v_proj.weight",
+          "layer_index": 26,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.405415613327724
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.q_proj.weight",
+          "layer_index": 27,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 10.503518744199877
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.v_proj.weight",
+          "layer_index": 27,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.870236749645429
+        }
+      ]
+    },
+    {
+      "checkpoint_id": "scheduled_pct_100_epoch_001_step_001250",
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 100.0,
+      "epoch": 1,
+      "global_step": 1250,
+      "records": [
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.q_proj.weight",
+          "layer_index": 0,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.925310098606959
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.v_proj.weight",
+          "layer_index": 0,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 12.442225762658499
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.q_proj.weight",
+          "layer_index": 1,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 13.846905407592333
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.v_proj.weight",
+          "layer_index": 1,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.183734216707434
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.q_proj.weight",
+          "layer_index": 2,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 13.167311166433697
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.v_proj.weight",
+          "layer_index": 2,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.666795511872795
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.q_proj.weight",
+          "layer_index": 3,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 14.641588752888811
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.v_proj.weight",
+          "layer_index": 3,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 12.58267036508022
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.q_proj.weight",
+          "layer_index": 4,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 14.08696082270812
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.v_proj.weight",
+          "layer_index": 4,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.924609819632371
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.q_proj.weight",
+          "layer_index": 5,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.728289767028018
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.v_proj.weight",
+          "layer_index": 5,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.986827380795505
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.q_proj.weight",
+          "layer_index": 6,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 14.253152785391762
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.v_proj.weight",
+          "layer_index": 6,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.368242217591947
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.q_proj.weight",
+          "layer_index": 7,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 11.140297643178942
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.v_proj.weight",
+          "layer_index": 7,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 7.571461908724841
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.q_proj.weight",
+          "layer_index": 8,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.06767333765828
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.v_proj.weight",
+          "layer_index": 8,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 7.407884306977915
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.q_proj.weight",
+          "layer_index": 9,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 10.106499964524028
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.v_proj.weight",
+          "layer_index": 9,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.339434287966299
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.q_proj.weight",
+          "layer_index": 10,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 9.397771203587181
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.v_proj.weight",
+          "layer_index": 10,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 8.196629630963038
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.q_proj.weight",
+          "layer_index": 11,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 11.34004420692033
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.v_proj.weight",
+          "layer_index": 11,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.667592296714174
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.q_proj.weight",
+          "layer_index": 12,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.432081648052765
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.v_proj.weight",
+          "layer_index": 12,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 8.971504712848436
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.q_proj.weight",
+          "layer_index": 13,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.031911574468076
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.v_proj.weight",
+          "layer_index": 13,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 12.337384449558845
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.q_proj.weight",
+          "layer_index": 14,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.168606596740684
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.v_proj.weight",
+          "layer_index": 14,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.992623973371114
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.q_proj.weight",
+          "layer_index": 15,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 8.369899650937336
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.v_proj.weight",
+          "layer_index": 15,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.505095583313206
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.q_proj.weight",
+          "layer_index": 16,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 8.320857830590613
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.v_proj.weight",
+          "layer_index": 16,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.625515237374035
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.q_proj.weight",
+          "layer_index": 17,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 8.900431579890672
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.v_proj.weight",
+          "layer_index": 17,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.822655044505687
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.q_proj.weight",
+          "layer_index": 18,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 9.989975078445019
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.v_proj.weight",
+          "layer_index": 18,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 8.469966763457261
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.q_proj.weight",
+          "layer_index": 19,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 6.952353520824416
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.v_proj.weight",
+          "layer_index": 19,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.550346820554221
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.q_proj.weight",
+          "layer_index": 20,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 12.580135669094073
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.v_proj.weight",
+          "layer_index": 20,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 11.089581875305601
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.q_proj.weight",
+          "layer_index": 21,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 8.277122218925209
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.v_proj.weight",
+          "layer_index": 21,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.757647888426611
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.q_proj.weight",
+          "layer_index": 22,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 10.904982129349744
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.v_proj.weight",
+          "layer_index": 22,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.973618401951365
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.q_proj.weight",
+          "layer_index": 23,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 10.413630449316123
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.v_proj.weight",
+          "layer_index": 23,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.159880052252142
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.q_proj.weight",
+          "layer_index": 24,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 11.182313110463188
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.v_proj.weight",
+          "layer_index": 24,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.701635905410015
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.q_proj.weight",
+          "layer_index": 25,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 9.918993705202011
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.v_proj.weight",
+          "layer_index": 25,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.6274297162476
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.q_proj.weight",
+          "layer_index": 26,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 6.465624102818504
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.v_proj.weight",
+          "layer_index": 26,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 10.441711502213922
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.q_proj.weight",
+          "layer_index": 27,
+          "module_name": "Q",
+          "component_name": "attention",
+          "effective_rank": 10.586163872908859
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.v_proj.weight",
+          "layer_index": 27,
+          "module_name": "V",
+          "component_name": "attention",
+          "effective_rank": 9.852845115807511
+        }
+      ]
+    }
+  ]
+}

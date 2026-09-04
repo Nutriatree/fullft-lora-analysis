@@ -1,0 +1,10 @@
+{
+  "run_tag": "LL2",
+  "method_name": "lora",
+  "inference_examples_per_second": 9.066018252140221,
+  "inference_avg_latency_seconds": 0.11030200603930279,
+  "inference_peak_allocated_gb": 13.93550443649292,
+  "inference_peak_reserved_gb": 22.552734375,
+  "best_checkpoint_size_bytes": 16810299,
+  "final_checkpoint_size_bytes": 16810299
+}

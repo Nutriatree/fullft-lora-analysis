@@ -1,0 +1,36 @@
+{
+  "run_id": "study_single_epoch1",
+  "run_tag": "L2",
+  "method_name": "lora",
+  "condition": "lora-qkvo",
+  "model_name": "Qwen/Qwen3-1.7B",
+  "data_regime": "full-data",
+  "data_fraction": 1.0,
+  "target_modules": [
+    "q_proj",
+    "k_proj",
+    "v_proj",
+    "o_proj"
+  ],
+  "target_layers": [],
+  "layer_scope": "all",
+  "lora_rank": 8,
+  "lora_alpha": 16.0,
+  "lora_dropout": 0.0,
+  "notes": "Target module comparison run.",
+  "track_layerwise_updates": true,
+  "created_at": "2026-09-04T11:51:46.345277+00:00",
+  "distributed": {
+    "mode": "single",
+    "world_size": 1,
+    "rank": 0,
+    "local_rank": 0,
+    "sharding_strategy": null,
+    "fsdp_cpu_offload": null,
+    "fsdp_auto_wrap_layer_classes": []
+  },
+  "lora_bias": "none",
+  "lora_task_type": "CAUSAL_LM",
+  "modules_to_save": [],
+  "merge_for_eval": false
+}

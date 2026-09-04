@@ -1,0 +1,91 @@
+{
+  "checkpoint_id": "reference_pct_000_epoch_000_step_000000",
+  "checkpoint_kind": "reference",
+  "checkpoint_percent": 0.0,
+  "epoch": 0,
+  "global_step": 0,
+  "num_records": 8,
+  "total_cumulative_update_norm": 0.0,
+  "total_incremental_update_norm": 0.0,
+  "avg_incremental_update_cosine_similarity": null,
+  "by_component": {
+    "attention:Q": {
+      "count": 4,
+      "sum_base_weight_norm": 305.0972900390625,
+      "sum_cumulative_update_norm": 0.0,
+      "sum_incremental_update_norm": 0.0,
+      "sum_relative_update_norm": 0.0,
+      "sum_relative_incremental_update_norm": 0.0,
+      "sum_cumulative_update_share": 0.0,
+      "sum_incremental_update_share": 0.0,
+      "avg_relative_update_norm": 0.0,
+      "avg_relative_incremental_update_norm": 0.0
+    },
+    "attention:V": {
+      "count": 4,
+      "sum_base_weight_norm": 210.36273956298828,
+      "sum_cumulative_update_norm": 0.0,
+      "sum_incremental_update_norm": 0.0,
+      "sum_relative_update_norm": 0.0,
+      "sum_relative_incremental_update_norm": 0.0,
+      "sum_cumulative_update_share": 0.0,
+      "sum_incremental_update_share": 0.0,
+      "avg_relative_update_norm": 0.0,
+      "avg_relative_incremental_update_norm": 0.0
+    }
+  },
+  "by_layer": {
+    "21": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.0,
+      "sum_incremental_update_norm": 0.0,
+      "sum_cumulative_update_share": 0.0,
+      "sum_incremental_update_share": 0.0
+    },
+    "22": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.0,
+      "sum_incremental_update_norm": 0.0,
+      "sum_cumulative_update_share": 0.0,
+      "sum_incremental_update_share": 0.0
+    },
+    "26": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.0,
+      "sum_incremental_update_norm": 0.0,
+      "sum_cumulative_update_share": 0.0,
+      "sum_incremental_update_share": 0.0
+    },
+    "27": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.0,
+      "sum_incremental_update_norm": 0.0,
+      "sum_cumulative_update_share": 0.0,
+      "sum_incremental_update_share": 0.0
+    }
+  },
+  "by_module": {
+    "Q": {
+      "count": 4,
+      "sum_delta_w_norm": 0.0,
+      "sum_delta_w_relative_norm": 0.0,
+      "sum_incremental_delta_w_norm": 0.0,
+      "sum_incremental_delta_w_relative_norm": 0.0,
+      "sum_cumulative_update_share": 0.0,
+      "sum_incremental_update_share": 0.0,
+      "avg_delta_w_relative_norm": 0.0,
+      "avg_incremental_delta_w_relative_norm": 0.0
+    },
+    "V": {
+      "count": 4,
+      "sum_delta_w_norm": 0.0,
+      "sum_delta_w_relative_norm": 0.0,
+      "sum_incremental_delta_w_norm": 0.0,
+      "sum_incremental_delta_w_relative_norm": 0.0,
+      "sum_cumulative_update_share": 0.0,
+      "sum_incremental_update_share": 0.0,
+      "avg_delta_w_relative_norm": 0.0,
+      "avg_incremental_delta_w_relative_norm": 0.0
+    }
+  }
+}

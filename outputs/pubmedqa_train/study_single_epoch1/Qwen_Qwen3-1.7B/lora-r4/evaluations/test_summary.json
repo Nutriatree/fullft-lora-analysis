@@ -1,0 +1,52 @@
+{
+  "split": "test",
+  "loss": 0.5096178658528951,
+  "accuracy": 0.714,
+  "macro_f1": 0.5007641581096091,
+  "class_f1": {
+    "yes": 0.7893738140417458,
+    "no": 0.7129186602870814,
+    "maybe": 0.0
+  },
+  "confusion_matrix": {
+    "yes": {
+      "yes": 208,
+      "no": 68,
+      "maybe": 0,
+      "invalid": 0
+    },
+    "no": {
+      "yes": 20,
+      "no": 149,
+      "maybe": 0,
+      "invalid": 0
+    },
+    "maybe": {
+      "yes": 23,
+      "no": 32,
+      "maybe": 0,
+      "invalid": 0
+    },
+    "invalid": {
+      "yes": 0,
+      "no": 0,
+      "maybe": 0,
+      "invalid": 0
+    }
+  },
+  "label_order": [
+    "yes",
+    "no",
+    "maybe",
+    "invalid"
+  ],
+  "invalid_rate": 0.0,
+  "num_examples": 500,
+  "num_parsed": 500,
+  "elapsed_seconds": 54.48083290271461,
+  "avg_latency_seconds": 0.10896166580542922,
+  "examples_per_second": 9.177539574199251,
+  "tokens_per_second": 3779.971579504594,
+  "peak_allocated_gb": 8.450891971588135,
+  "peak_reserved_gb": 21.73046875
+}

@@ -1,0 +1,259 @@
+{
+  "checkpoint_id": "scheduled_pct_075_epoch_001_step_000938",
+  "checkpoint_kind": "scheduled",
+  "checkpoint_percent": 75.0,
+  "epoch": 1,
+  "global_step": 938,
+  "num_records": 56,
+  "total_cumulative_update_norm": 20.634757980704308,
+  "total_incremental_update_norm": 5.517881043255329,
+  "avg_incremental_update_cosine_similarity": 0.15662720750177478,
+  "by_component": {
+    "attention:Q": {
+      "count": 28,
+      "sum_base_weight_norm": 2036.7174530029297,
+      "sum_cumulative_update_norm": 12.228458017110825,
+      "sum_incremental_update_norm": 3.3929607085883617,
+      "sum_relative_update_norm": 0.16888591260285815,
+      "sum_relative_incremental_update_norm": 0.0470940495734347,
+      "sum_cumulative_update_share": 0.5926145597901237,
+      "sum_incremental_update_share": 0.6149028371562447,
+      "avg_relative_update_norm": 0.006031639735816363,
+      "avg_relative_incremental_update_norm": 0.0016819303419083821
+    },
+    "attention:V": {
+      "count": 28,
+      "sum_base_weight_norm": 1393.992832183838,
+      "sum_cumulative_update_norm": 8.406299963593483,
+      "sum_incremental_update_norm": 2.1249203346669674,
+      "sum_relative_update_norm": 0.16932258671721861,
+      "sum_relative_incremental_update_norm": 0.04285534922269248,
+      "sum_cumulative_update_share": 0.4073854402098763,
+      "sum_incremental_update_share": 0.3850971628437552,
+      "avg_relative_update_norm": 0.006047235239900665,
+      "avg_relative_incremental_update_norm": 0.0015305481865247315
+    }
+  },
+  "by_layer": {
+    "0": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.8196147084236145,
+      "sum_incremental_update_norm": 0.24742724746465683,
+      "sum_cumulative_update_share": 0.03972010280857383,
+      "sum_incremental_update_share": 0.04484098977941805
+    },
+    "1": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.7890658676624298,
+      "sum_incremental_update_norm": 0.24638867378234863,
+      "sum_cumulative_update_share": 0.038239647317418995,
+      "sum_incremental_update_share": 0.044652770121515556
+    },
+    "2": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.8059041798114777,
+      "sum_incremental_update_norm": 0.2510118931531906,
+      "sum_cumulative_update_share": 0.03905566426148946,
+      "sum_incremental_update_share": 0.04549063149159585
+    },
+    "3": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.7262424528598785,
+      "sum_incremental_update_norm": 0.21233780682086945,
+      "sum_cumulative_update_share": 0.03519510398614767,
+      "sum_incremental_update_share": 0.0384817659453562
+    },
+    "4": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.72409787774086,
+      "sum_incremental_update_norm": 0.20745699107646942,
+      "sum_cumulative_update_share": 0.03509117375730641,
+      "sum_incremental_update_share": 0.037597220645060894
+    },
+    "5": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.8010921478271484,
+      "sum_incremental_update_norm": 0.24612465500831604,
+      "sum_cumulative_update_share": 0.03882246395020745,
+      "sum_incremental_update_share": 0.044604922266158954
+    },
+    "6": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.8042504787445068,
+      "sum_incremental_update_norm": 0.2472371831536293,
+      "sum_cumulative_update_share": 0.03897552273191508,
+      "sum_incremental_update_share": 0.04480654461658515
+    },
+    "7": {
+      "count": 2,
+      "sum_cumulative_update_norm": 1.1346389651298523,
+      "sum_incremental_update_norm": 0.3590953052043915,
+      "sum_cumulative_update_share": 0.05498678328046591,
+      "sum_incremental_update_share": 0.06507847892866853
+    },
+    "8": {
+      "count": 2,
+      "sum_cumulative_update_norm": 1.0117264688014984,
+      "sum_incremental_update_norm": 0.2764230966567993,
+      "sum_cumulative_update_share": 0.049030207659695846,
+      "sum_incremental_update_share": 0.05009587819851237
+    },
+    "9": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.986102968454361,
+      "sum_incremental_update_norm": 0.2886712998151779,
+      "sum_cumulative_update_share": 0.04778844362393162,
+      "sum_incremental_update_share": 0.052315607667553735
+    },
+    "10": {
+      "count": 2,
+      "sum_cumulative_update_norm": 1.1176084280014038,
+      "sum_incremental_update_norm": 0.30788470059633255,
+      "sum_cumulative_update_share": 0.05416145074473307,
+      "sum_incremental_update_share": 0.05579763285630618
+    },
+    "11": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.8278667628765106,
+      "sum_incremental_update_norm": 0.24789393693208694,
+      "sum_cumulative_update_share": 0.04012001321511277,
+      "sum_incremental_update_share": 0.04492556743953281
+    },
+    "12": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.8405378758907318,
+      "sum_incremental_update_norm": 0.273174025118351,
+      "sum_cumulative_update_share": 0.04073407968616468,
+      "sum_incremental_update_share": 0.049507052250113245
+    },
+    "13": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.711703896522522,
+      "sum_incremental_update_norm": 0.22252073138952255,
+      "sum_cumulative_update_share": 0.03449053762530391,
+      "sum_incremental_update_share": 0.0403272070646605
+    },
+    "14": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.661559671163559,
+      "sum_incremental_update_norm": 0.21640557050704956,
+      "sum_cumulative_update_share": 0.03206045216436207,
+      "sum_incremental_update_share": 0.03921896264356198
+    },
+    "15": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.7454480826854706,
+      "sum_incremental_update_norm": 0.21228161826729774,
+      "sum_cumulative_update_share": 0.036125845691165545,
+      "sum_incremental_update_share": 0.03847158295062847
+    },
+    "16": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.7781949043273926,
+      "sum_incremental_update_norm": 0.2247975692152977,
+      "sum_cumulative_update_share": 0.037712819556938226,
+      "sum_incremental_update_share": 0.0407398360807496
+    },
+    "17": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.6465503573417664,
+      "sum_incremental_update_norm": 0.19502438604831696,
+      "sum_cumulative_update_share": 0.03133307199175099,
+      "sum_incremental_update_share": 0.035344072211687325
+    },
+    "18": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.560613214969635,
+      "sum_incremental_update_norm": 0.127265352755785,
+      "sum_cumulative_update_share": 0.027168393033437464,
+      "sum_incremental_update_share": 0.023064171147970873
+    },
+    "19": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.7576304972171783,
+      "sum_incremental_update_norm": 0.14429620653390884,
+      "sum_cumulative_update_share": 0.036716228895228305,
+      "sum_incremental_update_share": 0.02615065555106274
+    },
+    "20": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.5569435954093933,
+      "sum_incremental_update_norm": 0.1140558235347271,
+      "sum_cumulative_update_share": 0.026990556222185633,
+      "sum_incremental_update_share": 0.02067022152899453
+    },
+    "21": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.5539861768484116,
+      "sum_incremental_update_norm": 0.10569973289966583,
+      "sum_cumulative_update_share": 0.02684723403911243,
+      "sum_incremental_update_share": 0.01915585567558869
+    },
+    "22": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.5473757237195969,
+      "sum_incremental_update_norm": 0.10059250518679619,
+      "sum_cumulative_update_share": 0.026526878785370363,
+      "sum_incremental_update_share": 0.01823027796326878
+    },
+    "23": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.557040736079216,
+      "sum_incremental_update_norm": 0.10571419261395931,
+      "sum_cumulative_update_share": 0.026995263845600144,
+      "sum_incremental_update_share": 0.01915847619498375
+    },
+    "24": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.5345401465892792,
+      "sum_incremental_update_norm": 0.08136329054832458,
+      "sum_cumulative_update_share": 0.025904842067405447,
+      "sum_incremental_update_share": 0.014745386845150888
+    },
+    "25": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.6116882860660553,
+      "sum_incremental_update_norm": 0.10088998824357986,
+      "sum_cumulative_update_share": 0.029643589066469734,
+      "sum_incremental_update_share": 0.018284190516738436
+    },
+    "26": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.6285368949174881,
+      "sum_incremental_update_norm": 0.08839276805520058,
+      "sum_cumulative_update_share": 0.030460105008512185,
+      "sum_incremental_update_share": 0.016019331943236743
+    },
+    "27": {
+      "count": 2,
+      "sum_cumulative_update_norm": 0.39419661462306976,
+      "sum_incremental_update_norm": 0.06745449267327785,
+      "sum_cumulative_update_share": 0.01910352498399475,
+      "sum_incremental_update_share": 0.012224709475339178
+    }
+  },
+  "by_module": {
+    "Q": {
+      "count": 28,
+      "sum_delta_w_norm": 12.228458017110825,
+      "sum_delta_w_relative_norm": 0.16888591260285815,
+      "sum_incremental_delta_w_norm": 3.3929607085883617,
+      "sum_incremental_delta_w_relative_norm": 0.0470940495734347,
+      "sum_cumulative_update_share": 0.5926145597901237,
+      "sum_incremental_update_share": 0.6149028371562447,
+      "avg_delta_w_relative_norm": 0.006031639735816363,
+      "avg_incremental_delta_w_relative_norm": 0.0016819303419083821
+    },
+    "V": {
+      "count": 28,
+      "sum_delta_w_norm": 8.406299963593483,
+      "sum_delta_w_relative_norm": 0.16932258671721861,
+      "sum_incremental_delta_w_norm": 2.1249203346669674,
+      "sum_incremental_delta_w_relative_norm": 0.04285534922269248,
+      "sum_cumulative_update_share": 0.4073854402098763,
+      "sum_incremental_update_share": 0.3850971628437552,
+      "avg_delta_w_relative_norm": 0.006047235239900665,
+      "avg_incremental_delta_w_relative_norm": 0.0015305481865247315
+    }
+  }
+}

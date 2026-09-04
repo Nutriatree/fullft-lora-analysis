@@ -1,0 +1,10 @@
+{
+  "run_tag": "LL1",
+  "method_name": "lora",
+  "total_training_time_seconds": 2187.3240074138157,
+  "training_seconds_per_step": 1.7498592059310525,
+  "training_samples_per_second": 4.5717963896091955,
+  "training_tokens_per_second": 1954.1508187686352,
+  "optimizer_steps": 1250,
+  "steps_per_epoch": 1250
+}

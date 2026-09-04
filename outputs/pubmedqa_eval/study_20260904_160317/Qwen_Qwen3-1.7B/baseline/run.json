@@ -1,0 +1,10 @@
+{
+  "run_id": "study_20260904_160317",
+  "model_name": "Qwen/Qwen3-1.7B",
+  "resolved_model_name": "Qwen/Qwen3-1.7B",
+  "backend": "torch",
+  "condition": "baseline",
+  "title": "study_20260904_160317__Qwen_Qwen3-1.7B__baseline",
+  "start_time": "2026-09-04T07:03:24.003407+00:00",
+  "end_time": "2026-09-04T07:03:50.222636+00:00"
+}

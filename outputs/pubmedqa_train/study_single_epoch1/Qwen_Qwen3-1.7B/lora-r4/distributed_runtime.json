@@ -1,0 +1,37 @@
+{
+  "mode": "single",
+  "world_size": 1,
+  "rank": 0,
+  "local_rank": 0,
+  "sharding_strategy": null,
+  "fsdp_cpu_offload": null,
+  "fsdp_auto_wrap_layer_classes": [],
+  "per_rank": [
+    {
+      "rank": 0,
+      "local_rank": 0,
+      "device": "cuda:0",
+      "gpu_name": "NVIDIA GeForce RTX 3090",
+      "idle_memory": {
+        "allocated_gb": 0.015869140625,
+        "reserved_gb": 0.0390625,
+        "max_allocated_gb": 8.455750942230225,
+        "max_reserved_gb": 21.71484375
+      },
+      "model_loaded_memory": {
+        "allocated_gb": 3.2249836921691895,
+        "reserved_gb": 16.447265625,
+        "max_allocated_gb": 10.732954978942871,
+        "max_reserved_gb": 22.3046875
+      },
+      "peak_training_memory": {
+        "allocated_gb": 0.015869140625,
+        "reserved_gb": 0.0390625,
+        "max_allocated_gb": 8.450891971588135,
+        "max_reserved_gb": 21.73046875
+      }
+    }
+  ],
+  "max_peak_allocated_gb": 8.450891971588135,
+  "max_peak_reserved_gb": 21.73046875
+}

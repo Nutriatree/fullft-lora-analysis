@@ -1,0 +1,2359 @@
+{
+  "run_id": "study_20260904_160317",
+  "run_tag": "F1",
+  "model_name": "Qwen/Qwen3-1.7B",
+  "tracked_parameters": [
+    {
+      "parameter_name": "model.layers.0.self_attn.q_proj.weight",
+      "layer_index": 0,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 72.02830505371094
+    },
+    {
+      "parameter_name": "model.layers.0.self_attn.k_proj.weight",
+      "layer_index": 0,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 51.802555084228516
+    },
+    {
+      "parameter_name": "model.layers.0.self_attn.v_proj.weight",
+      "layer_index": 0,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 48.58225631713867
+    },
+    {
+      "parameter_name": "model.layers.0.self_attn.o_proj.weight",
+      "layer_index": 0,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 66.30159759521484
+    },
+    {
+      "parameter_name": "model.layers.0.mlp.gate_proj.weight",
+      "layer_index": 0,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 136.72982788085938
+    },
+    {
+      "parameter_name": "model.layers.0.mlp.up_proj.weight",
+      "layer_index": 0,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 111.49015045166016
+    },
+    {
+      "parameter_name": "model.layers.0.mlp.down_proj.weight",
+      "layer_index": 0,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 117.85887145996094
+    },
+    {
+      "parameter_name": "model.layers.1.self_attn.q_proj.weight",
+      "layer_index": 1,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 70.66204071044922
+    },
+    {
+      "parameter_name": "model.layers.1.self_attn.k_proj.weight",
+      "layer_index": 1,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 48.86533737182617
+    },
+    {
+      "parameter_name": "model.layers.1.self_attn.v_proj.weight",
+      "layer_index": 1,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 50.020484924316406
+    },
+    {
+      "parameter_name": "model.layers.1.self_attn.o_proj.weight",
+      "layer_index": 1,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 66.50325012207031
+    },
+    {
+      "parameter_name": "model.layers.1.mlp.gate_proj.weight",
+      "layer_index": 1,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 159.0016326904297
+    },
+    {
+      "parameter_name": "model.layers.1.mlp.up_proj.weight",
+      "layer_index": 1,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 101.27223205566406
+    },
+    {
+      "parameter_name": "model.layers.1.mlp.down_proj.weight",
+      "layer_index": 1,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 103.15261840820312
+    },
+    {
+      "parameter_name": "model.layers.2.self_attn.q_proj.weight",
+      "layer_index": 2,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 70.21402740478516
+    },
+    {
+      "parameter_name": "model.layers.2.self_attn.k_proj.weight",
+      "layer_index": 2,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 48.42940139770508
+    },
+    {
+      "parameter_name": "model.layers.2.self_attn.v_proj.weight",
+      "layer_index": 2,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 49.95705032348633
+    },
+    {
+      "parameter_name": "model.layers.2.self_attn.o_proj.weight",
+      "layer_index": 2,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 64.68404388427734
+    },
+    {
+      "parameter_name": "model.layers.2.mlp.gate_proj.weight",
+      "layer_index": 2,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 164.30126953125
+    },
+    {
+      "parameter_name": "model.layers.2.mlp.up_proj.weight",
+      "layer_index": 2,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 104.76251220703125
+    },
+    {
+      "parameter_name": "model.layers.2.mlp.down_proj.weight",
+      "layer_index": 2,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 108.29932403564453
+    },
+    {
+      "parameter_name": "model.layers.3.self_attn.q_proj.weight",
+      "layer_index": 3,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 71.1640396118164
+    },
+    {
+      "parameter_name": "model.layers.3.self_attn.k_proj.weight",
+      "layer_index": 3,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 49.41231155395508
+    },
+    {
+      "parameter_name": "model.layers.3.self_attn.v_proj.weight",
+      "layer_index": 3,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 52.989654541015625
+    },
+    {
+      "parameter_name": "model.layers.3.self_attn.o_proj.weight",
+      "layer_index": 3,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 68.47831726074219
+    },
+    {
+      "parameter_name": "model.layers.3.mlp.gate_proj.weight",
+      "layer_index": 3,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 162.3754425048828
+    },
+    {
+      "parameter_name": "model.layers.3.mlp.up_proj.weight",
+      "layer_index": 3,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 107.24935150146484
+    },
+    {
+      "parameter_name": "model.layers.3.mlp.down_proj.weight",
+      "layer_index": 3,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 107.88398742675781
+    },
+    {
+      "parameter_name": "model.layers.4.self_attn.q_proj.weight",
+      "layer_index": 4,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 70.09300231933594
+    },
+    {
+      "parameter_name": "model.layers.4.self_attn.k_proj.weight",
+      "layer_index": 4,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 47.82394790649414
+    },
+    {
+      "parameter_name": "model.layers.4.self_attn.v_proj.weight",
+      "layer_index": 4,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 52.14872360229492
+    },
+    {
+      "parameter_name": "model.layers.4.self_attn.o_proj.weight",
+      "layer_index": 4,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 67.00048828125
+    },
+    {
+      "parameter_name": "model.layers.4.mlp.gate_proj.weight",
+      "layer_index": 4,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 157.57577514648438
+    },
+    {
+      "parameter_name": "model.layers.4.mlp.up_proj.weight",
+      "layer_index": 4,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 108.20881652832031
+    },
+    {
+      "parameter_name": "model.layers.4.mlp.down_proj.weight",
+      "layer_index": 4,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 108.00299835205078
+    },
+    {
+      "parameter_name": "model.layers.5.self_attn.q_proj.weight",
+      "layer_index": 5,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 72.3556137084961
+    },
+    {
+      "parameter_name": "model.layers.5.self_attn.k_proj.weight",
+      "layer_index": 5,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 48.51228332519531
+    },
+    {
+      "parameter_name": "model.layers.5.self_attn.v_proj.weight",
+      "layer_index": 5,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 50.41316223144531
+    },
+    {
+      "parameter_name": "model.layers.5.self_attn.o_proj.weight",
+      "layer_index": 5,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 67.35077667236328
+    },
+    {
+      "parameter_name": "model.layers.5.mlp.gate_proj.weight",
+      "layer_index": 5,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 140.16261291503906
+    },
+    {
+      "parameter_name": "model.layers.5.mlp.up_proj.weight",
+      "layer_index": 5,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 116.04048919677734
+    },
+    {
+      "parameter_name": "model.layers.5.mlp.down_proj.weight",
+      "layer_index": 5,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 115.13835144042969
+    },
+    {
+      "parameter_name": "model.layers.6.self_attn.q_proj.weight",
+      "layer_index": 6,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 70.64531707763672
+    },
+    {
+      "parameter_name": "model.layers.6.self_attn.k_proj.weight",
+      "layer_index": 6,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 47.45537567138672
+    },
+    {
+      "parameter_name": "model.layers.6.self_attn.v_proj.weight",
+      "layer_index": 6,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 51.556026458740234
+    },
+    {
+      "parameter_name": "model.layers.6.self_attn.o_proj.weight",
+      "layer_index": 6,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 64.82910919189453
+    },
+    {
+      "parameter_name": "model.layers.6.mlp.gate_proj.weight",
+      "layer_index": 6,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 138.19349670410156
+    },
+    {
+      "parameter_name": "model.layers.6.mlp.up_proj.weight",
+      "layer_index": 6,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 116.5723648071289
+    },
+    {
+      "parameter_name": "model.layers.6.mlp.down_proj.weight",
+      "layer_index": 6,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 113.6891098022461
+    },
+    {
+      "parameter_name": "model.layers.7.self_attn.q_proj.weight",
+      "layer_index": 7,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 68.43561553955078
+    },
+    {
+      "parameter_name": "model.layers.7.self_attn.k_proj.weight",
+      "layer_index": 7,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 45.66552734375
+    },
+    {
+      "parameter_name": "model.layers.7.self_attn.v_proj.weight",
+      "layer_index": 7,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 50.03123474121094
+    },
+    {
+      "parameter_name": "model.layers.7.self_attn.o_proj.weight",
+      "layer_index": 7,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 65.13191986083984
+    },
+    {
+      "parameter_name": "model.layers.7.mlp.gate_proj.weight",
+      "layer_index": 7,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 142.47328186035156
+    },
+    {
+      "parameter_name": "model.layers.7.mlp.up_proj.weight",
+      "layer_index": 7,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 114.96881103515625
+    },
+    {
+      "parameter_name": "model.layers.7.mlp.down_proj.weight",
+      "layer_index": 7,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 111.8783187866211
+    },
+    {
+      "parameter_name": "model.layers.8.self_attn.q_proj.weight",
+      "layer_index": 8,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 70.1177978515625
+    },
+    {
+      "parameter_name": "model.layers.8.self_attn.k_proj.weight",
+      "layer_index": 8,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 46.67946243286133
+    },
+    {
+      "parameter_name": "model.layers.8.self_attn.v_proj.weight",
+      "layer_index": 8,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 50.65102767944336
+    },
+    {
+      "parameter_name": "model.layers.8.self_attn.o_proj.weight",
+      "layer_index": 8,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 63.9854621887207
+    },
+    {
+      "parameter_name": "model.layers.8.mlp.gate_proj.weight",
+      "layer_index": 8,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 136.01730346679688
+    },
+    {
+      "parameter_name": "model.layers.8.mlp.up_proj.weight",
+      "layer_index": 8,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 116.38439178466797
+    },
+    {
+      "parameter_name": "model.layers.8.mlp.down_proj.weight",
+      "layer_index": 8,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 115.06830596923828
+    },
+    {
+      "parameter_name": "model.layers.9.self_attn.q_proj.weight",
+      "layer_index": 9,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 71.10435485839844
+    },
+    {
+      "parameter_name": "model.layers.9.self_attn.k_proj.weight",
+      "layer_index": 9,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 46.421783447265625
+    },
+    {
+      "parameter_name": "model.layers.9.self_attn.v_proj.weight",
+      "layer_index": 9,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 49.61049270629883
+    },
+    {
+      "parameter_name": "model.layers.9.self_attn.o_proj.weight",
+      "layer_index": 9,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 66.10627746582031
+    },
+    {
+      "parameter_name": "model.layers.9.mlp.gate_proj.weight",
+      "layer_index": 9,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 135.27613830566406
+    },
+    {
+      "parameter_name": "model.layers.9.mlp.up_proj.weight",
+      "layer_index": 9,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 121.1564712524414
+    },
+    {
+      "parameter_name": "model.layers.9.mlp.down_proj.weight",
+      "layer_index": 9,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 115.78207397460938
+    },
+    {
+      "parameter_name": "model.layers.10.self_attn.q_proj.weight",
+      "layer_index": 10,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 69.98413848876953
+    },
+    {
+      "parameter_name": "model.layers.10.self_attn.k_proj.weight",
+      "layer_index": 10,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 47.57184982299805
+    },
+    {
+      "parameter_name": "model.layers.10.self_attn.v_proj.weight",
+      "layer_index": 10,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 49.36271286010742
+    },
+    {
+      "parameter_name": "model.layers.10.self_attn.o_proj.weight",
+      "layer_index": 10,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 64.51392364501953
+    },
+    {
+      "parameter_name": "model.layers.10.mlp.gate_proj.weight",
+      "layer_index": 10,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 133.6614227294922
+    },
+    {
+      "parameter_name": "model.layers.10.mlp.up_proj.weight",
+      "layer_index": 10,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 121.69667053222656
+    },
+    {
+      "parameter_name": "model.layers.10.mlp.down_proj.weight",
+      "layer_index": 10,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 114.79947662353516
+    },
+    {
+      "parameter_name": "model.layers.11.self_attn.q_proj.weight",
+      "layer_index": 11,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 74.17757415771484
+    },
+    {
+      "parameter_name": "model.layers.11.self_attn.k_proj.weight",
+      "layer_index": 11,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 47.88022994995117
+    },
+    {
+      "parameter_name": "model.layers.11.self_attn.v_proj.weight",
+      "layer_index": 11,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 46.94844436645508
+    },
+    {
+      "parameter_name": "model.layers.11.self_attn.o_proj.weight",
+      "layer_index": 11,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 61.27531051635742
+    },
+    {
+      "parameter_name": "model.layers.11.mlp.gate_proj.weight",
+      "layer_index": 11,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 127.03240203857422
+    },
+    {
+      "parameter_name": "model.layers.11.mlp.up_proj.weight",
+      "layer_index": 11,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 124.4664306640625
+    },
+    {
+      "parameter_name": "model.layers.11.mlp.down_proj.weight",
+      "layer_index": 11,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 118.75041961669922
+    },
+    {
+      "parameter_name": "model.layers.12.self_attn.q_proj.weight",
+      "layer_index": 12,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 71.05342102050781
+    },
+    {
+      "parameter_name": "model.layers.12.self_attn.k_proj.weight",
+      "layer_index": 12,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 46.63608169555664
+    },
+    {
+      "parameter_name": "model.layers.12.self_attn.v_proj.weight",
+      "layer_index": 12,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 48.28062438964844
+    },
+    {
+      "parameter_name": "model.layers.12.self_attn.o_proj.weight",
+      "layer_index": 12,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 61.28077697753906
+    },
+    {
+      "parameter_name": "model.layers.12.mlp.gate_proj.weight",
+      "layer_index": 12,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 123.5584716796875
+    },
+    {
+      "parameter_name": "model.layers.12.mlp.up_proj.weight",
+      "layer_index": 12,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 123.9834213256836
+    },
+    {
+      "parameter_name": "model.layers.12.mlp.down_proj.weight",
+      "layer_index": 12,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 118.70136260986328
+    },
+    {
+      "parameter_name": "model.layers.13.self_attn.q_proj.weight",
+      "layer_index": 13,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 71.75807189941406
+    },
+    {
+      "parameter_name": "model.layers.13.self_attn.k_proj.weight",
+      "layer_index": 13,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 44.45696258544922
+    },
+    {
+      "parameter_name": "model.layers.13.self_attn.v_proj.weight",
+      "layer_index": 13,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 48.107154846191406
+    },
+    {
+      "parameter_name": "model.layers.13.self_attn.o_proj.weight",
+      "layer_index": 13,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 59.51656723022461
+    },
+    {
+      "parameter_name": "model.layers.13.mlp.gate_proj.weight",
+      "layer_index": 13,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 119.3196792602539
+    },
+    {
+      "parameter_name": "model.layers.13.mlp.up_proj.weight",
+      "layer_index": 13,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 120.74951934814453
+    },
+    {
+      "parameter_name": "model.layers.13.mlp.down_proj.weight",
+      "layer_index": 13,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 115.77780151367188
+    },
+    {
+      "parameter_name": "model.layers.14.self_attn.q_proj.weight",
+      "layer_index": 14,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 69.40812683105469
+    },
+    {
+      "parameter_name": "model.layers.14.self_attn.k_proj.weight",
+      "layer_index": 14,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 44.129032135009766
+    },
+    {
+      "parameter_name": "model.layers.14.self_attn.v_proj.weight",
+      "layer_index": 14,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 46.901180267333984
+    },
+    {
+      "parameter_name": "model.layers.14.self_attn.o_proj.weight",
+      "layer_index": 14,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 59.554744720458984
+    },
+    {
+      "parameter_name": "model.layers.14.mlp.gate_proj.weight",
+      "layer_index": 14,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 114.17737579345703
+    },
+    {
+      "parameter_name": "model.layers.14.mlp.up_proj.weight",
+      "layer_index": 14,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 116.99592590332031
+    },
+    {
+      "parameter_name": "model.layers.14.mlp.down_proj.weight",
+      "layer_index": 14,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 114.96719360351562
+    },
+    {
+      "parameter_name": "model.layers.15.self_attn.q_proj.weight",
+      "layer_index": 15,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 71.19409942626953
+    },
+    {
+      "parameter_name": "model.layers.15.self_attn.k_proj.weight",
+      "layer_index": 15,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 42.117671966552734
+    },
+    {
+      "parameter_name": "model.layers.15.self_attn.v_proj.weight",
+      "layer_index": 15,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 46.684730529785156
+    },
+    {
+      "parameter_name": "model.layers.15.self_attn.o_proj.weight",
+      "layer_index": 15,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 60.874935150146484
+    },
+    {
+      "parameter_name": "model.layers.15.mlp.gate_proj.weight",
+      "layer_index": 15,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 114.91439056396484
+    },
+    {
+      "parameter_name": "model.layers.15.mlp.up_proj.weight",
+      "layer_index": 15,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 119.61404418945312
+    },
+    {
+      "parameter_name": "model.layers.15.mlp.down_proj.weight",
+      "layer_index": 15,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 115.4651107788086
+    },
+    {
+      "parameter_name": "model.layers.16.self_attn.q_proj.weight",
+      "layer_index": 16,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 75.95948028564453
+    },
+    {
+      "parameter_name": "model.layers.16.self_attn.k_proj.weight",
+      "layer_index": 16,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 43.76168441772461
+    },
+    {
+      "parameter_name": "model.layers.16.self_attn.v_proj.weight",
+      "layer_index": 16,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 46.97856521606445
+    },
+    {
+      "parameter_name": "model.layers.16.self_attn.o_proj.weight",
+      "layer_index": 16,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 61.0029411315918
+    },
+    {
+      "parameter_name": "model.layers.16.mlp.gate_proj.weight",
+      "layer_index": 16,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 114.20428466796875
+    },
+    {
+      "parameter_name": "model.layers.16.mlp.up_proj.weight",
+      "layer_index": 16,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 122.84135437011719
+    },
+    {
+      "parameter_name": "model.layers.16.mlp.down_proj.weight",
+      "layer_index": 16,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 116.48519897460938
+    },
+    {
+      "parameter_name": "model.layers.17.self_attn.q_proj.weight",
+      "layer_index": 17,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 72.59832763671875
+    },
+    {
+      "parameter_name": "model.layers.17.self_attn.k_proj.weight",
+      "layer_index": 17,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 43.61528778076172
+    },
+    {
+      "parameter_name": "model.layers.17.self_attn.v_proj.weight",
+      "layer_index": 17,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 48.877464294433594
+    },
+    {
+      "parameter_name": "model.layers.17.self_attn.o_proj.weight",
+      "layer_index": 17,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 61.86656188964844
+    },
+    {
+      "parameter_name": "model.layers.17.mlp.gate_proj.weight",
+      "layer_index": 17,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 113.90929412841797
+    },
+    {
+      "parameter_name": "model.layers.17.mlp.up_proj.weight",
+      "layer_index": 17,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 127.55370330810547
+    },
+    {
+      "parameter_name": "model.layers.17.mlp.down_proj.weight",
+      "layer_index": 17,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 120.15746307373047
+    },
+    {
+      "parameter_name": "model.layers.18.self_attn.q_proj.weight",
+      "layer_index": 18,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 74.7823257446289
+    },
+    {
+      "parameter_name": "model.layers.18.self_attn.k_proj.weight",
+      "layer_index": 18,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 42.57640075683594
+    },
+    {
+      "parameter_name": "model.layers.18.self_attn.v_proj.weight",
+      "layer_index": 18,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 45.95753860473633
+    },
+    {
+      "parameter_name": "model.layers.18.self_attn.o_proj.weight",
+      "layer_index": 18,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 58.14009475708008
+    },
+    {
+      "parameter_name": "model.layers.18.mlp.gate_proj.weight",
+      "layer_index": 18,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 115.15570068359375
+    },
+    {
+      "parameter_name": "model.layers.18.mlp.up_proj.weight",
+      "layer_index": 18,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 127.85009765625
+    },
+    {
+      "parameter_name": "model.layers.18.mlp.down_proj.weight",
+      "layer_index": 18,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 123.36082458496094
+    },
+    {
+      "parameter_name": "model.layers.19.self_attn.q_proj.weight",
+      "layer_index": 19,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 77.12583923339844
+    },
+    {
+      "parameter_name": "model.layers.19.self_attn.k_proj.weight",
+      "layer_index": 19,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 42.76323318481445
+    },
+    {
+      "parameter_name": "model.layers.19.self_attn.v_proj.weight",
+      "layer_index": 19,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 45.88526916503906
+    },
+    {
+      "parameter_name": "model.layers.19.self_attn.o_proj.weight",
+      "layer_index": 19,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 60.405296325683594
+    },
+    {
+      "parameter_name": "model.layers.19.mlp.gate_proj.weight",
+      "layer_index": 19,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 116.75483703613281
+    },
+    {
+      "parameter_name": "model.layers.19.mlp.up_proj.weight",
+      "layer_index": 19,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 130.10708618164062
+    },
+    {
+      "parameter_name": "model.layers.19.mlp.down_proj.weight",
+      "layer_index": 19,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 127.22608184814453
+    },
+    {
+      "parameter_name": "model.layers.20.self_attn.q_proj.weight",
+      "layer_index": 20,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 78.25776672363281
+    },
+    {
+      "parameter_name": "model.layers.20.self_attn.k_proj.weight",
+      "layer_index": 20,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 44.8171272277832
+    },
+    {
+      "parameter_name": "model.layers.20.self_attn.v_proj.weight",
+      "layer_index": 20,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 47.77786636352539
+    },
+    {
+      "parameter_name": "model.layers.20.self_attn.o_proj.weight",
+      "layer_index": 20,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 63.093692779541016
+    },
+    {
+      "parameter_name": "model.layers.20.mlp.gate_proj.weight",
+      "layer_index": 20,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 121.3572006225586
+    },
+    {
+      "parameter_name": "model.layers.20.mlp.up_proj.weight",
+      "layer_index": 20,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 133.4029083251953
+    },
+    {
+      "parameter_name": "model.layers.20.mlp.down_proj.weight",
+      "layer_index": 20,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 130.50982666015625
+    },
+    {
+      "parameter_name": "model.layers.21.self_attn.q_proj.weight",
+      "layer_index": 21,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 78.37224578857422
+    },
+    {
+      "parameter_name": "model.layers.21.self_attn.k_proj.weight",
+      "layer_index": 21,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 45.79059600830078
+    },
+    {
+      "parameter_name": "model.layers.21.self_attn.v_proj.weight",
+      "layer_index": 21,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 51.625648498535156
+    },
+    {
+      "parameter_name": "model.layers.21.self_attn.o_proj.weight",
+      "layer_index": 21,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 66.29254913330078
+    },
+    {
+      "parameter_name": "model.layers.21.mlp.gate_proj.weight",
+      "layer_index": 21,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 124.41848754882812
+    },
+    {
+      "parameter_name": "model.layers.21.mlp.up_proj.weight",
+      "layer_index": 21,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 135.6445770263672
+    },
+    {
+      "parameter_name": "model.layers.21.mlp.down_proj.weight",
+      "layer_index": 21,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 132.9045867919922
+    },
+    {
+      "parameter_name": "model.layers.22.self_attn.q_proj.weight",
+      "layer_index": 22,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 76.41999053955078
+    },
+    {
+      "parameter_name": "model.layers.22.self_attn.k_proj.weight",
+      "layer_index": 22,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 45.32973098754883
+    },
+    {
+      "parameter_name": "model.layers.22.self_attn.v_proj.weight",
+      "layer_index": 22,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 50.85858154296875
+    },
+    {
+      "parameter_name": "model.layers.22.self_attn.o_proj.weight",
+      "layer_index": 22,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 65.61363220214844
+    },
+    {
+      "parameter_name": "model.layers.22.mlp.gate_proj.weight",
+      "layer_index": 22,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 126.63232421875
+    },
+    {
+      "parameter_name": "model.layers.22.mlp.up_proj.weight",
+      "layer_index": 22,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 136.97084045410156
+    },
+    {
+      "parameter_name": "model.layers.22.mlp.down_proj.weight",
+      "layer_index": 22,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 135.25938415527344
+    },
+    {
+      "parameter_name": "model.layers.23.self_attn.q_proj.weight",
+      "layer_index": 23,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 71.41802978515625
+    },
+    {
+      "parameter_name": "model.layers.23.self_attn.k_proj.weight",
+      "layer_index": 23,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 44.721309661865234
+    },
+    {
+      "parameter_name": "model.layers.23.self_attn.v_proj.weight",
+      "layer_index": 23,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 49.95026779174805
+    },
+    {
+      "parameter_name": "model.layers.23.self_attn.o_proj.weight",
+      "layer_index": 23,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 66.1247787475586
+    },
+    {
+      "parameter_name": "model.layers.23.mlp.gate_proj.weight",
+      "layer_index": 23,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 128.2105255126953
+    },
+    {
+      "parameter_name": "model.layers.23.mlp.up_proj.weight",
+      "layer_index": 23,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 137.42446899414062
+    },
+    {
+      "parameter_name": "model.layers.23.mlp.down_proj.weight",
+      "layer_index": 23,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 136.6064453125
+    },
+    {
+      "parameter_name": "model.layers.24.self_attn.q_proj.weight",
+      "layer_index": 24,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 74.64678955078125
+    },
+    {
+      "parameter_name": "model.layers.24.self_attn.k_proj.weight",
+      "layer_index": 24,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 44.670318603515625
+    },
+    {
+      "parameter_name": "model.layers.24.self_attn.v_proj.weight",
+      "layer_index": 24,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 50.280250549316406
+    },
+    {
+      "parameter_name": "model.layers.24.self_attn.o_proj.weight",
+      "layer_index": 24,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 67.5510482788086
+    },
+    {
+      "parameter_name": "model.layers.24.mlp.gate_proj.weight",
+      "layer_index": 24,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 126.82210540771484
+    },
+    {
+      "parameter_name": "model.layers.24.mlp.up_proj.weight",
+      "layer_index": 24,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 138.08999633789062
+    },
+    {
+      "parameter_name": "model.layers.24.mlp.down_proj.weight",
+      "layer_index": 24,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 137.05841064453125
+    },
+    {
+      "parameter_name": "model.layers.25.self_attn.q_proj.weight",
+      "layer_index": 25,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 72.45941162109375
+    },
+    {
+      "parameter_name": "model.layers.25.self_attn.k_proj.weight",
+      "layer_index": 25,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 43.064701080322266
+    },
+    {
+      "parameter_name": "model.layers.25.self_attn.v_proj.weight",
+      "layer_index": 25,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 55.621612548828125
+    },
+    {
+      "parameter_name": "model.layers.25.self_attn.o_proj.weight",
+      "layer_index": 25,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 70.88482666015625
+    },
+    {
+      "parameter_name": "model.layers.25.mlp.gate_proj.weight",
+      "layer_index": 25,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 124.9593505859375
+    },
+    {
+      "parameter_name": "model.layers.25.mlp.up_proj.weight",
+      "layer_index": 25,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 138.37501525878906
+    },
+    {
+      "parameter_name": "model.layers.25.mlp.down_proj.weight",
+      "layer_index": 25,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 135.94534301757812
+    },
+    {
+      "parameter_name": "model.layers.26.self_attn.q_proj.weight",
+      "layer_index": 26,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 78.50914001464844
+    },
+    {
+      "parameter_name": "model.layers.26.self_attn.k_proj.weight",
+      "layer_index": 26,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 41.88528060913086
+    },
+    {
+      "parameter_name": "model.layers.26.self_attn.v_proj.weight",
+      "layer_index": 26,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 54.02926254272461
+    },
+    {
+      "parameter_name": "model.layers.26.self_attn.o_proj.weight",
+      "layer_index": 26,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 70.54010772705078
+    },
+    {
+      "parameter_name": "model.layers.26.mlp.gate_proj.weight",
+      "layer_index": 26,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 123.92915344238281
+    },
+    {
+      "parameter_name": "model.layers.26.mlp.up_proj.weight",
+      "layer_index": 26,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 137.5308380126953
+    },
+    {
+      "parameter_name": "model.layers.26.mlp.down_proj.weight",
+      "layer_index": 26,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 133.57228088378906
+    },
+    {
+      "parameter_name": "model.layers.27.self_attn.q_proj.weight",
+      "layer_index": 27,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 71.80286407470703
+    },
+    {
+      "parameter_name": "model.layers.27.self_attn.k_proj.weight",
+      "layer_index": 27,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 48.451637268066406
+    },
+    {
+      "parameter_name": "model.layers.27.self_attn.v_proj.weight",
+      "layer_index": 27,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 53.840389251708984
+    },
+    {
+      "parameter_name": "model.layers.27.self_attn.o_proj.weight",
+      "layer_index": 27,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 71.13330841064453
+    },
+    {
+      "parameter_name": "model.layers.27.mlp.gate_proj.weight",
+      "layer_index": 27,
+      "module_name": "gate",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 131.13131713867188
+    },
+    {
+      "parameter_name": "model.layers.27.mlp.up_proj.weight",
+      "layer_index": 27,
+      "module_name": "up",
+      "component_name": "mlp",
+      "shape": [
+        6144,
+        2048
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 135.58164978027344
+    },
+    {
+      "parameter_name": "model.layers.27.mlp.down_proj.weight",
+      "layer_index": 27,
+      "module_name": "down",
+      "component_name": "mlp",
+      "shape": [
+        2048,
+        6144
+      ],
+      "num_parameters": 12582912,
+      "base_weight_norm": 123.99584197998047
+    }
+  ]
+}

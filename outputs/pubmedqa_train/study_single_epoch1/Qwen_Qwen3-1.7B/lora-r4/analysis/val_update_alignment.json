@@ -1,0 +1,61 @@
+{
+  "run_tag": "L3",
+  "method_name": "lora",
+  "checkpoint_timeline": [
+    {
+      "checkpoint_id": "reference_pct_000_epoch_000_step_000000",
+      "checkpoint_kind": "reference",
+      "checkpoint_percent": 0.0,
+      "epoch": 0,
+      "global_step": 0,
+      "delta_w_norm_total": 0.0,
+      "validation_accuracy": 0.7045,
+      "validation_macro_f1": 0.7019761584257345,
+      "validation_loss": 5.920904718399048
+    },
+    {
+      "checkpoint_id": "scheduled_pct_025_epoch_001_step_000313",
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 25.0,
+      "epoch": 1,
+      "global_step": 313,
+      "delta_w_norm_total": 9.695755459368229,
+      "validation_accuracy": 0.8795,
+      "validation_macro_f1": 0.87899659558679,
+      "validation_loss": 0.13132977714984553
+    },
+    {
+      "checkpoint_id": "scheduled_pct_050_epoch_001_step_000625",
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 50.0,
+      "epoch": 1,
+      "global_step": 625,
+      "delta_w_norm_total": 11.836399838328362,
+      "validation_accuracy": 0.9025,
+      "validation_macro_f1": 0.9024262098211773,
+      "validation_loss": 0.08936276916505084
+    },
+    {
+      "checkpoint_id": "scheduled_pct_075_epoch_001_step_000938",
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 75.0,
+      "epoch": 1,
+      "global_step": 938,
+      "delta_w_norm_total": 12.664052531123161,
+      "validation_accuracy": 0.9045,
+      "validation_macro_f1": 0.9044707441654007,
+      "validation_loss": 0.07745452300391843
+    },
+    {
+      "checkpoint_id": "scheduled_pct_100_epoch_001_step_001250",
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 100.0,
+      "epoch": 1,
+      "global_step": 1250,
+      "delta_w_norm_total": 12.823090463876724,
+      "validation_accuracy": 0.9095,
+      "validation_macro_f1": 0.909499434371465,
+      "validation_loss": 0.07457644329562754
+    }
+  ]
+}

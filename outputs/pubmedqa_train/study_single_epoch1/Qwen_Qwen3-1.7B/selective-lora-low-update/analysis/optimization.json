@@ -1,0 +1,10 @@
+{
+  "run_tag": "LL2",
+  "method_name": "lora",
+  "final_train_loss": 0.28551403975939865,
+  "final_validation_loss": 0.12001394795347005,
+  "best_validation_loss": 0.12001394795347005,
+  "train_val_gap_loss": 0.16550009180592862,
+  "train_val_gap_accuracy": null,
+  "train_val_gap_macro_f1": null
+}

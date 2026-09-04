@@ -1,0 +1,1463 @@
+{
+  "run_id": "study_single_epoch1",
+  "run_tag": "L2",
+  "model_name": "Qwen/Qwen3-1.7B",
+  "tracked_parameters": [
+    {
+      "parameter_name": "base_model.model.model.layers.0.self_attn.q_proj.weight",
+      "layer_index": 0,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 72.0302734375,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.0.self_attn.k_proj.weight",
+      "layer_index": 0,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 51.80512619018555,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.0.self_attn.v_proj.weight",
+      "layer_index": 0,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 48.584781646728516,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.0.self_attn.o_proj.weight",
+      "layer_index": 0,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 66.30414581298828,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.1.self_attn.q_proj.weight",
+      "layer_index": 1,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 70.66222381591797,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.1.self_attn.k_proj.weight",
+      "layer_index": 1,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 48.867374420166016,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.1.self_attn.v_proj.weight",
+      "layer_index": 1,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 50.023189544677734,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.1.self_attn.o_proj.weight",
+      "layer_index": 1,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 66.50592803955078,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.2.self_attn.q_proj.weight",
+      "layer_index": 2,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 70.21443176269531,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.2.self_attn.k_proj.weight",
+      "layer_index": 2,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 48.43137741088867,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.2.self_attn.v_proj.weight",
+      "layer_index": 2,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 49.95956802368164,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.2.self_attn.o_proj.weight",
+      "layer_index": 2,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 64.6872787475586,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.3.self_attn.q_proj.weight",
+      "layer_index": 3,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 71.16419982910156,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.3.self_attn.k_proj.weight",
+      "layer_index": 3,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 49.414306640625,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.3.self_attn.v_proj.weight",
+      "layer_index": 3,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 52.99224090576172,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.3.self_attn.o_proj.weight",
+      "layer_index": 3,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 68.48026275634766,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.4.self_attn.q_proj.weight",
+      "layer_index": 4,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 70.09412384033203,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.4.self_attn.k_proj.weight",
+      "layer_index": 4,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 47.82597732543945,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.4.self_attn.v_proj.weight",
+      "layer_index": 4,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 52.15148162841797,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.4.self_attn.o_proj.weight",
+      "layer_index": 4,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 67.00271606445312,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.5.self_attn.q_proj.weight",
+      "layer_index": 5,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 72.35450744628906,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.5.self_attn.k_proj.weight",
+      "layer_index": 5,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 48.514373779296875,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.5.self_attn.v_proj.weight",
+      "layer_index": 5,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 50.41545486450195,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.5.self_attn.o_proj.weight",
+      "layer_index": 5,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 67.35272216796875,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.6.self_attn.q_proj.weight",
+      "layer_index": 6,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 70.64376831054688,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.6.self_attn.k_proj.weight",
+      "layer_index": 6,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 47.45697021484375,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.6.self_attn.v_proj.weight",
+      "layer_index": 6,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 51.558387756347656,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.6.self_attn.o_proj.weight",
+      "layer_index": 6,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 64.83206176757812,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.7.self_attn.q_proj.weight",
+      "layer_index": 7,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 68.43544006347656,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.7.self_attn.k_proj.weight",
+      "layer_index": 7,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 45.66754913330078,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.7.self_attn.v_proj.weight",
+      "layer_index": 7,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 50.033687591552734,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.7.self_attn.o_proj.weight",
+      "layer_index": 7,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 65.13505554199219,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.8.self_attn.q_proj.weight",
+      "layer_index": 8,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 70.11790466308594,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.8.self_attn.k_proj.weight",
+      "layer_index": 8,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 46.681602478027344,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.8.self_attn.v_proj.weight",
+      "layer_index": 8,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 50.653526306152344,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.8.self_attn.o_proj.weight",
+      "layer_index": 8,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 63.98909378051758,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.9.self_attn.q_proj.weight",
+      "layer_index": 9,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 71.10360717773438,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.9.self_attn.k_proj.weight",
+      "layer_index": 9,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 46.42340850830078,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.9.self_attn.v_proj.weight",
+      "layer_index": 9,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 49.612754821777344,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.9.self_attn.o_proj.weight",
+      "layer_index": 9,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 66.10816192626953,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.10.self_attn.q_proj.weight",
+      "layer_index": 10,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 69.98492431640625,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.10.self_attn.k_proj.weight",
+      "layer_index": 10,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 47.57407760620117,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.10.self_attn.v_proj.weight",
+      "layer_index": 10,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 49.365234375,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.10.self_attn.o_proj.weight",
+      "layer_index": 10,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 64.51697540283203,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.11.self_attn.q_proj.weight",
+      "layer_index": 11,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 74.17508697509766,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.11.self_attn.k_proj.weight",
+      "layer_index": 11,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 47.88203048706055,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.11.self_attn.v_proj.weight",
+      "layer_index": 11,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 46.9504508972168,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.11.self_attn.o_proj.weight",
+      "layer_index": 11,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 61.27735900878906,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.12.self_attn.q_proj.weight",
+      "layer_index": 12,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 71.0543441772461,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.12.self_attn.k_proj.weight",
+      "layer_index": 12,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 46.63803482055664,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.12.self_attn.v_proj.weight",
+      "layer_index": 12,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 48.28303146362305,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.12.self_attn.o_proj.weight",
+      "layer_index": 12,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 61.28375244140625,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.13.self_attn.q_proj.weight",
+      "layer_index": 13,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 71.75711822509766,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.13.self_attn.k_proj.weight",
+      "layer_index": 13,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 44.458824157714844,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.13.self_attn.v_proj.weight",
+      "layer_index": 13,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 48.109619140625,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.13.self_attn.o_proj.weight",
+      "layer_index": 13,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 59.51908493041992,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.14.self_attn.q_proj.weight",
+      "layer_index": 14,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 69.40645599365234,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.14.self_attn.k_proj.weight",
+      "layer_index": 14,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 44.13062286376953,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.14.self_attn.v_proj.weight",
+      "layer_index": 14,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 46.9035530090332,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.14.self_attn.o_proj.weight",
+      "layer_index": 14,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 59.557273864746094,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.15.self_attn.q_proj.weight",
+      "layer_index": 15,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 71.1939926147461,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.15.self_attn.k_proj.weight",
+      "layer_index": 15,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 42.119441986083984,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.15.self_attn.v_proj.weight",
+      "layer_index": 15,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 46.68688201904297,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.15.self_attn.o_proj.weight",
+      "layer_index": 15,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 60.87767028808594,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.16.self_attn.q_proj.weight",
+      "layer_index": 16,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 75.9543228149414,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.16.self_attn.k_proj.weight",
+      "layer_index": 16,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 43.7627067565918,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.16.self_attn.v_proj.weight",
+      "layer_index": 16,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 46.9808235168457,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.16.self_attn.o_proj.weight",
+      "layer_index": 16,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 61.00560760498047,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.17.self_attn.q_proj.weight",
+      "layer_index": 17,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 72.59747314453125,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.17.self_attn.k_proj.weight",
+      "layer_index": 17,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 43.617149353027344,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.17.self_attn.v_proj.weight",
+      "layer_index": 17,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 48.87968826293945,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.17.self_attn.o_proj.weight",
+      "layer_index": 17,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 61.86921310424805,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.18.self_attn.q_proj.weight",
+      "layer_index": 18,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 74.78108978271484,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.18.self_attn.k_proj.weight",
+      "layer_index": 18,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 42.578304290771484,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.18.self_attn.v_proj.weight",
+      "layer_index": 18,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 45.95973587036133,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.18.self_attn.o_proj.weight",
+      "layer_index": 18,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 58.142730712890625,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.19.self_attn.q_proj.weight",
+      "layer_index": 19,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 77.12232971191406,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.19.self_attn.k_proj.weight",
+      "layer_index": 19,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 42.7647819519043,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.19.self_attn.v_proj.weight",
+      "layer_index": 19,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 45.88746643066406,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.19.self_attn.o_proj.weight",
+      "layer_index": 19,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 60.408363342285156,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.20.self_attn.q_proj.weight",
+      "layer_index": 20,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 78.25537109375,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.20.self_attn.k_proj.weight",
+      "layer_index": 20,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 44.81883239746094,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.20.self_attn.v_proj.weight",
+      "layer_index": 20,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 47.77983856201172,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.20.self_attn.o_proj.weight",
+      "layer_index": 20,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 63.09662628173828,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.21.self_attn.q_proj.weight",
+      "layer_index": 21,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 78.37007904052734,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.21.self_attn.k_proj.weight",
+      "layer_index": 21,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 45.79198455810547,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.21.self_attn.v_proj.weight",
+      "layer_index": 21,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 51.627479553222656,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.21.self_attn.o_proj.weight",
+      "layer_index": 21,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 66.29469299316406,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.22.self_attn.q_proj.weight",
+      "layer_index": 22,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 76.41856384277344,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.22.self_attn.k_proj.weight",
+      "layer_index": 22,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 45.331817626953125,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.22.self_attn.v_proj.weight",
+      "layer_index": 22,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 50.86064529418945,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.22.self_attn.o_proj.weight",
+      "layer_index": 22,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 65.61627960205078,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.23.self_attn.q_proj.weight",
+      "layer_index": 23,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 71.41716003417969,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.23.self_attn.k_proj.weight",
+      "layer_index": 23,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 44.72325897216797,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.23.self_attn.v_proj.weight",
+      "layer_index": 23,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 49.95246505737305,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.23.self_attn.o_proj.weight",
+      "layer_index": 23,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 66.12725830078125,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.24.self_attn.q_proj.weight",
+      "layer_index": 24,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 74.6434097290039,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.24.self_attn.k_proj.weight",
+      "layer_index": 24,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 44.67164993286133,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.24.self_attn.v_proj.weight",
+      "layer_index": 24,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 50.28228759765625,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.24.self_attn.o_proj.weight",
+      "layer_index": 24,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 67.55302429199219,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.25.self_attn.q_proj.weight",
+      "layer_index": 25,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 72.45660400390625,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.25.self_attn.k_proj.weight",
+      "layer_index": 25,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 43.06635284423828,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.25.self_attn.v_proj.weight",
+      "layer_index": 25,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 55.62394332885742,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.25.self_attn.o_proj.weight",
+      "layer_index": 25,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 70.8862533569336,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.26.self_attn.q_proj.weight",
+      "layer_index": 26,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 78.50629425048828,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.26.self_attn.k_proj.weight",
+      "layer_index": 26,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 41.88694381713867,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.26.self_attn.v_proj.weight",
+      "layer_index": 26,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 54.031761169433594,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.26.self_attn.o_proj.weight",
+      "layer_index": 26,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 70.5404052734375,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.27.self_attn.q_proj.weight",
+      "layer_index": 27,
+      "module_name": "Q",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 71.80235290527344,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.27.self_attn.k_proj.weight",
+      "layer_index": 27,
+      "module_name": "K",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 48.453983306884766,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.27.self_attn.v_proj.weight",
+      "layer_index": 27,
+      "module_name": "V",
+      "component_name": "attention",
+      "shape": [
+        1024,
+        2048
+      ],
+      "num_parameters": 2097152,
+      "base_weight_norm": 53.84285354614258,
+      "tracked_as": "lora_delta"
+    },
+    {
+      "parameter_name": "base_model.model.model.layers.27.self_attn.o_proj.weight",
+      "layer_index": 27,
+      "module_name": "O",
+      "component_name": "attention",
+      "shape": [
+        2048,
+        2048
+      ],
+      "num_parameters": 4194304,
+      "base_weight_norm": 71.13490295410156,
+      "tracked_as": "lora_delta"
+    }
+  ]
+}

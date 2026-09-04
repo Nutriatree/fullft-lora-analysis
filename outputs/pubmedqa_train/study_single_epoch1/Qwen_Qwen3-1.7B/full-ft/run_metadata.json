@@ -1,0 +1,27 @@
+{
+  "run_id": "study_single_epoch1",
+  "run_tag": "F1",
+  "method_name": "full-ft",
+  "condition": "full-ft",
+  "model_name": "Qwen/Qwen3-1.7B",
+  "data_regime": "full-data",
+  "data_fraction": 1.0,
+  "target_modules": [],
+  "target_layers": [],
+  "layer_scope": "all",
+  "lora_rank": null,
+  "lora_alpha": null,
+  "lora_dropout": null,
+  "notes": "Full FT reference run.",
+  "track_layerwise_updates": true,
+  "created_at": "2026-09-04T09:06:31.193864+00:00",
+  "distributed": {
+    "mode": "single",
+    "world_size": 1,
+    "rank": 0,
+    "local_rank": 0,
+    "sharding_strategy": null,
+    "fsdp_cpu_offload": null,
+    "fsdp_auto_wrap_layer_classes": []
+  }
+}

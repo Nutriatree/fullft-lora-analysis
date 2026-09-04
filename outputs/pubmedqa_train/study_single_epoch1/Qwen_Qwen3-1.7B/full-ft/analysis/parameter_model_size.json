@@ -1,0 +1,10 @@
+{
+  "run_tag": "F1",
+  "method_name": "full-ft",
+  "total_params": 1720574976,
+  "trainable_params": 1720574976,
+  "trainable_ratio": 1.0,
+  "best_checkpoint_size_bytes": 3457071119,
+  "final_checkpoint_size_bytes": 3457071119,
+  "total_checkpoint_size_bytes": 13828286135
+}

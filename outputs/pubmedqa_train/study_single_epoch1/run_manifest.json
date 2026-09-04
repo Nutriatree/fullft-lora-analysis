@@ -1,0 +1,83 @@
+{
+  "run_id": "study_single_epoch1",
+  "requested_runs": [
+    "LL2"
+  ],
+  "paths": {
+    "train_path": "data/processed/posttrain_v1/pqa_artificial/train.jsonl",
+    "validation_path": "data/processed/posttrain_v1/pqa_artificial/validation.jsonl",
+    "test_path": "data/processed/pqa_labeled/test.jsonl",
+    "baseline_eval_path": "data/processed/pqa_labeled/test.jsonl"
+  },
+  "shared_defaults": {
+    "model_name": "Qwen/Qwen3-1.7B",
+    "num_epochs": 1,
+    "train_batch_size": 1,
+    "eval_batch_size": 4,
+    "gradient_accumulation_steps": 8,
+    "full_ft_learning_rate": 2e-05,
+    "lora_learning_rate": 0.0001,
+    "weight_decay": 0.01,
+    "warmup_ratio": 0.03,
+    "max_grad_norm": 1.0,
+    "max_input_tokens": null,
+    "max_new_tokens": 4,
+    "max_train_examples": null,
+    "max_validation_examples": null,
+    "max_test_examples": null,
+    "device": "cuda",
+    "dtype": "bf16",
+    "attn_implementation": "sdpa",
+    "trust_remote_code": false,
+    "cpu_threads": 14,
+    "log_every_steps": 10,
+    "num_workers": 0,
+    "full_ft_gradient_checkpointing": true,
+    "lora_gradient_checkpointing": false,
+    "save_optimizer_state": false,
+    "strict_parser": false,
+    "seed": 42,
+    "checkpoint_percents": [
+      25,
+      50,
+      75,
+      100
+    ],
+    "distributed_mode": "single",
+    "fsdp_cpu_offload": false
+  },
+  "baseline_output_dir": "outputs/pubmedqa_eval",
+  "train_output_dir": "outputs/pubmedqa_train",
+  "run_specs": {
+    "LL2": {
+      "run_tag": "LL2",
+      "method": "lora",
+      "condition": "selective-lora-low-update",
+      "data_regime": "full-data",
+      "data_fraction": 1.0,
+      "max_train_examples": null,
+      "target_modules": [
+        "q_proj",
+        "v_proj"
+      ],
+      "target_layers": [],
+      "layer_scope": "low-update",
+      "lora_rank": 8,
+      "lora_alpha": 16.0,
+      "lora_dropout": 0.0,
+      "lora_bias": "none",
+      "lora_task_type": "CAUSAL_LM",
+      "modules_to_save": [],
+      "merge_for_eval": false,
+      "notes": "Selective LoRA low-update control run."
+    }
+  },
+  "target_layer_overrides": {
+    "LL2": [
+      21,
+      22,
+      26,
+      27
+    ]
+  }
+}

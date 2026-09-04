@@ -1,0 +1,12 @@
+{
+  "run_tag": "LL1",
+  "method_name": "lora",
+  "idle_allocated_gb": 0.0,
+  "idle_reserved_gb": 0.0,
+  "model_loaded_allocated_gb": 3.214111804962158,
+  "model_loaded_reserved_gb": 17.21484375,
+  "peak_train_allocated_gb": 8.448294162750244,
+  "peak_train_reserved_gb": 21.708984375,
+  "inference_peak_allocated_gb": 13.936489582061768,
+  "inference_peak_reserved_gb": 22.302734375
+}

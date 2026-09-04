@@ -1,0 +1,10 @@
+{
+  "run_tag": "F1",
+  "method_name": "full-ft",
+  "final_train_loss": 0.13384391337818632,
+  "final_validation_loss": 0.08226535654017789,
+  "best_validation_loss": 0.08226535654017789,
+  "train_val_gap_loss": 0.05157855683800844,
+  "train_val_gap_accuracy": null,
+  "train_val_gap_macro_f1": null
+}

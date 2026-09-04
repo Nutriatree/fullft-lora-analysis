@@ -1,0 +1,10 @@
+{
+  "run_tag": "F1",
+  "method_name": "full-ft",
+  "inference_examples_per_second": 9.098235695906606,
+  "inference_avg_latency_seconds": 0.10991141946893185,
+  "inference_peak_allocated_gb": 19.640384197235107,
+  "inference_peak_reserved_gb": 23.216796875,
+  "best_checkpoint_size_bytes": 3457071119,
+  "final_checkpoint_size_bytes": 3457071119
+}

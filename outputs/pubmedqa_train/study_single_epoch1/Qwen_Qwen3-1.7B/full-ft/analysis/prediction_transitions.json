@@ -1,0 +1,5 @@
+{
+  "run_tag": "F1",
+  "method_name": "full-ft",
+  "transitions_dir": "outputs/pubmedqa_train/study_single_epoch1/Qwen_Qwen3-1.7B/full-ft/prediction_transitions"
+}

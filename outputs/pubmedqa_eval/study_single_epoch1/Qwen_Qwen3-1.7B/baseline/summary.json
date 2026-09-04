@@ -1,0 +1,20 @@
+{
+  "run_id": "study_single_epoch1",
+  "model_name": "Qwen/Qwen3-1.7B",
+  "resolved_model_name": "Qwen/Qwen3-1.7B",
+  "backend": "torch",
+  "condition": "baseline",
+  "title": "study_single_epoch1__Qwen_Qwen3-1.7B__baseline",
+  "start_time": "2026-09-04T08:08:34.057957+00:00",
+  "end_time": "2026-09-04T08:08:59.321812+00:00",
+  "elapsed_seconds": 25.263830692972988,
+  "num_examples": 500,
+  "num_parsed": 500,
+  "accuracy": 0.612,
+  "macro_f1": 0.41222444204958686,
+  "invalid_rate": 0.0,
+  "examples_per_second": 19.791139597015768,
+  "device": "cuda",
+  "dtype": "bfloat16",
+  "device_memory_gb": 3.6901397705078125
+}

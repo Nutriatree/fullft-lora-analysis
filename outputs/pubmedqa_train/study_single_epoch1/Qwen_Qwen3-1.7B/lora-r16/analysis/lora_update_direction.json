@@ -1,0 +1,1731 @@
+{
+  "run_tag": "L4",
+  "method_name": "lora",
+  "checkpoint_timeline": [
+    {
+      "checkpoint_id": "reference_pct_000_epoch_000_step_000000",
+      "checkpoint_kind": "reference",
+      "checkpoint_percent": 0.0,
+      "epoch": 0,
+      "global_step": 0,
+      "records": [
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 0,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 0,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 1,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 1,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 2,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 2,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 3,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 3,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 4,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 4,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 5,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 5,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 6,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 6,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 7,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 7,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 8,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 8,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 9,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 9,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 10,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 10,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 11,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 11,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 12,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 12,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 13,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 13,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 14,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 14,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 15,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 15,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 16,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 16,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 17,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 17,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 18,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 18,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 19,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 19,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 20,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 20,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 21,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 21,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 22,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 22,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 23,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 23,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 24,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 24,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 25,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 25,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 26,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 26,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 27,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 27,
+          "incremental_delta_w_cosine_similarity": null
+        }
+      ]
+    },
+    {
+      "checkpoint_id": "scheduled_pct_025_epoch_001_step_000313",
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 25.0,
+      "epoch": 1,
+      "global_step": 313,
+      "records": [
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 0,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 0,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 1,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 1,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 2,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 2,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 3,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 3,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 4,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 4,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 5,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 5,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 6,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 6,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 7,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 7,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 8,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 8,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 9,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 9,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 10,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 10,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 11,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 11,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 12,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 12,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 13,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 13,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 14,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 14,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 15,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 15,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 16,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 16,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 17,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 17,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 18,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 18,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 19,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 19,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 20,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 20,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 21,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 21,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 22,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 22,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 23,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 23,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 24,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 24,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 25,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 25,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 26,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 26,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 27,
+          "incremental_delta_w_cosine_similarity": null
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 27,
+          "incremental_delta_w_cosine_similarity": null
+        }
+      ]
+    },
+    {
+      "checkpoint_id": "scheduled_pct_050_epoch_001_step_000625",
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 50.0,
+      "epoch": 1,
+      "global_step": 625,
+      "records": [
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 0,
+          "incremental_delta_w_cosine_similarity": 0.05730648711323738
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 0,
+          "incremental_delta_w_cosine_similarity": 0.04837474599480629
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 1,
+          "incremental_delta_w_cosine_similarity": 0.06489907950162888
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 1,
+          "incremental_delta_w_cosine_similarity": 0.04813956469297409
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 2,
+          "incremental_delta_w_cosine_similarity": 0.10052018612623215
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 2,
+          "incremental_delta_w_cosine_similarity": 0.025381136685609818
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 3,
+          "incremental_delta_w_cosine_similarity": 0.043489355593919754
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 3,
+          "incremental_delta_w_cosine_similarity": 0.04565620794892311
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 4,
+          "incremental_delta_w_cosine_similarity": 0.04461638629436493
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 4,
+          "incremental_delta_w_cosine_similarity": 0.06202302873134613
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 5,
+          "incremental_delta_w_cosine_similarity": 0.14062047004699707
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 5,
+          "incremental_delta_w_cosine_similarity": 0.12339956313371658
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 6,
+          "incremental_delta_w_cosine_similarity": 0.05311371386051178
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 6,
+          "incremental_delta_w_cosine_similarity": 0.16510939598083496
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 7,
+          "incremental_delta_w_cosine_similarity": 0.14917434751987457
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 7,
+          "incremental_delta_w_cosine_similarity": 0.2765883207321167
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 8,
+          "incremental_delta_w_cosine_similarity": 0.1198403611779213
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 8,
+          "incremental_delta_w_cosine_similarity": 0.29210084676742554
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 9,
+          "incremental_delta_w_cosine_similarity": 0.1207127645611763
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 9,
+          "incremental_delta_w_cosine_similarity": 0.2027616649866104
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 10,
+          "incremental_delta_w_cosine_similarity": 0.22335313260555267
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 10,
+          "incremental_delta_w_cosine_similarity": 0.20936918258666992
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 11,
+          "incremental_delta_w_cosine_similarity": 0.010116871446371078
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 11,
+          "incremental_delta_w_cosine_similarity": 0.0887388363480568
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 12,
+          "incremental_delta_w_cosine_similarity": 0.1347086876630783
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 12,
+          "incremental_delta_w_cosine_similarity": 0.17232033610343933
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 13,
+          "incremental_delta_w_cosine_similarity": 0.08954260498285294
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 13,
+          "incremental_delta_w_cosine_similarity": 0.15106478333473206
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 14,
+          "incremental_delta_w_cosine_similarity": 0.07167507708072662
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 14,
+          "incremental_delta_w_cosine_similarity": 0.13665702939033508
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 15,
+          "incremental_delta_w_cosine_similarity": 0.17676402628421783
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 15,
+          "incremental_delta_w_cosine_similarity": 0.16412028670310974
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 16,
+          "incremental_delta_w_cosine_similarity": 0.3436973989009857
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 16,
+          "incremental_delta_w_cosine_similarity": 0.2914930582046509
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 17,
+          "incremental_delta_w_cosine_similarity": 0.15879902243614197
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 17,
+          "incremental_delta_w_cosine_similarity": 0.21845099329948425
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 18,
+          "incremental_delta_w_cosine_similarity": 0.18601416051387787
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 18,
+          "incremental_delta_w_cosine_similarity": 0.3524448871612549
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 19,
+          "incremental_delta_w_cosine_similarity": 0.34905362129211426
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 19,
+          "incremental_delta_w_cosine_similarity": 0.3593475818634033
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 20,
+          "incremental_delta_w_cosine_similarity": 0.187834694981575
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 20,
+          "incremental_delta_w_cosine_similarity": 0.3057374656200409
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 21,
+          "incremental_delta_w_cosine_similarity": 0.16692450642585754
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 21,
+          "incremental_delta_w_cosine_similarity": 0.3334600329399109
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 22,
+          "incremental_delta_w_cosine_similarity": 0.18437720835208893
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 22,
+          "incremental_delta_w_cosine_similarity": 0.331391841173172
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 23,
+          "incremental_delta_w_cosine_similarity": 0.20808452367782593
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 23,
+          "incremental_delta_w_cosine_similarity": 0.29810842871665955
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 24,
+          "incremental_delta_w_cosine_similarity": 0.23077039420604706
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 24,
+          "incremental_delta_w_cosine_similarity": 0.3559710383415222
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 25,
+          "incremental_delta_w_cosine_similarity": 0.3337509334087372
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 25,
+          "incremental_delta_w_cosine_similarity": 0.42966315150260925
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 26,
+          "incremental_delta_w_cosine_similarity": 0.37320032715797424
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 26,
+          "incremental_delta_w_cosine_similarity": 0.22792163491249084
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 27,
+          "incremental_delta_w_cosine_similarity": 0.02732781320810318
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 27,
+          "incremental_delta_w_cosine_similarity": 0.03187016025185585
+        }
+      ]
+    },
+    {
+      "checkpoint_id": "scheduled_pct_075_epoch_001_step_000938",
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 75.0,
+      "epoch": 1,
+      "global_step": 938,
+      "records": [
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 0,
+          "incremental_delta_w_cosine_similarity": 0.040669411420822144
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 0,
+          "incremental_delta_w_cosine_similarity": 0.09449180215597153
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 1,
+          "incremental_delta_w_cosine_similarity": -0.02081216126680374
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 1,
+          "incremental_delta_w_cosine_similarity": -0.0017655134433880448
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 2,
+          "incremental_delta_w_cosine_similarity": -0.055239494889974594
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 2,
+          "incremental_delta_w_cosine_similarity": 0.03621010482311249
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 3,
+          "incremental_delta_w_cosine_similarity": 0.048512984067201614
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 3,
+          "incremental_delta_w_cosine_similarity": 0.10928626358509064
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 4,
+          "incremental_delta_w_cosine_similarity": 0.030444979667663574
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 4,
+          "incremental_delta_w_cosine_similarity": 0.11285945773124695
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 5,
+          "incremental_delta_w_cosine_similarity": 0.11298884451389313
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 5,
+          "incremental_delta_w_cosine_similarity": 0.13658717274665833
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 6,
+          "incremental_delta_w_cosine_similarity": 0.07951204478740692
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 6,
+          "incremental_delta_w_cosine_similarity": 0.22490602731704712
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 7,
+          "incremental_delta_w_cosine_similarity": 0.22177672386169434
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 7,
+          "incremental_delta_w_cosine_similarity": 0.27393466234207153
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 8,
+          "incremental_delta_w_cosine_similarity": 0.10104972124099731
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 8,
+          "incremental_delta_w_cosine_similarity": 0.21425296366214752
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 9,
+          "incremental_delta_w_cosine_similarity": 0.25929489731788635
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 9,
+          "incremental_delta_w_cosine_similarity": 0.14095105230808258
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 10,
+          "incremental_delta_w_cosine_similarity": 0.07076074182987213
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 10,
+          "incremental_delta_w_cosine_similarity": 0.09441731870174408
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 11,
+          "incremental_delta_w_cosine_similarity": 0.09001657366752625
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 11,
+          "incremental_delta_w_cosine_similarity": 0.06280273199081421
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 12,
+          "incremental_delta_w_cosine_similarity": 0.055921006947755814
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 12,
+          "incremental_delta_w_cosine_similarity": 0.10119053721427917
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 13,
+          "incremental_delta_w_cosine_similarity": 0.09684710204601288
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 13,
+          "incremental_delta_w_cosine_similarity": 0.12359443306922913
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 14,
+          "incremental_delta_w_cosine_similarity": 0.11734157800674438
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 14,
+          "incremental_delta_w_cosine_similarity": 0.16052484512329102
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 15,
+          "incremental_delta_w_cosine_similarity": 0.14619891345500946
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 15,
+          "incremental_delta_w_cosine_similarity": 0.10699061304330826
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 16,
+          "incremental_delta_w_cosine_similarity": 0.010448336601257324
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 16,
+          "incremental_delta_w_cosine_similarity": 0.11630271375179291
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 17,
+          "incremental_delta_w_cosine_similarity": 0.21856620907783508
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 17,
+          "incremental_delta_w_cosine_similarity": 0.22183039784431458
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 18,
+          "incremental_delta_w_cosine_similarity": 0.08484289050102234
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 18,
+          "incremental_delta_w_cosine_similarity": 0.26098522543907166
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 19,
+          "incremental_delta_w_cosine_similarity": 0.16222304105758667
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 19,
+          "incremental_delta_w_cosine_similarity": 0.34964144229888916
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 20,
+          "incremental_delta_w_cosine_similarity": 0.23048195242881775
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 20,
+          "incremental_delta_w_cosine_similarity": 0.2927151620388031
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 21,
+          "incremental_delta_w_cosine_similarity": 0.19862951338291168
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 21,
+          "incremental_delta_w_cosine_similarity": 0.3418426811695099
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 22,
+          "incremental_delta_w_cosine_similarity": 0.17218565940856934
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 22,
+          "incremental_delta_w_cosine_similarity": 0.25727683305740356
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 23,
+          "incremental_delta_w_cosine_similarity": 0.29568731784820557
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 23,
+          "incremental_delta_w_cosine_similarity": 0.3064429461956024
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 24,
+          "incremental_delta_w_cosine_similarity": 0.18297351896762848
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 24,
+          "incremental_delta_w_cosine_similarity": 0.3778485953807831
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 25,
+          "incremental_delta_w_cosine_similarity": 0.31575360894203186
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 25,
+          "incremental_delta_w_cosine_similarity": 0.4154978096485138
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 26,
+          "incremental_delta_w_cosine_similarity": 0.3025806248188019
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 26,
+          "incremental_delta_w_cosine_similarity": 0.2388702780008316
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 27,
+          "incremental_delta_w_cosine_similarity": 0.10059747099876404
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 27,
+          "incremental_delta_w_cosine_similarity": -0.06961894780397415
+        }
+      ]
+    },
+    {
+      "checkpoint_id": "scheduled_pct_100_epoch_001_step_001250",
+      "checkpoint_kind": "scheduled",
+      "checkpoint_percent": 100.0,
+      "epoch": 1,
+      "global_step": 1250,
+      "records": [
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 0,
+          "incremental_delta_w_cosine_similarity": 0.0009142295457422733
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.0.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 0,
+          "incremental_delta_w_cosine_similarity": 0.04371616616845131
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 1,
+          "incremental_delta_w_cosine_similarity": 0.06439217180013657
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.1.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 1,
+          "incremental_delta_w_cosine_similarity": -0.02290075644850731
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 2,
+          "incremental_delta_w_cosine_similarity": 0.005888789892196655
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.2.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 2,
+          "incremental_delta_w_cosine_similarity": -0.0931577980518341
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 3,
+          "incremental_delta_w_cosine_similarity": -0.0029840972274541855
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.3.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 3,
+          "incremental_delta_w_cosine_similarity": -0.03830421715974808
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 4,
+          "incremental_delta_w_cosine_similarity": 0.03142787888646126
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.4.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 4,
+          "incremental_delta_w_cosine_similarity": 0.015324058942496777
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 5,
+          "incremental_delta_w_cosine_similarity": 0.025984637439250946
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.5.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 5,
+          "incremental_delta_w_cosine_similarity": 0.024968499317765236
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 6,
+          "incremental_delta_w_cosine_similarity": -0.03963342681527138
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.6.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 6,
+          "incremental_delta_w_cosine_similarity": 0.13026957213878632
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 7,
+          "incremental_delta_w_cosine_similarity": 0.09550327062606812
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.7.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 7,
+          "incremental_delta_w_cosine_similarity": 0.17364059388637543
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 8,
+          "incremental_delta_w_cosine_similarity": -0.07733462750911713
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.8.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 8,
+          "incremental_delta_w_cosine_similarity": 0.043797701597213745
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 9,
+          "incremental_delta_w_cosine_similarity": -0.023223677650094032
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.9.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 9,
+          "incremental_delta_w_cosine_similarity": 0.024265309795737267
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 10,
+          "incremental_delta_w_cosine_similarity": 0.01714412495493889
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.10.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 10,
+          "incremental_delta_w_cosine_similarity": 0.1122002899646759
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 11,
+          "incremental_delta_w_cosine_similarity": 0.03495033457875252
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.11.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 11,
+          "incremental_delta_w_cosine_similarity": -0.07359762489795685
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 12,
+          "incremental_delta_w_cosine_similarity": -0.0022124042734503746
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.12.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 12,
+          "incremental_delta_w_cosine_similarity": -0.03097984567284584
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 13,
+          "incremental_delta_w_cosine_similarity": 0.013045122846961021
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.13.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 13,
+          "incremental_delta_w_cosine_similarity": 0.028272684663534164
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 14,
+          "incremental_delta_w_cosine_similarity": 0.09618565440177917
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.14.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 14,
+          "incremental_delta_w_cosine_similarity": 0.16708160936832428
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 15,
+          "incremental_delta_w_cosine_similarity": 0.19663594663143158
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.15.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 15,
+          "incremental_delta_w_cosine_similarity": 0.1258416473865509
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 16,
+          "incremental_delta_w_cosine_similarity": 0.14800412952899933
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.16.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 16,
+          "incremental_delta_w_cosine_similarity": 0.14599019289016724
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 17,
+          "incremental_delta_w_cosine_similarity": 0.09756269305944443
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.17.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 17,
+          "incremental_delta_w_cosine_similarity": 0.2116871476173401
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 18,
+          "incremental_delta_w_cosine_similarity": 0.22847741842269897
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.18.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 18,
+          "incremental_delta_w_cosine_similarity": 0.1824384480714798
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 19,
+          "incremental_delta_w_cosine_similarity": 0.1476607471704483
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.19.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 19,
+          "incremental_delta_w_cosine_similarity": 0.10189540684223175
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 20,
+          "incremental_delta_w_cosine_similarity": 0.053585637360811234
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.20.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 20,
+          "incremental_delta_w_cosine_similarity": 0.030544597655534744
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 21,
+          "incremental_delta_w_cosine_similarity": 0.00221732584759593
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.21.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 21,
+          "incremental_delta_w_cosine_similarity": 0.10577496141195297
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 22,
+          "incremental_delta_w_cosine_similarity": -0.013530535623431206
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.22.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 22,
+          "incremental_delta_w_cosine_similarity": 0.03090168908238411
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 23,
+          "incremental_delta_w_cosine_similarity": -0.031195450574159622
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.23.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 23,
+          "incremental_delta_w_cosine_similarity": 0.1419028788805008
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 24,
+          "incremental_delta_w_cosine_similarity": 0.018396824598312378
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.24.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 24,
+          "incremental_delta_w_cosine_similarity": 0.18603761494159698
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 25,
+          "incremental_delta_w_cosine_similarity": 0.3171614706516266
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.25.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 25,
+          "incremental_delta_w_cosine_similarity": 0.14149853587150574
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 26,
+          "incremental_delta_w_cosine_similarity": 0.04665696620941162
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.26.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 26,
+          "incremental_delta_w_cosine_similarity": -0.02917003445327282
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.q_proj.weight",
+          "module_name": "Q",
+          "layer_index": 27,
+          "incremental_delta_w_cosine_similarity": 0.007044143509119749
+        },
+        {
+          "parameter_name": "base_model.model.model.layers.27.self_attn.v_proj.weight",
+          "module_name": "V",
+          "layer_index": 27,
+          "incremental_delta_w_cosine_similarity": -0.20819233357906342
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "run_tag": "L4",
+  "method_name": "lora",
+  "target_modules": [
+    "q_proj",
+    "v_proj"
+  ],
+  "target_layers": [],
+  "layer_scope": "all",
+  "lora_rank": 16,
+  "lora_alpha": 32.0,
+  "lora_dropout": 0.0,
+  "lora_bias": "none",
+  "lora_task_type": "CAUSAL_LM",
+  "modules_to_save": [],
+  "merge_for_eval": false,
+  "data_regime": "full-data",
+  "data_fraction": 1.0
+}
