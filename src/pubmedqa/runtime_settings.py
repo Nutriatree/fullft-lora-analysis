@@ -36,6 +36,9 @@ class EvalSettings:
 
     env_models: str = "PUBMEDQA_MODELS"
 
+    # 추가
+    env_backend: str = "PUBMEDQA_BACKEND"
+
     env_batch_size: str = "PUBMEDQA_BATCH_SIZE"
 
     env_device: str = "PUBMEDQA_DEVICE"
@@ -65,16 +68,16 @@ class EvalSettings:
 
     default_condition: str = "baseline"
 
+    # 추가
+    default_backend: str = "torch"
+
     default_device: str = "cuda"
     default_dtype: str = "bf16"
     default_attn_implementation: str = "sdpa"
 
     default_batch_size: int = 4
-
     default_max_new_tokens: int = 4
-
     default_cpu_threads: int = _default_cpu_threads()
-
     default_strict_parser: bool = False
     default_expected_test_size: int = 500
 
