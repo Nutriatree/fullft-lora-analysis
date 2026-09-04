@@ -13,7 +13,11 @@ from pubmedqa.full_finetune import (
     _resolve_dtype,
 )
 from pubmedqa.lora_finetune import LoRAFineTuneConfig, PubMedQALoRAFineTuner
-from pubmedqa.runtime_settings import TRAIN_FULL_FINE_TUNE_CONFIG, TRAIN_LAYER_CONFIG
+from pubmedqa.runtime_settings import (
+    TRAIN_FULL_FINE_TUNE_CONFIG,
+    TRAIN_LAYER_CONFIG,
+    TRAIN_LORA_CONFIG,
+)
 
 
 DEFAULT_BASELINE_OUTPUT_DIR = Path("outputs/pubmedqa_eval")
@@ -43,7 +47,8 @@ class SharedTrainDefaults:
     train_batch_size: int = TRAIN_FULL_FINE_TUNE_CONFIG.default_train_batch_size
     eval_batch_size: int = TRAIN_FULL_FINE_TUNE_CONFIG.default_eval_batch_size
     gradient_accumulation_steps: int = TRAIN_FULL_FINE_TUNE_CONFIG.default_grad_accum_steps
-    learning_rate: float = TRAIN_FULL_FINE_TUNE_CONFIG.default_learning_rate
+    full_ft_learning_rate: float = TRAIN_FULL_FINE_TUNE_CONFIG.default_learning_rate
+    lora_learning_rate: float = TRAIN_LORA_CONFIG.default_learning_rate
     weight_decay: float = TRAIN_FULL_FINE_TUNE_CONFIG.default_weight_decay
     warmup_ratio: float = TRAIN_FULL_FINE_TUNE_CONFIG.default_warmup_ratio
     max_grad_norm: float = TRAIN_FULL_FINE_TUNE_CONFIG.default_max_grad_norm
@@ -59,7 +64,10 @@ class SharedTrainDefaults:
     cpu_threads: int = TRAIN_FULL_FINE_TUNE_CONFIG.default_cpu_threads
     log_every_steps: int = TRAIN_FULL_FINE_TUNE_CONFIG.default_log_every_steps
     num_workers: int = TRAIN_FULL_FINE_TUNE_CONFIG.default_num_workers
-    gradient_checkpointing: bool = False
+    full_ft_gradient_checkpointing: bool = (
+        TRAIN_FULL_FINE_TUNE_CONFIG.default_gradient_checkpointing
+    )
+    lora_gradient_checkpointing: bool = TRAIN_LORA_CONFIG.default_gradient_checkpointing
     save_optimizer_state: bool = TRAIN_FULL_FINE_TUNE_CONFIG.default_save_optimizer_state
     strict_parser: bool = False
     seed: int = TRAIN_FULL_FINE_TUNE_CONFIG.default_seed
@@ -324,7 +332,7 @@ def build_full_ft_config(
         train_batch_size=defaults.train_batch_size,
         eval_batch_size=defaults.eval_batch_size,
         gradient_accumulation_steps=defaults.gradient_accumulation_steps,
-        learning_rate=defaults.learning_rate,
+        learning_rate=defaults.full_ft_learning_rate,
         weight_decay=defaults.weight_decay,
         warmup_ratio=defaults.warmup_ratio,
         max_grad_norm=defaults.max_grad_norm,
@@ -346,7 +354,7 @@ def build_full_ft_config(
         max_validation_examples=defaults.max_validation_examples,
         max_test_examples=defaults.max_test_examples,
         num_workers=defaults.num_workers,
-        gradient_checkpointing=defaults.gradient_checkpointing,
+        gradient_checkpointing=defaults.full_ft_gradient_checkpointing,
         save_optimizer_state=defaults.save_optimizer_state,
         strict_parser=defaults.strict_parser,
         seed=defaults.seed,
@@ -395,7 +403,7 @@ def build_lora_config(
         train_batch_size=defaults.train_batch_size,
         eval_batch_size=defaults.eval_batch_size,
         gradient_accumulation_steps=defaults.gradient_accumulation_steps,
-        learning_rate=defaults.learning_rate,
+        learning_rate=defaults.lora_learning_rate,
         weight_decay=defaults.weight_decay,
         warmup_ratio=defaults.warmup_ratio,
         max_grad_norm=defaults.max_grad_norm,
@@ -417,7 +425,7 @@ def build_lora_config(
         max_validation_examples=defaults.max_validation_examples,
         max_test_examples=defaults.max_test_examples,
         num_workers=defaults.num_workers,
-        gradient_checkpointing=defaults.gradient_checkpointing,
+        gradient_checkpointing=defaults.lora_gradient_checkpointing,
         save_optimizer_state=defaults.save_optimizer_state,
         strict_parser=defaults.strict_parser,
         seed=defaults.seed,

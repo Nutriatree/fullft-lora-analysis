@@ -121,7 +121,22 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=DEFAULT_SHARED_DEFAULTS.gradient_accumulation_steps,
     )
-    parser.add_argument("--learning-rate", type=float, default=DEFAULT_SHARED_DEFAULTS.learning_rate)
+    parser.add_argument(
+        "--learning-rate",
+        type=float,
+        default=None,
+        help="Legacy override that sets both Full FT and LoRA learning rates.",
+    )
+    parser.add_argument(
+        "--full-ft-learning-rate",
+        type=float,
+        default=DEFAULT_SHARED_DEFAULTS.full_ft_learning_rate,
+    )
+    parser.add_argument(
+        "--lora-learning-rate",
+        type=float,
+        default=DEFAULT_SHARED_DEFAULTS.lora_learning_rate,
+    )
     parser.add_argument("--weight-decay", type=float, default=DEFAULT_SHARED_DEFAULTS.weight_decay)
     parser.add_argument("--warmup-ratio", type=float, default=DEFAULT_SHARED_DEFAULTS.warmup_ratio)
     parser.add_argument("--max-grad-norm", type=float, default=DEFAULT_SHARED_DEFAULTS.max_grad_norm)
@@ -147,7 +162,22 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_SHARED_DEFAULTS.max_validation_examples,
     )
     parser.add_argument("--max-test-examples", type=int, default=DEFAULT_SHARED_DEFAULTS.max_test_examples)
-    parser.add_argument("--gradient-checkpointing", action="store_true")
+    parser.add_argument(
+        "--gradient-checkpointing",
+        action="store_true",
+        default=None,
+        help="Legacy override that enables gradient checkpointing for both methods.",
+    )
+    parser.add_argument(
+        "--full-ft-gradient-checkpointing",
+        action=argparse.BooleanOptionalAction,
+        default=DEFAULT_SHARED_DEFAULTS.full_ft_gradient_checkpointing,
+    )
+    parser.add_argument(
+        "--lora-gradient-checkpointing",
+        action=argparse.BooleanOptionalAction,
+        default=DEFAULT_SHARED_DEFAULTS.lora_gradient_checkpointing,
+    )
     parser.add_argument("--no-save-optimizer-state", action="store_true")
     parser.add_argument("--strict-parser", action="store_true")
     parser.add_argument("--checkpoint-percents", default="25,50,75,100")
@@ -233,7 +263,16 @@ def _build_defaults(args: argparse.Namespace) -> SharedTrainDefaults:
         train_batch_size=args.train_batch_size,
         eval_batch_size=args.eval_batch_size,
         gradient_accumulation_steps=args.gradient_accumulation_steps,
-        learning_rate=args.learning_rate,
+        full_ft_learning_rate=(
+            args.learning_rate
+            if args.learning_rate is not None
+            else args.full_ft_learning_rate
+        ),
+        lora_learning_rate=(
+            args.learning_rate
+            if args.learning_rate is not None
+            else args.lora_learning_rate
+        ),
         weight_decay=args.weight_decay,
         warmup_ratio=args.warmup_ratio,
         max_grad_norm=args.max_grad_norm,
@@ -249,7 +288,16 @@ def _build_defaults(args: argparse.Namespace) -> SharedTrainDefaults:
         cpu_threads=args.cpu_threads,
         log_every_steps=args.log_every_steps,
         num_workers=args.num_workers,
-        gradient_checkpointing=args.gradient_checkpointing,
+        full_ft_gradient_checkpointing=(
+            args.gradient_checkpointing
+            if args.gradient_checkpointing is not None
+            else args.full_ft_gradient_checkpointing
+        ),
+        lora_gradient_checkpointing=(
+            args.gradient_checkpointing
+            if args.gradient_checkpointing is not None
+            else args.lora_gradient_checkpointing
+        ),
         save_optimizer_state=not args.no_save_optimizer_state,
         strict_parser=args.strict_parser,
         checkpoint_percents=_parse_checkpoint_percents(args.checkpoint_percents),

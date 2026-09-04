@@ -7,7 +7,7 @@ cd "$STUDY_ROOT"
 
 RUN_ID="${PUBMEDQA_RUN_ID:-study_$(date +%Y%m%d_%H%M%S)}"
 MODEL_NAME="${PUBMEDQA_MODEL_NAME:-Qwen/Qwen3-1.7B}"
-GPU_IDS="${PUBMEDQA_GPU_IDS:-0,1}"
+GPU_IDS="${PUBMEDQA_GPU_IDS:-0}"
 TRAIN_FILE="${PUBMEDQA_TRAIN_FILE:-data/processed/posttrain_v1/pqa_artificial/train.jsonl}"
 VALIDATION_FILE="${PUBMEDQA_VALIDATION_FILE:-data/processed/posttrain_v1/pqa_artificial/validation.jsonl}"
 TEST_FILE="${PUBMEDQA_TEST_FILE:-data/processed/pqa_labeled/test.jsonl}"
@@ -15,8 +15,8 @@ TRAIN_OUTPUT_DIR="${PUBMEDQA_TRAIN_OUTPUT_DIR:-outputs/pubmedqa_train}"
 BASELINE_OUTPUT_DIR="${PUBMEDQA_BASELINE_OUTPUT_DIR:-outputs/pubmedqa_eval}"
 NUM_EPOCHS="${PUBMEDQA_NUM_EPOCHS:-3}"
 TRAIN_BATCH_SIZE="${PUBMEDQA_TRAIN_BATCH_SIZE:-1}"
-EVAL_BATCH_SIZE="${PUBMEDQA_EVAL_BATCH_SIZE:-2}"
-GRAD_ACCUM_STEPS="${PUBMEDQA_GRAD_ACCUM_STEPS:-16}"
+EVAL_BATCH_SIZE="${PUBMEDQA_EVAL_BATCH_SIZE:-4}"
+GRAD_ACCUM_STEPS="${PUBMEDQA_GRAD_ACCUM_STEPS:-8}"
 SELECTIVE_LAYER_COUNT="${PUBMEDQA_SELECTIVE_LAYER_COUNT:-4}"
 INCLUDE_LL2="${PUBMEDQA_INCLUDE_LL2:-1}"
 INCLUDE_LOW_DATA="${PUBMEDQA_INCLUDE_LOW_DATA:-0}"
@@ -32,7 +32,7 @@ for data_file in "$TRAIN_FILE" "$VALIDATION_FILE" "$TEST_FILE"; do
   fi
 done
 
-if ! command -v python >/dev/null 2>&1 || ! command -v torchrun >/dev/null 2>&1; then
+if ! command -v python >/dev/null 2>&1; then
   echo "Activate the jw conda environment before running this script." >&2
   exit 1
 fi
@@ -59,10 +59,11 @@ path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 TRAIN_ARGS=(
   --run-id "$RUN_ID"
-  --distributed-mode fsdp
+  --distributed-mode single
   --device cuda
   --dtype bf16
-  --gradient-checkpointing
+  --full-ft-gradient-checkpointing
+  --no-lora-gradient-checkpointing
   --model-name "$MODEL_NAME"
   --train-file "$TRAIN_FILE"
   --validation-file "$VALIDATION_FILE"
@@ -83,7 +84,7 @@ fi
 
 run_experiments() {
   CUDA_VISIBLE_DEVICES="$GPU_IDS" PYTHONPATH=src \
-    torchrun --standalone --nproc_per_node=2 scripts/run_pubmedqa_experiments.py \
+    python scripts/run_pubmedqa_experiments.py \
     "${TRAIN_ARGS[@]}" --runs "$1" "${@:2}"
 }
 
