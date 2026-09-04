@@ -6,7 +6,7 @@ STUDY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$STUDY_ROOT"
 
 RUN_ID="${PUBMEDQA_RUN_ID:-study_$(date +%Y%m%d_%H%M%S)}"
-MODEL_NAME="${PUBMEDQA_MODEL_NAME:-meta-llama/Llama-3.2-3B-Instruct}"
+MODEL_NAME="${PUBMEDQA_MODEL_NAME:-Qwen/Qwen3-1.7B}"
 GPU_IDS="${PUBMEDQA_GPU_IDS:-0,1}"
 TRAIN_FILE="${PUBMEDQA_TRAIN_FILE:-data/processed/pqa_artificial/train.jsonl}"
 VALIDATION_FILE="${PUBMEDQA_VALIDATION_FILE:-data/processed/pqa_artificial/validation.jsonl}"

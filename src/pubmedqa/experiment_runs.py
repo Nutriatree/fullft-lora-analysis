@@ -57,7 +57,7 @@ class ExperimentPaths:
 
 @dataclass(frozen=True)
 class SharedTrainDefaults:
-    model_name: str = "meta-llama/Llama-3.2-3B-Instruct"
+    model_name: str = "Qwen/Qwen3-1.7B"
     num_epochs: int = DEFAULT_NUM_EPOCHS
     train_batch_size: int = DEFAULT_TRAIN_BATCH_SIZE
     eval_batch_size: int = DEFAULT_EVAL_BATCH_SIZE

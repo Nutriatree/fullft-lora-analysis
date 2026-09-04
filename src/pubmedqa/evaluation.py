@@ -37,12 +37,12 @@ from pubmedqa.prompt_builder import PubMedQAExample, build_tokenizer_prompt, exa
 
 
 DEFAULT_BASE_MODELS: tuple[str, ...] = (
-    "Qwen/Qwen3-0.6B",
-    "meta-llama/Llama-3.2-1B-Instruct",
+    # "Qwen/Qwen3-0.6B",
+    # "meta-llama/Llama-3.2-1B-Instruct",
     "Qwen/Qwen3-1.7B",
-    "meta-llama/Llama-3.2-3B-Instruct",
-    "Qwen/Qwen3-4B",
-    "google/gemma-3-4b-it",
+    # "meta-llama/Llama-3.2-3B-Instruct",
+    # "Qwen/Qwen3-4B",
+    # "google/gemma-3-4b-it",
 )
 
 # BF16 MLX conversions intended to preserve model-selection accuracy as much as possible.
