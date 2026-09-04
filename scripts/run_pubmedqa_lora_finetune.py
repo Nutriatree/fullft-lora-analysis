@@ -51,7 +51,7 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=TRAIN_FULL_FINE_TUNE_CONFIG.default_grad_accum_steps,
     )
-    parser.add_argument("--learning-rate", type=float, default=TRAIN_FULL_FINE_TUNE_CONFIG.default_learning_rate)
+    parser.add_argument("--learning-rate", type=float, default=TRAIN_LORA_CONFIG.default_learning_rate)
     parser.add_argument("--weight-decay", type=float, default=TRAIN_FULL_FINE_TUNE_CONFIG.default_weight_decay)
     parser.add_argument("--warmup-ratio", type=float, default=TRAIN_FULL_FINE_TUNE_CONFIG.default_warmup_ratio)
     parser.add_argument("--max-grad-norm", type=float, default=TRAIN_FULL_FINE_TUNE_CONFIG.default_max_grad_norm)
@@ -77,7 +77,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-validation-examples", type=int, default=None)
     parser.add_argument("--max-test-examples", type=int, default=None)
     parser.add_argument("--num-workers", type=int, default=TRAIN_FULL_FINE_TUNE_CONFIG.default_num_workers)
-    parser.add_argument("--gradient-checkpointing", action="store_true")
+    parser.add_argument(
+        "--gradient-checkpointing",
+        action="store_true",
+        default=TRAIN_LORA_CONFIG.default_gradient_checkpointing,
+    )
     parser.add_argument("--no-save-optimizer-state", action="store_true")
     parser.add_argument("--strict-parser", action="store_true")
     parser.add_argument("--target-modules", default=",".join(TRAIN_LORA_CONFIG.default_target_modules))

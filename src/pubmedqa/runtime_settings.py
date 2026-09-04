@@ -263,6 +263,8 @@ class TrainFullFineTuneSettings:
 
 @dataclass(frozen=True)
 class TrainLoraSettings:
+    env_learning_rate: str = "PUBMEDQA_LORA_LEARNING_RATE"
+    env_gradient_checkpointing: str = "PUBMEDQA_LORA_GRADIENT_CHECKPOINTING"
     env_target_modules: str = (
         "PUBMEDQA_LORA_TARGET_MODULES"
     )
@@ -315,6 +317,8 @@ class TrainLoraSettings:
 
     default_lora_bias: str = "none"
     default_lora_task_type: str = "CAUSAL_LM"
+    default_learning_rate: float = 1e-4
+    default_gradient_checkpointing: bool = False
 
     default_modules_to_save: tuple[str, ...] = ()
 
