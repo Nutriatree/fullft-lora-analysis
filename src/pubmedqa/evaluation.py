@@ -51,6 +51,11 @@ DEFAULT_MLX_MODEL_MAP: dict[str, str] = {
 VALID_LABELS = ("yes", "no", "maybe")
 
 
+def resolve_metric_labels(gold: Sequence[str | None]) -> tuple[str, ...]:
+    labels = tuple(label for label in VALID_LABELS if any(item == label for item in gold))
+    return labels or VALID_LABELS
+
+
 def _env_bool(name: str, default: bool) -> bool:
     value = os.getenv(name)
     if value is None:
@@ -705,9 +710,15 @@ def accuracy(gold: Sequence[str | None], predicted: Sequence[str | None]) -> flo
     return sum(g == p for g, p in zip(gold, predicted)) / len(gold)
 
 
-def macro_f1(gold: Sequence[str | None], predicted: Sequence[str | None]) -> float:
+def macro_f1(
+    gold: Sequence[str | None],
+    predicted: Sequence[str | None],
+    *,
+    labels: Sequence[str] | None = None,
+) -> float:
+    metric_labels = tuple(labels) if labels is not None else resolve_metric_labels(gold)
     scores: list[float] = []
-    for label in VALID_LABELS:
+    for label in metric_labels:
         tp = sum(g == label and p == label for g, p in zip(gold, predicted))
         fp = sum(g != label and p == label for g, p in zip(gold, predicted))
         fn = sum(g == label and p != label for g, p in zip(gold, predicted))

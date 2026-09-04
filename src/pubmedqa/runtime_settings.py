@@ -220,7 +220,7 @@ class TrainFullFineTuneSettings:
     )
 
     # Training
-    default_num_epochs: int = 3
+    default_num_epochs: int = 1
 
     default_train_batch_size: int = 1
     default_eval_batch_size: int = 4

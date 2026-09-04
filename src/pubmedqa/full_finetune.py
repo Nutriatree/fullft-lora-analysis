@@ -27,6 +27,7 @@ from pubmedqa.evaluation import (
     current_time_iso,
     load_local_jsonl,
     macro_f1,
+    resolve_metric_labels,
     safe_name,
     write_json,
     write_jsonl,
@@ -277,9 +278,15 @@ def _longest_common_prefix_length(left: list[int], right: list[int]) -> int:
     return index
 
 
-def _classwise_f1(gold: Sequence[str | None], predicted: Sequence[str | None]) -> dict[str, float]:
+def _classwise_f1(
+    gold: Sequence[str | None],
+    predicted: Sequence[str | None],
+    *,
+    labels: Sequence[str] | None = None,
+) -> dict[str, float]:
+    metric_labels = tuple(labels) if labels is not None else resolve_metric_labels(gold)
     scores: dict[str, float] = {}
-    for label in ("yes", "no", "maybe"):
+    for label in metric_labels:
         tp = sum(g == label and p == label for g, p in zip(gold, predicted))
         fp = sum(g != label and p == label for g, p in zip(gold, predicted))
         fn = sum(g == label and p != label for g, p in zip(gold, predicted))
@@ -293,8 +300,15 @@ def _confusion_matrix(
     gold: Sequence[str | None],
     predicted: Sequence[str | None],
     *,
-    labels: Sequence[str] = ("yes", "no", "maybe", "invalid"),
+    labels: Sequence[str] | None = None,
 ) -> dict[str, dict[str, int]]:
+    if labels is None:
+        active_labels = list(resolve_metric_labels(gold))
+        for label in VALID_LABELS:
+            if label in predicted and label not in active_labels:
+                active_labels.append(label)
+        active_labels.append("invalid")
+        labels = tuple(active_labels)
     matrix: dict[str, dict[str, int]] = {
         gold_label: {pred_label: 0 for pred_label in labels}
         for gold_label in labels
@@ -1413,6 +1427,7 @@ class PubMedQAFullFineTuner:
         split_name: str,
     ) -> EvalResult:
         model.eval()
+        evaluation_started = time.perf_counter()
         loss_total = 0.0
         loss_count = 0
         predictions: list[EvalPrediction] = []
@@ -1421,6 +1436,7 @@ class PubMedQAFullFineTuner:
         original_padding_side = tokenizer.padding_side
 
         if self.device.type == "cuda":
+            torch.cuda.empty_cache()
             torch.cuda.reset_peak_memory_stats(self.device)
 
         with torch.no_grad():
@@ -1478,24 +1494,31 @@ class PubMedQAFullFineTuner:
         tokenizer.padding_side = original_padding_side
         gold = [item.gold_label for item in predictions]
         predicted = [item.predicted_label for item in predictions]
+        metric_labels = resolve_metric_labels(gold)
         num_parsed = sum(label in {"yes", "no", "maybe"} for label in predicted)
-        class_f1 = _classwise_f1(gold, predicted)
+        class_f1 = _classwise_f1(gold, predicted, labels=metric_labels)
+        confusion_labels = list(metric_labels)
+        for label in ("yes", "no", "maybe"):
+            if label in predicted and label not in confusion_labels:
+                confusion_labels.append(label)
+        confusion_labels.append("invalid")
         peak_memory = _memory_snapshot(self.device)
+        total_elapsed = time.perf_counter() - evaluation_started
         metrics = EvalMetrics(
             split=split_name,
             loss=(loss_total / loss_count) if loss_count > 0 else 0.0,
             accuracy=accuracy(gold, predicted),
-            macro_f1=macro_f1(gold, predicted),
+            macro_f1=macro_f1(gold, predicted, labels=metric_labels),
             class_f1=class_f1,
-            confusion_matrix=_confusion_matrix(gold, predicted),
-            label_order=("yes", "no", "maybe", "invalid"),
+            confusion_matrix=_confusion_matrix(gold, predicted, labels=tuple(confusion_labels)),
+            label_order=tuple(confusion_labels),
             invalid_rate=1.0 - (num_parsed / len(predictions)) if predictions else 0.0,
             num_examples=len(predictions),
             num_parsed=num_parsed,
-            elapsed_seconds=total_generation_time,
-            avg_latency_seconds=(total_generation_time / len(predictions)) if predictions else 0.0,
-            examples_per_second=(len(predictions) / total_generation_time) if total_generation_time > 0 else 0.0,
-            tokens_per_second=(total_input_tokens / total_generation_time) if total_generation_time > 0 else 0.0,
+            elapsed_seconds=total_elapsed,
+            avg_latency_seconds=(total_elapsed / len(predictions)) if predictions else 0.0,
+            examples_per_second=(len(predictions) / total_elapsed) if total_elapsed > 0 else 0.0,
+            tokens_per_second=(total_input_tokens / total_elapsed) if total_elapsed > 0 else 0.0,
             peak_allocated_gb=peak_memory["max_allocated_gb"],
             peak_reserved_gb=peak_memory["max_reserved_gb"],
         )
