@@ -23,6 +23,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, get_linear_schedul
 from pubmedqa.answer_parser import parse_pubmedqa_answer
 from pubmedqa.evaluation import (
     EnvironmentConfig,
+    VALID_LABELS,
     accuracy,
     current_time_iso,
     load_local_jsonl,
