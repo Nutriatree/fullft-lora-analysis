@@ -219,5 +219,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
-/outputs/**
+/outputs/*
+!/outputs/**/
+!/outputs/**/*
+/outputs/**/checkpoints
+/outputs/**/checkpoints/**
 /pyproject.toml
