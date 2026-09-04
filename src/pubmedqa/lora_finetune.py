@@ -456,7 +456,7 @@ class PubMedQALoRAFineTuner(PubMedQAFullFineTuner):
         return tokenizer, model
 
     def load_model_and_tokenizer(self, model_name_or_path: str) -> tuple[Any, torch.nn.Module]:
-        _, PeftConfig, PeftModel, TaskType, get_peft_model = self._import_peft()
+        LoraConfig, PeftConfig, PeftModel, TaskType, get_peft_model = self._import_peft()
         path = Path(model_name_or_path)
         adapter_config_path = path / "adapter_config.json"
 
