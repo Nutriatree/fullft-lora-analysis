@@ -905,13 +905,21 @@ class PubMedQAFullFineTuner:
 
             for batch_index, batch in enumerate(train_loader, start=1):
                 batch = self._move_batch_to_device(batch)
+                should_step = (
+                    batch_index % self.config.gradient_accumulation_steps == 0
+                    or batch_index == len(train_loader)
+                )
+                sync_context = nullcontext()
+                if self.ddp_enabled and not should_step:
+                    sync_context = model.no_sync()
 
-                with self._autocast_context():
-                    outputs = model(**batch)
-                    raw_loss = outputs.loss
-                    loss = raw_loss / self.config.gradient_accumulation_steps
+                with sync_context:
+                    with self._autocast_context():
+                        outputs = model(**batch)
+                        raw_loss = outputs.loss
+                        loss = raw_loss / self.config.gradient_accumulation_steps
 
-                loss.backward()
+                    loss.backward()
                 epoch_loss_total += float(raw_loss.detach().item())
                 epoch_loss_count += 1
                 cumulative_train_loss_total += float(raw_loss.detach().item())
@@ -928,10 +936,6 @@ class PubMedQAFullFineTuner:
                 total_seen_tokens += micro_input_tokens
                 del outputs, raw_loss, loss, batch
 
-                should_step = (
-                    batch_index % self.config.gradient_accumulation_steps == 0
-                    or batch_index == len(train_loader)
-                )
                 if not should_step:
                     continue
 
