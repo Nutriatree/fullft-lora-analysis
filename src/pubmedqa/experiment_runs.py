@@ -243,6 +243,31 @@ RUN_SPECS: dict[str, RunSpec] = {
 }
 
 
+FINAL_SHARED_DEFAULTS = SharedTrainDefaults(
+    model_name="Qwen/Qwen3-1.7B",
+    num_epochs=3,
+    train_batch_size=1,
+    eval_batch_size=4,
+    gradient_accumulation_steps=8,
+    learning_rate=2e-5,
+    dtype="bf16",
+    gradient_checkpointing=True,
+    seed=42,
+)
+
+FINAL_FULL_FT_DEFAULTS = SharedTrainDefaults(
+    **{**FINAL_SHARED_DEFAULTS.__dict__},
+    learning_rate=2e-5,
+    gradient_checkpointing=True,
+)
+
+FINAL_LORA_DEFAULTS = SharedTrainDefaults(
+    **{**FINAL_SHARED_DEFAULTS.__dict__},
+    learning_rate=1e-4,
+    gradient_checkpointing=False,
+)
+
+
 def list_run_tags() -> tuple[str, ...]:
     return tuple(RUN_SPECS.keys())
 
