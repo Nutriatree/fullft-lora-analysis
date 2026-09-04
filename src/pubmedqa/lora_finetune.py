@@ -24,7 +24,6 @@ from pubmedqa.full_finetune import (
     DEFAULT_DEVICE,
     DEFAULT_DTYPE,
     DEFAULT_EVAL_BATCH_SIZE,
-    DEFAULT_FSDP_CPU_OFFLOAD,
     DEFAULT_GRAD_ACCUM_STEPS,
     DEFAULT_LAYER_SCOPE,
     DEFAULT_LEARNING_RATE,
@@ -109,8 +108,8 @@ ENV_DATA_FRACTION = TRAIN_FULL_FINE_TUNE_CONFIG.env_data_fraction
 ENV_NOTES = TRAIN_LAYER_CONFIG.env_notes
 ENV_TRACK_LAYERWISE_UPDATES = TRAIN_LAYER_CONFIG.env_track_layerwise_updates
 ENV_CHECKPOINT_PERCENTS = TRAIN_LAYER_CONFIG.env_checkpoint_percents
-ENV_DISTRIBUTED_MODE = TRAIN_FULL_FINE_TUNE_CONFIG.env_distributed_mode
-ENV_FSDP_CPU_OFFLOAD = TRAIN_FULL_FINE_TUNE_CONFIG.env_fsdp_cpu_offload
+ENV_DISTRIBUTED_MODE = "PUBMEDQA_DISTRIBUTED_MODE"
+ENV_FSDP_CPU_OFFLOAD = "PUBMEDQA_FSDP_CPU_OFFLOAD"
 
 ENV_LORA_TARGET_MODULES = TRAIN_LORA_CONFIG.env_target_modules
 ENV_LORA_TARGET_LAYERS = TRAIN_LORA_CONFIG.env_target_layers
@@ -249,7 +248,7 @@ class LoRAFineTuneConfig:
     track_layerwise_updates: bool
     checkpoint_percents: tuple[int, ...]
     distributed_mode: str = DEFAULT_DISTRIBUTED_MODE
-    fsdp_cpu_offload: bool = DEFAULT_FSDP_CPU_OFFLOAD
+    fsdp_cpu_offload: bool = False
 
 
 @dataclass(frozen=True)
@@ -328,8 +327,8 @@ class LoRAFineTuneCliConfig:
             checkpoint_percents=_normalize_checkpoint_percents(
                 _env_int_tuple(ENV_CHECKPOINT_PERCENTS) or DEFAULT_CHECKPOINT_PERCENTS
             ),
-            distributed_mode=os.getenv(ENV_DISTRIBUTED_MODE, DEFAULT_DISTRIBUTED_MODE),
-            fsdp_cpu_offload=_env_bool(ENV_FSDP_CPU_OFFLOAD, DEFAULT_FSDP_CPU_OFFLOAD),
+            distributed_mode=DEFAULT_DISTRIBUTED_MODE,
+            fsdp_cpu_offload=False,
         )
         return cls(config=config, environment=EnvironmentConfig.from_env())
 
@@ -522,23 +521,6 @@ class PubMedQALoRAFineTuner(PubMedQAFullFineTuner):
         validation_metrics: Any,
         save_model_files: bool,
     ) -> Path:
-        if self._is_fsdp_model(model):
-            # The shared implementation gathers a rank-0 full state dict and
-            # invokes PEFT's save_pretrained on the unwrapped adapter model.
-            return super().save_checkpoint(
-                model=model,
-                tokenizer=tokenizer,
-                optimizer=optimizer,
-                scheduler=scheduler,
-                checkpoint_kind=checkpoint_kind,
-                checkpoint_percent=checkpoint_percent,
-                epoch=epoch,
-                step_in_epoch=step_in_epoch,
-                global_step=global_step,
-                elapsed_seconds=elapsed_seconds,
-                validation_metrics=validation_metrics,
-                save_model_files=save_model_files,
-            )
         checkpoint_dir = self.checkpoints_dir / (
             f"{checkpoint_kind}_pct_{int(round(checkpoint_percent)):03d}_"
             f"epoch_{epoch:03d}_step_{global_step:06d}"
@@ -604,8 +586,6 @@ class PubMedQALoRAFineTuner(PubMedQAFullFineTuner):
         return a_weight, b_weight, delta, scaling
 
     def capture_layerwise_references(self, model: torch.nn.Module) -> list[LayerwiseReference]:
-        if self.fsdp_enabled and not self.is_main_process:
-            return []
         references: list[LayerwiseReference] = []
         tracked_parameters: list[dict[str, Any]] = []
         for module_name, module in self._named_lora_modules(model):
@@ -663,30 +643,6 @@ class PubMedQALoRAFineTuner(PubMedQAFullFineTuner):
         previous_snapshots: dict[str, torch.Tensor],
         previous_incremental_updates: dict[str, torch.Tensor],
     ) -> None:
-        if self._is_fsdp_model(model):
-            from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
-
-            with FSDP.summon_full_params(
-                model,
-                recurse=True,
-                writeback=False,
-                rank0_only=True,
-                offload_to_cpu=True,
-            ):
-                if self.is_main_process:
-                    self.write_layerwise_update_artifacts(
-                        model=self._unwrap_model(model),
-                        checkpoint_kind=checkpoint_kind,
-                        checkpoint_percent=checkpoint_percent,
-                        epoch=epoch,
-                        global_step=global_step,
-                        checkpoint_dir=checkpoint_dir,
-                        references=references,
-                        previous_snapshots=previous_snapshots,
-                        previous_incremental_updates=previous_incremental_updates,
-                    )
-            self._barrier()
-            return
         if not self.lora_config.track_layerwise_updates or not references:
             return
 

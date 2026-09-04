@@ -9,31 +9,13 @@ import shutil
 import time
 from contextlib import nullcontext
 from dataclasses import asdict, dataclass
-from datetime import timedelta
-from functools import partial
 from pathlib import Path
 from typing import Any, Callable, Sequence, TypeVar, cast
 
 import torch
-import torch.distributed as dist
 from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader, Dataset
-from torch.utils.data.distributed import DistributedSampler
 from transformers import AutoModelForCausalLM, AutoTokenizer, get_linear_schedule_with_warmup
-
-try:
-    from torch.distributed.fsdp import (
-        CPUOffload,
-        FullStateDictConfig,
-        FullyShardedDataParallel as FSDP,
-        MixedPrecision,
-        ShardingStrategy,
-        StateDictType,
-    )
-    from torch.distributed.fsdp.wrap import transformer_auto_wrap_policy
-except ImportError:  # pragma: no cover - available in supported CUDA PyTorch builds.
-    FSDP = None  # type: ignore[assignment,misc]
-    transformer_auto_wrap_policy = None  # type: ignore[assignment]
 
 from pubmedqa.answer_parser import parse_pubmedqa_answer
 from pubmedqa.evaluation import (
@@ -101,8 +83,8 @@ ENV_LORA_DROPOUT = TRAIN_LAYER_CONFIG.env_lora_dropout
 ENV_NOTES = TRAIN_LAYER_CONFIG.env_notes
 ENV_TRACK_LAYERWISE_UPDATES = TRAIN_LAYER_CONFIG.env_track_layerwise_updates
 ENV_CHECKPOINT_PERCENTS = TRAIN_LAYER_CONFIG.env_checkpoint_percents
-ENV_DISTRIBUTED_MODE = TRAIN_FULL_FINE_TUNE_CONFIG.env_distributed_mode
-ENV_FSDP_CPU_OFFLOAD = TRAIN_FULL_FINE_TUNE_CONFIG.env_fsdp_cpu_offload
+ENV_DISTRIBUTED_MODE = "PUBMEDQA_DISTRIBUTED_MODE"
+ENV_FSDP_CPU_OFFLOAD = "PUBMEDQA_FSDP_CPU_OFFLOAD"
 
 DEFAULT_MODEL_NAME = TRAIN_FULL_FINE_TUNE_CONFIG.default_model_name
 DEFAULT_CONDITION = TRAIN_FULL_FINE_TUNE_CONFIG.default_condition
@@ -141,8 +123,8 @@ DEFAULT_LORA_DROPOUT = TRAIN_LAYER_CONFIG.default_lora_dropout
 DEFAULT_NOTES = TRAIN_LAYER_CONFIG.default_notes
 DEFAULT_TRACK_LAYERWISE_UPDATES = TRAIN_LAYER_CONFIG.default_track_layerwise_updates
 DEFAULT_CHECKPOINT_PERCENTS = TRAIN_LAYER_CONFIG.default_checkpoint_percents
-DEFAULT_DISTRIBUTED_MODE = TRAIN_FULL_FINE_TUNE_CONFIG.default_distributed_mode  # single | fsdp
-DEFAULT_FSDP_CPU_OFFLOAD = TRAIN_FULL_FINE_TUNE_CONFIG.default_fsdp_cpu_offload
+DEFAULT_DISTRIBUTED_MODE = "single"
+DEFAULT_FSDP_CPU_OFFLOAD = False
 DEFAULT_TRACKED_MODULE_SUFFIXES = dict(TRAIN_LAYER_CONFIG.default_tracked_module_suffixes)
 
 
@@ -328,40 +310,6 @@ def _match_tracked_module(parameter_name: str) -> tuple[str, str] | None:
         if parameter_name.endswith(suffix):
             return match
     return None
-
-
-def _discover_transformer_layer_classes(
-    model: torch.nn.Module,
-) -> set[type[torch.nn.Module]]:
-    no_split_names: set[str] = set()
-    candidate_owners = [model, getattr(model, "base_model", None)]
-    base_model = getattr(model, "base_model", None)
-    candidate_owners.append(getattr(base_model, "model", None))
-    for owner in candidate_owners:
-        names = getattr(owner, "_no_split_modules", None)
-        if names:
-            no_split_names.update(str(name) for name in names)
-
-    layer_classes: set[type[torch.nn.Module]] = set()
-    for module in model.modules():
-        module_class = type(module)
-        class_name = module_class.__name__
-        is_declared_transformer_layer = class_name in no_split_names
-        is_structural_decoder_layer = (
-            class_name.endswith("DecoderLayer")
-            and hasattr(module, "self_attn")
-            and hasattr(module, "mlp")
-        )
-        if is_declared_transformer_layer or is_structural_decoder_layer:
-            layer_classes.add(module_class)
-
-    if not layer_classes:
-        declared = ", ".join(sorted(no_split_names)) or "none"
-        raise RuntimeError(
-            "Unable to identify a transformer decoder layer for FSDP auto-wrap. "
-            f"Model-declared no-split modules: {declared}."
-        )
-    return layer_classes
 
 
 def _build_checkpoint_schedule(
@@ -765,9 +713,6 @@ class PubMedQAFullFineTuner:
         self.rank = 0
         self.local_rank = 0
         self.world_size = 1
-        self._distributed_initialized_here = False
-        self._control_group: Any | None = None
-        self._fsdp_layer_class_names: tuple[str, ...] = ()
         self.output_root = (
             config.output_dir / config.run_id / safe_name(config.model_name) / safe_name(config.condition)
         )
@@ -813,9 +758,6 @@ class PubMedQAFullFineTuner:
         train_loader = self.build_train_dataloader(train_dataset, tokenizer)
         validation_loader = self.build_eval_dataloader(validation_dataset, tokenizer)
 
-        # Evaluate the initially loaded model before FSDP wraps and shards it.
-        # Non-main ranks wait on the long-timeout Gloo control group rather
-        # than entering an NCCL collective while rank 0 runs generation.
         reference_validation_result = self._run_on_main_process(
             lambda: self.evaluate_split(
                 model=model,
@@ -911,8 +853,6 @@ class PubMedQAFullFineTuner:
         previous_validation_split_name = "validation_reference"
 
         for epoch in range(1, self.config.num_epochs + 1):
-            if isinstance(train_loader.sampler, DistributedSampler):
-                train_loader.sampler.set_epoch(epoch)
             model.train()
             epoch_loss_total = 0.0
             epoch_loss_count = 0
@@ -956,12 +896,9 @@ class PubMedQAFullFineTuner:
                 if not should_step:
                     continue
 
-                if self._is_fsdp_model(model):
-                    gradient_norm = float(model.clip_grad_norm_(self.config.max_grad_norm).detach().item())
-                else:
-                    gradient_norm = float(
-                        clip_grad_norm_(model.parameters(), self.config.max_grad_norm).detach().item()
-                    )
+                gradient_norm = float(
+                    clip_grad_norm_(model.parameters(), self.config.max_grad_norm).detach().item()
+                )
                 optimizer.step()
                 scheduler.step()
                 optimizer.zero_grad(set_to_none=True)
@@ -1410,20 +1347,16 @@ class PubMedQAFullFineTuner:
     def build_train_dataloader(self, dataset: PubMedQASupervisedDataset, tokenizer: Any) -> DataLoader[Any]:
         generator = torch.Generator()
         generator.manual_seed(self.config.seed)
-        sampler = self._distributed_sampler(dataset, shuffle=True)
         return DataLoader(
             dataset,
             batch_size=self.config.train_batch_size,
-            shuffle=sampler is None,
-            sampler=sampler,
+            shuffle=True,
             num_workers=self.config.num_workers,
             collate_fn=SupervisedDataCollator(tokenizer, self.config.max_input_tokens),
             generator=generator,
         )
 
     def build_eval_dataloader(self, dataset: PubMedQASupervisedDataset, tokenizer: Any) -> DataLoader[Any]:
-        # Validation itself runs on rank 0 inside a full-parameter FSDP context.
-        # Sharding this loader would make loss and generation metrics incomplete.
         return DataLoader(
             dataset,
             batch_size=self.config.eval_batch_size,
@@ -1441,12 +1374,6 @@ class PubMedQAFullFineTuner:
         examples: Sequence[PubMedQAExample],
         split_name: str,
     ) -> EvalResult:
-        if self._is_fsdp_model(model):
-            raise RuntimeError(
-                "FSDP models must be evaluated through a standalone checkpoint; "
-                "forward/generate inside summon_full_params is unsupported."
-            )
-
         model.eval()
         loss_total = 0.0
         loss_count = 0
@@ -1559,11 +1486,6 @@ class PubMedQAFullFineTuner:
                     "error": str(exc),
                 }
 
-        if self.fsdp_enabled:
-            if self._control_group is None:
-                raise RuntimeError("FSDP control group is not initialized.")
-            dist.broadcast_object_list(payload, src=0, group=self._control_group)
-
         message = payload[0]
         if message is None:
             raise RuntimeError(f"{operation_name} produced no rank-0 result.")
@@ -1624,15 +1546,7 @@ class PubMedQAFullFineTuner:
         tokenizer: Any,
         checkpoint_dir: Path,
     ) -> None:
-        if self._is_fsdp_model(model):
-            assert FSDP is not None
-            state_config = FullStateDictConfig(offload_to_cpu=True, rank0_only=True)
-            with FSDP.state_dict_type(model, StateDictType.FULL_STATE_DICT, state_config):
-                full_state = model.state_dict()
-            if self.is_main_process:
-                self._unwrap_model(model).save_pretrained(checkpoint_dir, state_dict=full_state)
-                tokenizer.save_pretrained(checkpoint_dir)
-        elif self.is_main_process:
+        if self.is_main_process:
             model.save_pretrained(checkpoint_dir)
             tokenizer.save_pretrained(checkpoint_dir)
 
@@ -1690,18 +1604,7 @@ class PubMedQAFullFineTuner:
                 tokenizer=tokenizer,
                 checkpoint_dir=checkpoint_dir,
             )
-        if save_model_files and self._is_fsdp_model(model):
-            assert FSDP is not None
-            if self.config.save_optimizer_state:
-                full_optim_state = FSDP.full_optim_state_dict(
-                    model,
-                    optimizer,
-                    rank0_only=True,
-                )
-                if self.is_main_process:
-                    torch.save(full_optim_state, checkpoint_dir / "optimizer.pt")
-                    torch.save(scheduler.state_dict(), checkpoint_dir / "scheduler.pt")
-        elif save_model_files and self.is_main_process:
+        if save_model_files and self.is_main_process:
             if self.config.save_optimizer_state:
                 torch.save(optimizer.state_dict(), checkpoint_dir / "optimizer.pt")
                 torch.save(scheduler.state_dict(), checkpoint_dir / "scheduler.pt")
@@ -1799,10 +1702,6 @@ class PubMedQAFullFineTuner:
         )
 
     def capture_layerwise_references(self, model: torch.nn.Module) -> list[LayerwiseReference]:
-        # Only rank 0 writes and retains full baseline tensors. Other ranks
-        # participate in FSDP training but never emit analysis artifacts.
-        if self.fsdp_enabled and not self.is_main_process:
-            return []
         references: list[LayerwiseReference] = []
         for parameter_name, parameter in model.named_parameters():
             match = _match_tracked_module(parameter_name)
@@ -1859,31 +1758,6 @@ class PubMedQAFullFineTuner:
         previous_snapshots: dict[str, torch.Tensor],
         previous_incremental_updates: dict[str, torch.Tensor],
     ) -> None:
-        if self._is_fsdp_model(model):
-            assert FSDP is not None
-            # All ranks enter the collective, but only rank 0 materializes the
-            # complete tensors and immediately offloads them for CPU analysis.
-            with FSDP.summon_full_params(
-                model,
-                recurse=True,
-                writeback=False,
-                rank0_only=True,
-                offload_to_cpu=True,
-            ):
-                if self.is_main_process:
-                    self.write_layerwise_update_artifacts(
-                        model=self._unwrap_model(model),
-                        checkpoint_kind=checkpoint_kind,
-                        checkpoint_percent=checkpoint_percent,
-                        epoch=epoch,
-                        global_step=global_step,
-                        checkpoint_dir=checkpoint_dir,
-                        references=references,
-                        previous_snapshots=previous_snapshots,
-                        previous_incremental_updates=previous_incremental_updates,
-                    )
-            self._barrier()
-            return
         if not self.config.track_layerwise_updates or not references:
             return
 
@@ -2358,68 +2232,21 @@ class PubMedQAFullFineTuner:
 
     @property
     def fsdp_enabled(self) -> bool:
-        return self.config.distributed_mode.strip().lower() == "fsdp"
+        return False
 
     def _initialize_runtime_topology(self) -> None:
-        mode = self.config.distributed_mode.strip().lower()
-        if mode not in {"single", "fsdp"}:
-            raise ValueError("distributed_mode must be 'single' or 'fsdp'.")
-        if mode == "single":
-            return
-        if FSDP is None:
-            raise RuntimeError("FSDP is unavailable in this PyTorch installation.")
-        if not torch.cuda.is_available():
-            raise RuntimeError("FSDP mode requires CUDA and must be launched with torchrun.")
-        required = ("RANK", "LOCAL_RANK", "WORLD_SIZE")
-        missing = [name for name in required if name not in os.environ]
-        if missing:
-            raise RuntimeError(
-                "FSDP mode must be launched with torchrun; missing environment variables: "
-                + ", ".join(missing)
-            )
-        self.rank = int(os.environ["RANK"])
-        self.local_rank = int(os.environ["LOCAL_RANK"])
-        self.world_size = int(os.environ["WORLD_SIZE"])
-        if self.world_size < 2:
-            raise RuntimeError("FSDP mode requires at least two processes/GPU devices.")
-        torch.cuda.set_device(self.local_rank)
-        self.device = torch.device(f"cuda:{self.local_rank}")
-        if not dist.is_initialized():
-            dist.init_process_group(backend="nccl")
-            self._distributed_initialized_here = True
-        # Rank 0 performs long checkpoint evaluation while the remaining ranks
-        # wait here. Keep that wait off NCCL's ten-minute watchdog path.
-        self._control_group = dist.new_group(
-            backend="gloo",
-            timeout=timedelta(hours=24),
-        )
+        self.rank = 0
+        self.local_rank = 0
+        self.world_size = 1
 
     def close(self) -> None:
-        if not dist.is_available() or not dist.is_initialized():
-            self._control_group = None
-            self._distributed_initialized_here = False
-            return
-        try:
-            if self._control_group is not None:
-                dist.destroy_process_group(self._control_group)
-        finally:
-            self._control_group = None
-            if self._distributed_initialized_here and dist.is_initialized():
-                try:
-                    dist.destroy_process_group()
-                finally:
-                    self._distributed_initialized_here = False
+        return
 
     def _barrier(self) -> None:
-        if self.fsdp_enabled and dist.is_available() and dist.is_initialized():
-            dist.barrier()
+        return
 
     def _all_reduce_int(self, value: int) -> int:
-        if not self.fsdp_enabled:
-            return value
-        tensor = torch.tensor(value, device=self.device, dtype=torch.long)
-        dist.all_reduce(tensor, op=dist.ReduceOp.SUM)
-        return int(tensor.item())
+        return value
 
     def _distributed_metadata(self) -> dict[str, Any]:
         return {
@@ -2427,9 +2254,9 @@ class PubMedQAFullFineTuner:
             "world_size": self.world_size,
             "rank": self.rank,
             "local_rank": self.local_rank,
-            "sharding_strategy": "FULL_SHARD" if self.fsdp_enabled else None,
-            "fsdp_cpu_offload": self.config.fsdp_cpu_offload if self.fsdp_enabled else None,
-            "fsdp_auto_wrap_layer_classes": list(self._fsdp_layer_class_names),
+            "sharding_strategy": None,
+            "fsdp_cpu_offload": None,
+            "fsdp_auto_wrap_layer_classes": [],
         }
 
     def _collect_distributed_runtime(
@@ -2449,9 +2276,6 @@ class PubMedQAFullFineTuner:
             "peak_training_memory": peak_train_memory,
         }
         records = [local_record]
-        if self.fsdp_enabled:
-            records = [None for _ in range(self.world_size)]
-            dist.all_gather_object(records, local_record)
         return {
             **self._distributed_metadata(),
             "per_rank": records,
@@ -2465,56 +2289,16 @@ class PubMedQAFullFineTuner:
             ),
         }
 
-    def _distributed_sampler(self, dataset: Dataset[Any], *, shuffle: bool) -> DistributedSampler | None:
-        if not self.fsdp_enabled:
-            return None
-        return DistributedSampler(
-            dataset,
-            num_replicas=self.world_size,
-            rank=self.rank,
-            shuffle=shuffle,
-            seed=self.config.seed,
-            drop_last=False,
-        )
-
     def wrap_model_for_training(self, model: torch.nn.Module) -> torch.nn.Module:
-        if not self.fsdp_enabled:
-            return model
-        assert FSDP is not None
-        if transformer_auto_wrap_policy is None:
-            raise RuntimeError("Transformer FSDP auto-wrap policy is unavailable in this PyTorch build.")
-        if self.config.dtype not in {torch.float16, torch.bfloat16}:
-            raise ValueError("FSDP mode requires bf16 or fp16 mixed precision.")
-        layer_classes = _discover_transformer_layer_classes(model)
-        self._fsdp_layer_class_names = tuple(sorted(layer.__name__ for layer in layer_classes))
-        auto_wrap_policy = partial(
-            transformer_auto_wrap_policy,
-            transformer_layer_cls=layer_classes,
-        )
-        mixed_precision = MixedPrecision(
-            param_dtype=self.config.dtype,
-            reduce_dtype=self.config.dtype,
-            buffer_dtype=self.config.dtype,
-        )
-        return FSDP(
-            model,
-            sharding_strategy=ShardingStrategy.FULL_SHARD,
-            auto_wrap_policy=auto_wrap_policy,
-            mixed_precision=mixed_precision,
-            cpu_offload=CPUOffload(offload_params=self.config.fsdp_cpu_offload),
-            device_id=self.device,
-            sync_module_states=True,
-            use_orig_params=True,
-            limit_all_gathers=True,
-        )
+        return model
 
     @staticmethod
     def _is_fsdp_model(model: torch.nn.Module) -> bool:
-        return FSDP is not None and isinstance(model, FSDP)
+        return False
 
     @staticmethod
     def _unwrap_model(model: torch.nn.Module) -> torch.nn.Module:
-        return model.module if FSDP is not None and isinstance(model, FSDP) else model
+        return model
 
     @staticmethod
     def _limit_examples(
