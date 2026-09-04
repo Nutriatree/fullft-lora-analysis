@@ -8,6 +8,7 @@ cd "$STUDY_ROOT"
 RUN_ID="${PUBMEDQA_RUN_ID:-study_$(date +%Y%m%d_%H%M%S)}"
 MODEL_NAME="${PUBMEDQA_MODEL_NAME:-Qwen/Qwen3-1.7B}"
 GPU_IDS="${PUBMEDQA_GPU_IDS:-0}"
+DISTRIBUTED_MODE="${PUBMEDQA_DISTRIBUTED_MODE:-single}"
 TRAIN_FILE="${PUBMEDQA_TRAIN_FILE:-data/processed/posttrain_v1/pqa_artificial/train.jsonl}"
 VALIDATION_FILE="${PUBMEDQA_VALIDATION_FILE:-data/processed/posttrain_v1/pqa_artificial/validation.jsonl}"
 TEST_FILE="${PUBMEDQA_TEST_FILE:-data/processed/pqa_labeled/test.jsonl}"
@@ -37,6 +38,23 @@ if ! command -v python >/dev/null 2>&1; then
   exit 1
 fi
 
+if [[ "$DISTRIBUTED_MODE" != "single" ]] && ! command -v torchrun >/dev/null 2>&1; then
+  echo "torchrun is required for DDP/FSDP mode." >&2
+  exit 1
+fi
+
+IFS=',' read -r -a GPU_ID_ARRAY <<< "$GPU_IDS"
+NUM_VISIBLE_GPUS="${#GPU_ID_ARRAY[@]}"
+if [[ "$DISTRIBUTED_MODE" == "single" ]]; then
+  NUM_PROCESSES=1
+else
+  NUM_PROCESSES="$NUM_VISIBLE_GPUS"
+  if [[ "$NUM_PROCESSES" -lt 2 ]]; then
+    echo "$DISTRIBUTED_MODE mode requires at least 2 visible GPUs in PUBMEDQA_GPU_IDS." >&2
+    exit 1
+  fi
+fi
+
 mkdir -p "$STUDY_DIR"
 python -c '
 import json, sys
@@ -46,20 +64,21 @@ payload = {
     "run_id": sys.argv[2],
     "model_name": sys.argv[3],
     "gpu_ids": sys.argv[4],
-    "train_file": sys.argv[5],
-    "validation_file": sys.argv[6],
-    "test_file": sys.argv[7],
+    "distributed_mode": sys.argv[5],
+    "train_file": sys.argv[6],
+    "validation_file": sys.argv[7],
+    "test_file": sys.argv[8],
     "full_study_runs": ["B0", "F1", "L1", "L2", "L3", "L4", "LL1", "LL2"],
-    "include_ll2": sys.argv[8] == "1",
-    "include_low_data": sys.argv[9] == "1",
-    "selective_layer_count": int(sys.argv[10]),
+    "include_ll2": sys.argv[9] == "1",
+    "include_low_data": sys.argv[10] == "1",
+    "selective_layer_count": int(sys.argv[11]),
 }
 path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-' "$STUDY_MANIFEST" "$RUN_ID" "$MODEL_NAME" "$GPU_IDS" "$TRAIN_FILE" "$VALIDATION_FILE" "$TEST_FILE" "$INCLUDE_LL2" "$INCLUDE_LOW_DATA" "$SELECTIVE_LAYER_COUNT"
+' "$STUDY_MANIFEST" "$RUN_ID" "$MODEL_NAME" "$GPU_IDS" "$DISTRIBUTED_MODE" "$TRAIN_FILE" "$VALIDATION_FILE" "$TEST_FILE" "$INCLUDE_LL2" "$INCLUDE_LOW_DATA" "$SELECTIVE_LAYER_COUNT"
 
 TRAIN_ARGS=(
   --run-id "$RUN_ID"
-  --distributed-mode single
+  --distributed-mode "$DISTRIBUTED_MODE"
   --device cuda
   --dtype bf16
   --full-ft-gradient-checkpointing
@@ -83,12 +102,20 @@ if [[ "$SAVE_OPTIMIZER_STATE" != "1" ]]; then
 fi
 
 run_experiments() {
+  if [[ "$DISTRIBUTED_MODE" == "single" ]]; then
+    CUDA_VISIBLE_DEVICES="$GPU_IDS" PYTHONPATH=src \
+      python scripts/run_pubmedqa_experiments.py \
+      "${TRAIN_ARGS[@]}" --runs "$1" "${@:2}"
+    return
+  fi
+
   CUDA_VISIBLE_DEVICES="$GPU_IDS" PYTHONPATH=src \
-    python scripts/run_pubmedqa_experiments.py \
+    torchrun --standalone --nproc_per_node="$NUM_PROCESSES" \
+    scripts/run_pubmedqa_experiments.py \
     "${TRAIN_ARGS[@]}" --runs "$1" "${@:2}"
 }
 
-echo "[study] run_id=$RUN_ID model=$MODEL_NAME gpus=$GPU_IDS"
+echo "[study] run_id=$RUN_ID model=$MODEL_NAME gpus=$GPU_IDS mode=$DISTRIBUTED_MODE"
 echo "[phase 1] B0, F1, L1, L2, L3, L4"
 run_experiments "B0,F1,L1,L2,L3,L4"
 

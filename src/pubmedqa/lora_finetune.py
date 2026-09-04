@@ -525,49 +525,59 @@ class PubMedQALoRAFineTuner(PubMedQAFullFineTuner):
             f"{checkpoint_kind}_pct_{int(round(checkpoint_percent)):03d}_"
             f"epoch_{epoch:03d}_step_{global_step:06d}"
         )
-        checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        if self.is_main_process:
+            checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        self._barrier()
         if save_model_files:
-            model.save_pretrained(checkpoint_dir)
-            tokenizer.save_pretrained(checkpoint_dir)
-        if save_model_files and self.lora_config.save_optimizer_state:
+            self._save_model_files_to_directory(
+                model=model,
+                tokenizer=tokenizer,
+                checkpoint_dir=checkpoint_dir,
+            )
+        if save_model_files and self.lora_config.save_optimizer_state and self.is_main_process:
             torch.save(optimizer.state_dict(), checkpoint_dir / "optimizer.pt")
             torch.save(scheduler.state_dict(), checkpoint_dir / "scheduler.pt")
+        self._barrier()
 
         checkpoint_id = checkpoint_dir.name
-        write_json(
-            checkpoint_dir / "training_state.json",
-            {
-                "checkpoint_id": checkpoint_id,
-                "checkpoint_kind": checkpoint_kind,
-                "checkpoint_percent": checkpoint_percent,
-                "epoch": epoch,
-                "step_in_epoch": step_in_epoch,
-                "global_step": global_step,
-                "elapsed_seconds": elapsed_seconds,
-                "validation_metrics": asdict(validation_metrics),
-                "title": self.title,
-                "run_id": self.lora_config.run_id,
-                "run_tag": self.lora_config.run_tag,
-                "model_name": self.lora_config.model_name,
-                "condition": self.lora_config.condition,
-                "lora": {
-                    "target_modules": list(self.lora_config.target_modules),
-                    "target_layers": list(self.lora_config.target_layers),
-                    "layer_scope": self.lora_config.layer_scope,
-                    "rank": self.lora_config.lora_rank,
-                    "alpha": self.lora_config.lora_alpha,
-                    "dropout": self.lora_config.lora_dropout,
-                    "bias": self.lora_config.lora_bias,
-                    "task_type": self.lora_config.lora_task_type,
-                    "modules_to_save": list(self.lora_config.modules_to_save),
-                    "merge_for_eval": self.lora_config.merge_for_eval,
+        if self.is_main_process:
+            write_json(
+                checkpoint_dir / "training_state.json",
+                {
+                    "checkpoint_id": checkpoint_id,
+                    "checkpoint_kind": checkpoint_kind,
+                    "checkpoint_percent": checkpoint_percent,
+                    "epoch": epoch,
+                    "step_in_epoch": step_in_epoch,
+                    "global_step": global_step,
+                    "elapsed_seconds": elapsed_seconds,
+                    "validation_metrics": asdict(validation_metrics),
+                    "title": self.title,
+                    "run_id": self.lora_config.run_id,
+                    "run_tag": self.lora_config.run_tag,
+                    "model_name": self.lora_config.model_name,
+                    "condition": self.lora_config.condition,
+                    "distributed": self._distributed_metadata(),
+                    "lora": {
+                        "target_modules": list(self.lora_config.target_modules),
+                        "target_layers": list(self.lora_config.target_layers),
+                        "layer_scope": self.lora_config.layer_scope,
+                        "rank": self.lora_config.lora_rank,
+                        "alpha": self.lora_config.lora_alpha,
+                        "dropout": self.lora_config.lora_dropout,
+                        "bias": self.lora_config.lora_bias,
+                        "task_type": self.lora_config.lora_task_type,
+                        "modules_to_save": list(self.lora_config.modules_to_save),
+                        "merge_for_eval": self.lora_config.merge_for_eval,
+                    },
+                    "saved_at": current_time_iso(),
                 },
-                "saved_at": current_time_iso(),
-            },
-        )
+            )
+        self._barrier()
         return checkpoint_dir
 
     def _named_lora_modules(self, model: torch.nn.Module) -> list[tuple[str, Any]]:
+        model = self._unwrap_model(model)
         modules: list[tuple[str, Any]] = []
         for module_name, module in model.named_modules():
             if hasattr(module, "lora_A") and hasattr(module, "lora_B") and hasattr(module, "base_layer"):

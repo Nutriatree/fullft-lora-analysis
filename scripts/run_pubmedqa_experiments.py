@@ -61,16 +61,16 @@ def _run_on_rank_zero(
     return cast(T, message["result"])
 
 
-def _initialize_fsdp_control_group() -> Any:
+def _initialize_distributed_control_group(mode: str) -> Any:
     required = ("RANK", "LOCAL_RANK", "WORLD_SIZE")
     missing = [name for name in required if name not in os.environ]
     if missing:
         raise RuntimeError(
-            "FSDP mode must be launched with torchrun; missing environment variables: "
+            f"{mode.upper()} mode must be launched with torchrun; missing environment variables: "
             + ", ".join(missing)
         )
     if not torch.cuda.is_available():
-        raise RuntimeError("FSDP mode requires CUDA.")
+        raise RuntimeError(f"{mode.upper()} mode requires CUDA.")
     local_rank = int(os.environ["LOCAL_RANK"])
     torch.cuda.set_device(local_rank)
     if not dist.is_initialized():
@@ -78,7 +78,7 @@ def _initialize_fsdp_control_group() -> Any:
     return dist.new_group(backend="gloo", timeout=timedelta(hours=24))
 
 
-def _destroy_fsdp_process_groups(control_group: Any | None) -> None:
+def _destroy_distributed_process_groups(control_group: Any | None) -> None:
     if not dist.is_initialized():
         return
     try:
@@ -145,7 +145,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--device", default=DEFAULT_SHARED_DEFAULTS.device)
     parser.add_argument(
         "--distributed-mode",
-        choices=("single", "fsdp"),
+        choices=("single", "ddp", "fsdp"),
         default=DEFAULT_SHARED_DEFAULTS.distributed_mode,
     )
     parser.add_argument("--fsdp-cpu-offload", action="store_true", default=DEFAULT_SHARED_DEFAULTS.fsdp_cpu_offload)
@@ -381,8 +381,8 @@ def main() -> None:
         return
 
     control_group = (
-        _initialize_fsdp_control_group()
-        if defaults.distributed_mode == "fsdp"
+        _initialize_distributed_control_group(defaults.distributed_mode)
+        if defaults.distributed_mode != "single"
         else None
     )
 
@@ -441,8 +441,8 @@ def main() -> None:
         if failures:
             raise RuntimeError(f"Experiment execution failed: {failures}")
     finally:
-        if defaults.distributed_mode == "fsdp":
-            _destroy_fsdp_process_groups(control_group)
+        if defaults.distributed_mode != "single":
+            _destroy_distributed_process_groups(control_group)
 
 
 if __name__ == "__main__":

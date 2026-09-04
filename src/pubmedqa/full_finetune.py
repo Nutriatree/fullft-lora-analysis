@@ -13,8 +13,11 @@ from pathlib import Path
 from typing import Any, Callable, Sequence, TypeVar, cast
 
 import torch
+import torch.distributed as dist
 from torch.nn.utils import clip_grad_norm_
+from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader, Dataset
+from torch.utils.data.distributed import DistributedSampler
 from transformers import AutoModelForCausalLM, AutoTokenizer, get_linear_schedule_with_warmup
 
 from pubmedqa.answer_parser import parse_pubmedqa_answer
@@ -126,6 +129,23 @@ DEFAULT_CHECKPOINT_PERCENTS = TRAIN_LAYER_CONFIG.default_checkpoint_percents
 DEFAULT_DISTRIBUTED_MODE = "single"
 DEFAULT_FSDP_CPU_OFFLOAD = False
 DEFAULT_TRACKED_MODULE_SUFFIXES = dict(TRAIN_LAYER_CONFIG.default_tracked_module_suffixes)
+
+try:
+    from torch.distributed.fsdp import (
+        CPUOffload,
+        FullStateDictConfig,
+        FullyShardedDataParallel,
+        MixedPrecision,
+        ShardingStrategy,
+        StateDictType,
+    )
+except ImportError:  # pragma: no cover - older torch builds
+    CPUOffload = None
+    FullStateDictConfig = None
+    FullyShardedDataParallel = None
+    MixedPrecision = None
+    ShardingStrategy = None
+    StateDictType = None
 
 
 def _env_bool(name: str, default: bool) -> bool:
@@ -721,6 +741,8 @@ class PubMedQAFullFineTuner:
         self.evaluations_dir = self.output_root / "evaluations"
         self.layerwise_dir = self.output_root / "layerwise_updates"
         self.transitions_dir = self.output_root / "prediction_transitions"
+        self.train_sampler: DistributedSampler[SupervisedExample] | None = None
+        self._owns_process_group = False
 
     @property
     def title(self) -> str:
@@ -853,6 +875,8 @@ class PubMedQAFullFineTuner:
         previous_validation_split_name = "validation_reference"
 
         for epoch in range(1, self.config.num_epochs + 1):
+            if self.train_sampler is not None:
+                self.train_sampler.set_epoch(epoch)
             model.train()
             epoch_loss_total = 0.0
             epoch_loss_count = 0
@@ -1347,10 +1371,24 @@ class PubMedQAFullFineTuner:
     def build_train_dataloader(self, dataset: PubMedQASupervisedDataset, tokenizer: Any) -> DataLoader[Any]:
         generator = torch.Generator()
         generator.manual_seed(self.config.seed)
+        sampler = None
+        shuffle = True
+        if self.world_size > 1:
+            sampler = DistributedSampler(
+                dataset,
+                num_replicas=self.world_size,
+                rank=self.rank,
+                shuffle=True,
+                seed=self.config.seed,
+                drop_last=False,
+            )
+            shuffle = False
+        self.train_sampler = sampler
         return DataLoader(
             dataset,
             batch_size=self.config.train_batch_size,
-            shuffle=True,
+            shuffle=shuffle,
+            sampler=sampler,
             num_workers=self.config.num_workers,
             collate_fn=SupervisedDataCollator(tokenizer, self.config.max_input_tokens),
             generator=generator,
@@ -1485,6 +1523,8 @@ class PubMedQAFullFineTuner:
                     "error_type": type(exc).__name__,
                     "error": str(exc),
                 }
+        if dist.is_initialized():
+            dist.broadcast_object_list(payload, src=0)
 
         message = payload[0]
         if message is None:
@@ -1547,7 +1587,24 @@ class PubMedQAFullFineTuner:
         checkpoint_dir: Path,
     ) -> None:
         if self.is_main_process:
-            model.save_pretrained(checkpoint_dir)
+            model_to_save = self._unwrap_model(model)
+            if self.fsdp_enabled:
+                if (
+                    FullyShardedDataParallel is None
+                    or FullStateDictConfig is None
+                    or StateDictType is None
+                ):
+                    raise RuntimeError("FSDP checkpoint saving is not available in this torch build.")
+                save_policy = FullStateDictConfig(offload_to_cpu=True, rank0_only=True)
+                with FullyShardedDataParallel.state_dict_type(
+                    model_to_save,
+                    StateDictType.FULL_STATE_DICT,
+                    save_policy,
+                ):
+                    state_dict = model_to_save.state_dict()
+                model_to_save.save_pretrained(checkpoint_dir, state_dict=state_dict)
+            else:
+                model_to_save.save_pretrained(checkpoint_dir)
             tokenizer.save_pretrained(checkpoint_dir)
 
     def _create_evaluation_snapshot(
@@ -1702,6 +1759,7 @@ class PubMedQAFullFineTuner:
         )
 
     def capture_layerwise_references(self, model: torch.nn.Module) -> list[LayerwiseReference]:
+        model = self._unwrap_model(model)
         references: list[LayerwiseReference] = []
         for parameter_name, parameter in model.named_parameters():
             match = _match_tracked_module(parameter_name)
@@ -1761,7 +1819,7 @@ class PubMedQAFullFineTuner:
         if not self.config.track_layerwise_updates or not references:
             return
 
-        named_parameters = dict(model.named_parameters())
+        named_parameters = dict(self._unwrap_model(model).named_parameters())
         records: list[LayerwiseUpdateRecord] = []
         current_snapshots: dict[str, torch.Tensor] = {}
         for reference in references:
@@ -2232,21 +2290,51 @@ class PubMedQAFullFineTuner:
 
     @property
     def fsdp_enabled(self) -> bool:
-        return False
+        return self.config.distributed_mode == "fsdp"
+
+    @property
+    def ddp_enabled(self) -> bool:
+        return self.config.distributed_mode == "ddp"
 
     def _initialize_runtime_topology(self) -> None:
-        self.rank = 0
-        self.local_rank = 0
-        self.world_size = 1
+        if self.config.distributed_mode == "single":
+            self.rank = 0
+            self.local_rank = 0
+            self.world_size = 1
+            return
+
+        required = ("RANK", "LOCAL_RANK", "WORLD_SIZE")
+        missing = [name for name in required if name not in os.environ]
+        if missing:
+            raise RuntimeError(
+                f"{self.config.distributed_mode.upper()} mode must be launched with torchrun; "
+                f"missing environment variables: {', '.join(missing)}"
+            )
+        if self.device.type != "cuda" or not torch.cuda.is_available():
+            raise RuntimeError(f"{self.config.distributed_mode.upper()} mode requires CUDA.")
+        self.rank = int(os.environ["RANK"])
+        self.local_rank = int(os.environ["LOCAL_RANK"])
+        self.world_size = int(os.environ["WORLD_SIZE"])
+        torch.cuda.set_device(self.local_rank)
+        self.device = torch.device(f"cuda:{self.local_rank}")
+        if not dist.is_initialized():
+            dist.init_process_group(backend="nccl")
+            self._owns_process_group = True
 
     def close(self) -> None:
-        return
+        if self._owns_process_group and dist.is_initialized():
+            dist.destroy_process_group()
 
     def _barrier(self) -> None:
-        return
+        if dist.is_initialized():
+            dist.barrier()
 
     def _all_reduce_int(self, value: int) -> int:
-        return value
+        if not dist.is_initialized():
+            return value
+        tensor = torch.tensor(value, device=self.device, dtype=torch.long)
+        dist.all_reduce(tensor, op=dist.ReduceOp.SUM)
+        return int(tensor.item())
 
     def _distributed_metadata(self) -> dict[str, Any]:
         return {
@@ -2254,8 +2342,12 @@ class PubMedQAFullFineTuner:
             "world_size": self.world_size,
             "rank": self.rank,
             "local_rank": self.local_rank,
-            "sharding_strategy": None,
-            "fsdp_cpu_offload": None,
+            "sharding_strategy": (
+                "FULL_SHARD" if self.fsdp_enabled else None
+            ),
+            "fsdp_cpu_offload": (
+                self.config.fsdp_cpu_offload if self.fsdp_enabled else None
+            ),
             "fsdp_auto_wrap_layer_classes": [],
         }
 
@@ -2290,14 +2382,49 @@ class PubMedQAFullFineTuner:
         }
 
     def wrap_model_for_training(self, model: torch.nn.Module) -> torch.nn.Module:
+        if self.ddp_enabled:
+            return DistributedDataParallel(
+                model,
+                device_ids=[self.local_rank],
+                output_device=self.local_rank,
+                broadcast_buffers=False,
+            )
+        if self.fsdp_enabled:
+            if (
+                FullyShardedDataParallel is None
+                or MixedPrecision is None
+                or CPUOffload is None
+                or ShardingStrategy is None
+            ):
+                raise RuntimeError("FSDP is not available in this torch build.")
+            mixed_precision = None
+            if self.config.dtype in {torch.float16, torch.bfloat16}:
+                mixed_precision = MixedPrecision(
+                    param_dtype=self.config.dtype,
+                    reduce_dtype=self.config.dtype,
+                    buffer_dtype=self.config.dtype,
+                )
+            return FullyShardedDataParallel(
+                model,
+                device_id=self.local_rank,
+                sharding_strategy=ShardingStrategy.FULL_SHARD,
+                cpu_offload=CPUOffload(offload_params=self.config.fsdp_cpu_offload),
+                mixed_precision=mixed_precision,
+                use_orig_params=True,
+            )
         return model
 
     @staticmethod
     def _is_fsdp_model(model: torch.nn.Module) -> bool:
-        return False
+        return (
+            FullyShardedDataParallel is not None
+            and isinstance(model, FullyShardedDataParallel)
+        )
 
     @staticmethod
     def _unwrap_model(model: torch.nn.Module) -> torch.nn.Module:
+        if isinstance(model, DistributedDataParallel):
+            return model.module
         return model
 
     @staticmethod

@@ -53,7 +53,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--device", default=TRAIN_FULL_FINE_TUNE_CONFIG.default_device)
     parser.add_argument(
         "--distributed-mode",
-        choices=("single", "fsdp"),
+        choices=("single", "ddp", "fsdp"),
         default=TRAIN_FULL_FINE_TUNE_CONFIG.default_distributed_mode,
     )
     parser.add_argument(
