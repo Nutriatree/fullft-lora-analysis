@@ -18,8 +18,8 @@ from pubmedqa.runtime_settings import TRAIN_FULL_FINE_TUNE_CONFIG, TRAIN_LAYER_C
 
 DEFAULT_BASELINE_OUTPUT_DIR = Path("outputs/pubmedqa_eval")
 DEFAULT_TRAIN_OUTPUT_DIR = Path("outputs/pubmedqa_train")
-DEFAULT_PQA_ARTIFICIAL_TRAIN_PATH = Path("data/processed/pqa_artificial/train.jsonl")
-DEFAULT_PQA_ARTIFICIAL_VALIDATION_PATH = Path("data/processed/pqa_artificial/validation.jsonl")
+DEFAULT_PQA_ARTIFICIAL_TRAIN_PATH = Path("data/processed/posttrain_v1/pqa_artificial/train.jsonl")
+DEFAULT_PQA_ARTIFICIAL_VALIDATION_PATH = Path("data/processed/posttrain_v1/pqa_artificial/validation.jsonl")
 DEFAULT_PQA_LABELED_CV_PATH = Path("data/processed/pqa_labeled/cv.jsonl")
 DEFAULT_PQA_LABELED_TEST_PATH = Path("data/processed/pqa_labeled/test.jsonl")
 
