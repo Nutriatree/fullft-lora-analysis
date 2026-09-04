@@ -211,6 +211,10 @@ class TrainFullFineTuneSettings:
     default_method_name: str = "full-ft"
     default_run_tag: str = "F1"
 
+    default_distributed_mode: str = "single"
+
+    default_fsdp_cpu_offload: bool = False
+
     default_output_dir: Path = Path(
         "outputs/pubmedqa_train"
     )
