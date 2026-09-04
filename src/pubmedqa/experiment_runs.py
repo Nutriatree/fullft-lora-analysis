@@ -8,31 +8,12 @@ from typing import Any, Mapping
 
 from pubmedqa.evaluation import EnvironmentConfig, ModelRuntimeConfig, PubMedQAEvaluationRunner
 from pubmedqa.full_finetune import (
-    DEFAULT_ATTN_IMPLEMENTATION,
-    DEFAULT_CHECKPOINT_PERCENTS,
-    DEFAULT_CPU_THREADS,
-    DEFAULT_DISTRIBUTED_MODE,
-    DEFAULT_DEVICE,
-    DEFAULT_DTYPE,
-    DEFAULT_EVAL_BATCH_SIZE,
-    DEFAULT_FSDP_CPU_OFFLOAD,
-    DEFAULT_GRAD_ACCUM_STEPS,
-    DEFAULT_LEARNING_RATE,
-    DEFAULT_LOG_EVERY_STEPS,
-    DEFAULT_MAX_GRAD_NORM,
-    DEFAULT_MAX_NEW_TOKENS,
-    DEFAULT_NUM_EPOCHS,
-    DEFAULT_NUM_WORKERS,
-    DEFAULT_SAVE_OPTIMIZER_STATE,
-    DEFAULT_SEED,
-    DEFAULT_TRAIN_BATCH_SIZE,
-    DEFAULT_WARMUP_RATIO,
-    DEFAULT_WEIGHT_DECAY,
     FullFineTuneConfig,
     PubMedQAFullFineTuner,
     _resolve_dtype,
 )
 from pubmedqa.lora_finetune import LoRAFineTuneConfig, PubMedQALoRAFineTuner
+from pubmedqa.runtime_settings import TRAIN_FULL_FINE_TUNE_CONFIG, TRAIN_LAYER_CONFIG
 
 
 DEFAULT_BASELINE_OUTPUT_DIR = Path("outputs/pubmedqa_eval")
@@ -44,7 +25,7 @@ DEFAULT_PQA_LABELED_TEST_PATH = Path("data/processed/pqa_labeled/test.jsonl")
 
 # Single source of truth for low-data runs.
 DEFAULT_LOW_DATA_MAX_TRAIN_EXAMPLES = 2048
-DEFAULT_LOW_DATA_SEED = DEFAULT_SEED
+DEFAULT_LOW_DATA_SEED = TRAIN_FULL_FINE_TUNE_CONFIG.default_seed
 
 
 @dataclass(frozen=True)
@@ -57,31 +38,34 @@ class ExperimentPaths:
 
 @dataclass(frozen=True)
 class SharedTrainDefaults:
-    model_name: str = "Qwen/Qwen3-1.7B"
-    num_epochs: int = DEFAULT_NUM_EPOCHS
-    train_batch_size: int = DEFAULT_TRAIN_BATCH_SIZE
-    eval_batch_size: int = DEFAULT_EVAL_BATCH_SIZE
-    gradient_accumulation_steps: int = DEFAULT_GRAD_ACCUM_STEPS
-    learning_rate: float = DEFAULT_LEARNING_RATE
-    weight_decay: float = DEFAULT_WEIGHT_DECAY
-    warmup_ratio: float = DEFAULT_WARMUP_RATIO
-    max_grad_norm: float = DEFAULT_MAX_GRAD_NORM
+    model_name: str = TRAIN_FULL_FINE_TUNE_CONFIG.default_model_name
+    num_epochs: int = TRAIN_FULL_FINE_TUNE_CONFIG.default_num_epochs
+    train_batch_size: int = TRAIN_FULL_FINE_TUNE_CONFIG.default_train_batch_size
+    eval_batch_size: int = TRAIN_FULL_FINE_TUNE_CONFIG.default_eval_batch_size
+    gradient_accumulation_steps: int = TRAIN_FULL_FINE_TUNE_CONFIG.default_grad_accum_steps
+    learning_rate: float = TRAIN_FULL_FINE_TUNE_CONFIG.default_learning_rate
+    weight_decay: float = TRAIN_FULL_FINE_TUNE_CONFIG.default_weight_decay
+    warmup_ratio: float = TRAIN_FULL_FINE_TUNE_CONFIG.default_warmup_ratio
+    max_grad_norm: float = TRAIN_FULL_FINE_TUNE_CONFIG.default_max_grad_norm
     max_input_tokens: int | None = None
-    max_new_tokens: int = DEFAULT_MAX_NEW_TOKENS
-    device: str = DEFAULT_DEVICE
-    dtype: str = DEFAULT_DTYPE
-    attn_implementation: str | None = DEFAULT_ATTN_IMPLEMENTATION
+    max_new_tokens: int = TRAIN_FULL_FINE_TUNE_CONFIG.default_max_new_tokens
+    max_train_examples: int | None = None
+    max_validation_examples: int | None = None
+    max_test_examples: int | None = None
+    device: str = TRAIN_FULL_FINE_TUNE_CONFIG.default_device
+    dtype: str = TRAIN_FULL_FINE_TUNE_CONFIG.default_dtype
+    attn_implementation: str | None = TRAIN_FULL_FINE_TUNE_CONFIG.default_attn_implementation
     trust_remote_code: bool = False
-    cpu_threads: int = DEFAULT_CPU_THREADS
-    log_every_steps: int = DEFAULT_LOG_EVERY_STEPS
-    num_workers: int = DEFAULT_NUM_WORKERS
+    cpu_threads: int = TRAIN_FULL_FINE_TUNE_CONFIG.default_cpu_threads
+    log_every_steps: int = TRAIN_FULL_FINE_TUNE_CONFIG.default_log_every_steps
+    num_workers: int = TRAIN_FULL_FINE_TUNE_CONFIG.default_num_workers
     gradient_checkpointing: bool = False
-    save_optimizer_state: bool = DEFAULT_SAVE_OPTIMIZER_STATE
+    save_optimizer_state: bool = TRAIN_FULL_FINE_TUNE_CONFIG.default_save_optimizer_state
     strict_parser: bool = False
-    seed: int = DEFAULT_SEED
-    checkpoint_percents: tuple[int, ...] = DEFAULT_CHECKPOINT_PERCENTS
-    distributed_mode: str = DEFAULT_DISTRIBUTED_MODE
-    fsdp_cpu_offload: bool = DEFAULT_FSDP_CPU_OFFLOAD
+    seed: int = TRAIN_FULL_FINE_TUNE_CONFIG.default_seed
+    checkpoint_percents: tuple[int, ...] = TRAIN_LAYER_CONFIG.default_checkpoint_percents
+    distributed_mode: str = TRAIN_FULL_FINE_TUNE_CONFIG.default_distributed_mode
+    fsdp_cpu_offload: bool = TRAIN_FULL_FINE_TUNE_CONFIG.default_fsdp_cpu_offload
 
 
 @dataclass(frozen=True)
@@ -354,9 +338,13 @@ def build_full_ft_config(
         log_every_steps=defaults.log_every_steps,
         save_every_epoch=True,
         eval_every_epoch=True,
-        max_train_examples=spec.max_train_examples,
-        max_validation_examples=None,
-        max_test_examples=None,
+        max_train_examples=(
+            defaults.max_train_examples
+            if defaults.max_train_examples is not None
+            else spec.max_train_examples
+        ),
+        max_validation_examples=defaults.max_validation_examples,
+        max_test_examples=defaults.max_test_examples,
         num_workers=defaults.num_workers,
         gradient_checkpointing=defaults.gradient_checkpointing,
         save_optimizer_state=defaults.save_optimizer_state,
@@ -421,9 +409,13 @@ def build_lora_config(
         log_every_steps=defaults.log_every_steps,
         save_every_epoch=True,
         eval_every_epoch=True,
-        max_train_examples=spec.max_train_examples,
-        max_validation_examples=None,
-        max_test_examples=None,
+        max_train_examples=(
+            defaults.max_train_examples
+            if defaults.max_train_examples is not None
+            else spec.max_train_examples
+        ),
+        max_validation_examples=defaults.max_validation_examples,
+        max_test_examples=defaults.max_test_examples,
         num_workers=defaults.num_workers,
         gradient_checkpointing=defaults.gradient_checkpointing,
         save_optimizer_state=defaults.save_optimizer_state,

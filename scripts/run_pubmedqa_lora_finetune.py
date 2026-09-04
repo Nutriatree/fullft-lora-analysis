@@ -8,50 +8,25 @@ from pathlib import Path
 
 from pubmedqa.evaluation import EnvironmentConfig
 from pubmedqa.lora_finetune import (
-    DEFAULT_ATTN_IMPLEMENTATION,
-    DEFAULT_CHECKPOINT_PERCENTS,
-    DEFAULT_CONDITION,
-    DEFAULT_CPU_THREADS,
-    DEFAULT_DATA_FRACTION,
-    DEFAULT_DATA_REGIME,
-    DEFAULT_DEVICE,
-    DEFAULT_DISTRIBUTED_MODE,
-    DEFAULT_DTYPE,
-    DEFAULT_EVAL_BATCH_SIZE,
-    DEFAULT_FSDP_CPU_OFFLOAD,
-    DEFAULT_GRAD_ACCUM_STEPS,
-    DEFAULT_LAYER_SCOPE,
-    DEFAULT_LEARNING_RATE,
-    DEFAULT_LOG_EVERY_STEPS,
-    DEFAULT_LORA_ALPHA,
-    DEFAULT_LORA_BIAS,
-    DEFAULT_LORA_DROPOUT,
-    DEFAULT_LORA_MERGE_FOR_EVAL,
-    DEFAULT_LORA_RANK,
-    DEFAULT_LORA_TARGET_MODULES,
-    DEFAULT_LORA_TASK_TYPE,
-    DEFAULT_MAX_GRAD_NORM,
-    DEFAULT_MAX_NEW_TOKENS,
-    DEFAULT_METHOD_NAME,
-    DEFAULT_MODEL_NAME,
-    DEFAULT_NOTES,
-    DEFAULT_NUM_EPOCHS,
-    DEFAULT_NUM_WORKERS,
-    DEFAULT_OUTPUT_DIR,
-    DEFAULT_RUN_TAG,
-    DEFAULT_SAVE_OPTIMIZER_STATE,
-    DEFAULT_SEED,
-    DEFAULT_TRAIN_BATCH_SIZE,
-    DEFAULT_WARMUP_RATIO,
-    DEFAULT_WEIGHT_DECAY,
     LoRAFineTuneConfig,
     PubMedQALoRAFineTuner,
     _load_target_layers,
     _normalize_lora_target_modules,
     _resolve_dtype,
 )
+from pubmedqa.runtime_settings import (
+    TRAIN_FULL_FINE_TUNE_CONFIG,
+    TRAIN_LAYER_CONFIG,
+    TRAIN_LORA_CONFIG,
+    parse_checkpoint_percents,
+)
 
-CLI_DEFAULT_DTYPE = "bfloat16" if DEFAULT_DTYPE == "bf16" else DEFAULT_DTYPE
+CLI_DEFAULT_DTYPE = (
+    "bfloat16"
+    if TRAIN_FULL_FINE_TUNE_CONFIG.default_dtype == "bf16"
+    else TRAIN_FULL_FINE_TUNE_CONFIG.default_dtype
+)
+DEFAULT_CHECKPOINT_PERCENTS = TRAIN_LAYER_CONFIG.default_checkpoint_percents
 
 
 def parse_args() -> argparse.Namespace:
@@ -59,55 +34,71 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--train-file", type=Path, required=True)
     parser.add_argument("--validation-file", type=Path, required=True)
     parser.add_argument("--test-file", type=Path, default=None)
-    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument("--output-dir", type=Path, default=TRAIN_FULL_FINE_TUNE_CONFIG.default_output_dir)
     parser.add_argument("--run-id", required=True)
-    parser.add_argument("--run-tag", default=DEFAULT_RUN_TAG)
-    parser.add_argument("--method-name", default=DEFAULT_METHOD_NAME)
-    parser.add_argument("--condition", default=DEFAULT_CONDITION)
-    parser.add_argument("--model-name", default=DEFAULT_MODEL_NAME)
-    parser.add_argument("--data-regime", default=DEFAULT_DATA_REGIME)
-    parser.add_argument("--data-fraction", type=float, default=DEFAULT_DATA_FRACTION)
+    parser.add_argument("--run-tag", default=TRAIN_LORA_CONFIG.default_run_tag)
+    parser.add_argument("--method-name", default=TRAIN_LORA_CONFIG.default_method_name)
+    parser.add_argument("--condition", default=TRAIN_LORA_CONFIG.default_condition)
+    parser.add_argument("--model-name", default=TRAIN_FULL_FINE_TUNE_CONFIG.default_model_name)
+    parser.add_argument("--data-regime", default=TRAIN_FULL_FINE_TUNE_CONFIG.default_data_regime)
+    parser.add_argument("--data-fraction", type=float, default=TRAIN_FULL_FINE_TUNE_CONFIG.default_data_fraction)
     parser.add_argument("--hf-token", default=None)
-    parser.add_argument("--num-epochs", type=int, default=DEFAULT_NUM_EPOCHS)
-    parser.add_argument("--train-batch-size", type=int, default=DEFAULT_TRAIN_BATCH_SIZE)
-    parser.add_argument("--eval-batch-size", type=int, default=DEFAULT_EVAL_BATCH_SIZE)
-    parser.add_argument("--gradient-accumulation-steps", type=int, default=DEFAULT_GRAD_ACCUM_STEPS)
-    parser.add_argument("--learning-rate", type=float, default=DEFAULT_LEARNING_RATE)
-    parser.add_argument("--weight-decay", type=float, default=DEFAULT_WEIGHT_DECAY)
-    parser.add_argument("--warmup-ratio", type=float, default=DEFAULT_WARMUP_RATIO)
-    parser.add_argument("--max-grad-norm", type=float, default=DEFAULT_MAX_GRAD_NORM)
+    parser.add_argument("--num-epochs", type=int, default=TRAIN_FULL_FINE_TUNE_CONFIG.default_num_epochs)
+    parser.add_argument("--train-batch-size", type=int, default=TRAIN_FULL_FINE_TUNE_CONFIG.default_train_batch_size)
+    parser.add_argument("--eval-batch-size", type=int, default=TRAIN_FULL_FINE_TUNE_CONFIG.default_eval_batch_size)
+    parser.add_argument(
+        "--gradient-accumulation-steps",
+        type=int,
+        default=TRAIN_FULL_FINE_TUNE_CONFIG.default_grad_accum_steps,
+    )
+    parser.add_argument("--learning-rate", type=float, default=TRAIN_FULL_FINE_TUNE_CONFIG.default_learning_rate)
+    parser.add_argument("--weight-decay", type=float, default=TRAIN_FULL_FINE_TUNE_CONFIG.default_weight_decay)
+    parser.add_argument("--warmup-ratio", type=float, default=TRAIN_FULL_FINE_TUNE_CONFIG.default_warmup_ratio)
+    parser.add_argument("--max-grad-norm", type=float, default=TRAIN_FULL_FINE_TUNE_CONFIG.default_max_grad_norm)
     parser.add_argument("--max-input-tokens", type=int, default=None)
-    parser.add_argument("--max-new-tokens", type=int, default=DEFAULT_MAX_NEW_TOKENS)
-    parser.add_argument("--device", default=DEFAULT_DEVICE)
-    parser.add_argument("--distributed-mode", choices=("single", "fsdp"), default=DEFAULT_DISTRIBUTED_MODE)
-    parser.add_argument("--fsdp-cpu-offload", action="store_true", default=DEFAULT_FSDP_CPU_OFFLOAD)
+    parser.add_argument("--max-new-tokens", type=int, default=TRAIN_FULL_FINE_TUNE_CONFIG.default_max_new_tokens)
+    parser.add_argument("--device", default=TRAIN_FULL_FINE_TUNE_CONFIG.default_device)
+    parser.add_argument(
+        "--distributed-mode",
+        choices=("single", "fsdp"),
+        default=TRAIN_FULL_FINE_TUNE_CONFIG.default_distributed_mode,
+    )
+    parser.add_argument(
+        "--fsdp-cpu-offload",
+        action="store_true",
+        default=TRAIN_FULL_FINE_TUNE_CONFIG.default_fsdp_cpu_offload,
+    )
     parser.add_argument("--dtype", default=CLI_DEFAULT_DTYPE, choices=("float16", "bfloat16", "float32"))
-    parser.add_argument("--attn-implementation", default=DEFAULT_ATTN_IMPLEMENTATION)
+    parser.add_argument("--attn-implementation", default=TRAIN_FULL_FINE_TUNE_CONFIG.default_attn_implementation)
     parser.add_argument("--trust-remote-code", action="store_true")
-    parser.add_argument("--cpu-threads", type=int, default=DEFAULT_CPU_THREADS)
-    parser.add_argument("--log-every-steps", type=int, default=DEFAULT_LOG_EVERY_STEPS)
+    parser.add_argument("--cpu-threads", type=int, default=TRAIN_FULL_FINE_TUNE_CONFIG.default_cpu_threads)
+    parser.add_argument("--log-every-steps", type=int, default=TRAIN_FULL_FINE_TUNE_CONFIG.default_log_every_steps)
     parser.add_argument("--max-train-examples", type=int, default=None)
     parser.add_argument("--max-validation-examples", type=int, default=None)
     parser.add_argument("--max-test-examples", type=int, default=None)
-    parser.add_argument("--num-workers", type=int, default=DEFAULT_NUM_WORKERS)
+    parser.add_argument("--num-workers", type=int, default=TRAIN_FULL_FINE_TUNE_CONFIG.default_num_workers)
     parser.add_argument("--gradient-checkpointing", action="store_true")
     parser.add_argument("--no-save-optimizer-state", action="store_true")
     parser.add_argument("--strict-parser", action="store_true")
-    parser.add_argument("--target-modules", default=",".join(DEFAULT_LORA_TARGET_MODULES))
+    parser.add_argument("--target-modules", default=",".join(TRAIN_LORA_CONFIG.default_target_modules))
     parser.add_argument("--target-layers", default="")
     parser.add_argument("--target-layers-file", default=None)
-    parser.add_argument("--layer-scope", default=DEFAULT_LAYER_SCOPE)
-    parser.add_argument("--lora-rank", type=int, default=DEFAULT_LORA_RANK)
-    parser.add_argument("--lora-alpha", type=float, default=DEFAULT_LORA_ALPHA)
-    parser.add_argument("--lora-dropout", type=float, default=DEFAULT_LORA_DROPOUT)
-    parser.add_argument("--lora-bias", default=DEFAULT_LORA_BIAS)
-    parser.add_argument("--lora-task-type", default=DEFAULT_LORA_TASK_TYPE)
+    parser.add_argument("--layer-scope", default=TRAIN_LORA_CONFIG.default_layer_scope)
+    parser.add_argument("--lora-rank", type=int, default=TRAIN_LORA_CONFIG.default_lora_rank)
+    parser.add_argument("--lora-alpha", type=float, default=TRAIN_LORA_CONFIG.default_lora_alpha)
+    parser.add_argument("--lora-dropout", type=float, default=TRAIN_LORA_CONFIG.default_lora_dropout)
+    parser.add_argument("--lora-bias", default=TRAIN_LORA_CONFIG.default_lora_bias)
+    parser.add_argument("--lora-task-type", default=TRAIN_LORA_CONFIG.default_lora_task_type)
     parser.add_argument("--modules-to-save", default="")
-    parser.add_argument("--merge-for-eval", action="store_true", default=DEFAULT_LORA_MERGE_FOR_EVAL)
-    parser.add_argument("--notes", default=DEFAULT_NOTES)
+    parser.add_argument("--merge-for-eval", action="store_true", default=TRAIN_LORA_CONFIG.default_merge_for_eval)
+    parser.add_argument("--notes", default=TRAIN_LAYER_CONFIG.default_notes)
     parser.add_argument("--no-track-layerwise-updates", action="store_true")
-    parser.add_argument("--checkpoint-percents", default="25,50,75,100")
-    parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
+    parser.add_argument(
+        "--checkpoint-percents",
+        type=lambda raw: parse_checkpoint_percents(raw, DEFAULT_CHECKPOINT_PERCENTS),
+        default=DEFAULT_CHECKPOINT_PERCENTS,
+    )
+    parser.add_argument("--seed", type=int, default=TRAIN_FULL_FINE_TUNE_CONFIG.default_seed)
     return parser.parse_args()
 
 
@@ -148,7 +139,7 @@ def main() -> None:
         max_test_examples=args.max_test_examples,
         num_workers=args.num_workers,
         gradient_checkpointing=args.gradient_checkpointing,
-        save_optimizer_state=DEFAULT_SAVE_OPTIMIZER_STATE and not args.no_save_optimizer_state,
+        save_optimizer_state=TRAIN_FULL_FINE_TUNE_CONFIG.default_save_optimizer_state and not args.no_save_optimizer_state,
         strict_parser=args.strict_parser,
         seed=args.seed,
         target_modules=_normalize_lora_target_modules(
@@ -165,14 +156,15 @@ def main() -> None:
         merge_for_eval=args.merge_for_eval,
         notes=args.notes,
         track_layerwise_updates=not args.no_track_layerwise_updates,
-        checkpoint_percents=tuple(
-            int(part.strip()) for part in args.checkpoint_percents.split(",") if part.strip()
-        ) or DEFAULT_CHECKPOINT_PERCENTS,
+        checkpoint_percents=args.checkpoint_percents,
         distributed_mode=args.distributed_mode,
         fsdp_cpu_offload=args.fsdp_cpu_offload,
     )
     trainer = PubMedQALoRAFineTuner(config, EnvironmentConfig(hf_token=args.hf_token))
-    summary = trainer.run()
+    try:
+        summary = trainer.run()
+    finally:
+        trainer.close()
     print(summary.title)
     print(f"Best checkpoint: {summary.best_checkpoint_dir}")
     print(f"Best validation ACC: {summary.best_validation_accuracy:.4f}")

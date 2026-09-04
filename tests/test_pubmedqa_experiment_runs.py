@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
+from unittest.mock import Mock, patch
 
 from pubmedqa.experiment_runs import (
     DEFAULT_PATHS,
@@ -11,6 +13,11 @@ from pubmedqa.experiment_runs import (
     build_lora_config,
     resolve_data_fraction,
     resolve_run_spec,
+)
+from scripts.run_pubmedqa_experiments import (
+    _destroy_fsdp_process_groups,
+    _run_on_rank_zero,
+    parse_args as parse_experiment_args,
 )
 
 
@@ -75,6 +82,93 @@ class PubMedQAExperimentRunsTest(unittest.TestCase):
             target_layers_override=(20, 21, 22),
         )
         self.assertEqual((20, 21, 22), config.target_layers)
+
+    def test_rank_zero_operation_uses_long_running_control_group(self) -> None:
+        control_group = object()
+        with patch("scripts.run_pubmedqa_experiments.dist.broadcast_object_list") as broadcast:
+            result = _run_on_rank_zero(
+                lambda: "baseline-complete",
+                is_main_process=True,
+                control_group=control_group,
+                operation_name="baseline",
+            )
+
+        self.assertEqual("baseline-complete", result)
+        self.assertIs(control_group, broadcast.call_args.kwargs["group"])
+
+    def test_nonzero_rank_does_not_run_baseline_operation(self) -> None:
+        operation = Mock(side_effect=AssertionError("nonzero rank must remain idle"))
+
+        def receive_result(payload, *, src, group):
+            payload[0] = {"ok": True, "result": "rank-zero-result"}
+
+        with patch(
+            "scripts.run_pubmedqa_experiments.dist.broadcast_object_list",
+            side_effect=receive_result,
+        ):
+            result = _run_on_rank_zero(
+                operation,
+                is_main_process=False,
+                control_group=object(),
+                operation_name="baseline",
+            )
+
+        self.assertEqual("rank-zero-result", result)
+        operation.assert_not_called()
+
+    def test_destroy_fsdp_process_groups_destroys_control_then_default(self) -> None:
+        control_group = object()
+        with (
+            patch("scripts.run_pubmedqa_experiments.dist.is_initialized", return_value=True),
+            patch("scripts.run_pubmedqa_experiments.dist.destroy_process_group") as destroy,
+        ):
+            _destroy_fsdp_process_groups(control_group)
+
+        self.assertEqual([((control_group,), {}), ((), {})], destroy.call_args_list)
+
+    def test_experiment_cli_accepts_smoke_test_dataset_limits(self) -> None:
+        argv = [
+            "run_pubmedqa_experiments.py",
+            "--max-train-examples",
+            "2",
+            "--max-validation-examples",
+            "3",
+            "--max-test-examples",
+            "4",
+        ]
+        with patch("sys.argv", argv):
+            args = parse_experiment_args()
+
+        self.assertEqual(2, args.max_train_examples)
+        self.assertEqual(3, args.max_validation_examples)
+        self.assertEqual(4, args.max_test_examples)
+
+    def test_dataset_limits_propagate_to_full_ft_and_lora_configs(self) -> None:
+        defaults = replace(
+            DEFAULT_SHARED_DEFAULTS,
+            max_train_examples=2,
+            max_validation_examples=3,
+            max_test_examples=4,
+        )
+        full_config = build_full_ft_config(
+            run_id="smoke",
+            spec=resolve_run_spec("F1"),
+            paths=DEFAULT_PATHS,
+            output_dir=Path("outputs/pubmedqa_train"),
+            defaults=defaults,
+        )
+        lora_config = build_lora_config(
+            run_id="smoke",
+            spec=resolve_run_spec("L1"),
+            paths=DEFAULT_PATHS,
+            output_dir=Path("outputs/pubmedqa_train"),
+            defaults=defaults,
+        )
+
+        for config in (full_config, lora_config):
+            self.assertEqual(2, config.max_train_examples)
+            self.assertEqual(3, config.max_validation_examples)
+            self.assertEqual(4, config.max_test_examples)
 
 
 if __name__ == "__main__":

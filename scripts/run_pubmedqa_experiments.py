@@ -8,8 +8,12 @@ import json
 import os
 import time
 from dataclasses import asdict, replace
+from datetime import timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, TypeVar, cast
+
+import torch
+import torch.distributed as dist
 
 from pubmedqa.evaluation import EnvironmentConfig, load_local_jsonl
 from pubmedqa.experiment_runs import (
@@ -22,6 +26,67 @@ from pubmedqa.experiment_runs import (
     list_run_tags,
     resolve_run_spec,
 )
+
+T = TypeVar("T")
+
+
+def _run_on_rank_zero(
+    operation: Callable[[], T],
+    *,
+    is_main_process: bool,
+    control_group: Any | None,
+    operation_name: str,
+) -> T:
+    payload: list[dict[str, Any] | None] = [None]
+    if is_main_process:
+        try:
+            payload[0] = {"ok": True, "result": operation()}
+        except Exception as exc:
+            payload[0] = {
+                "ok": False,
+                "error_type": type(exc).__name__,
+                "error": str(exc),
+            }
+    if control_group is not None:
+        dist.broadcast_object_list(payload, src=0, group=control_group)
+
+    message = payload[0]
+    if message is None:
+        raise RuntimeError(f"{operation_name} produced no rank-0 result.")
+    if not message["ok"]:
+        raise RuntimeError(
+            f"{operation_name} failed on rank 0: "
+            f"{message['error_type']}: {message['error']}"
+        )
+    return cast(T, message["result"])
+
+
+def _initialize_fsdp_control_group() -> Any:
+    required = ("RANK", "LOCAL_RANK", "WORLD_SIZE")
+    missing = [name for name in required if name not in os.environ]
+    if missing:
+        raise RuntimeError(
+            "FSDP mode must be launched with torchrun; missing environment variables: "
+            + ", ".join(missing)
+        )
+    if not torch.cuda.is_available():
+        raise RuntimeError("FSDP mode requires CUDA.")
+    local_rank = int(os.environ["LOCAL_RANK"])
+    torch.cuda.set_device(local_rank)
+    if not dist.is_initialized():
+        dist.init_process_group(backend="nccl")
+    return dist.new_group(backend="gloo", timeout=timedelta(hours=24))
+
+
+def _destroy_fsdp_process_groups(control_group: Any | None) -> None:
+    if not dist.is_initialized():
+        return
+    try:
+        if control_group is not None:
+            dist.destroy_process_group(control_group)
+    finally:
+        if dist.is_initialized():
+            dist.destroy_process_group()
 
 
 def _jsonable(value: Any) -> Any:
@@ -75,6 +140,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--cpu-threads", type=int, default=DEFAULT_SHARED_DEFAULTS.cpu_threads)
     parser.add_argument("--log-every-steps", type=int, default=DEFAULT_SHARED_DEFAULTS.log_every_steps)
     parser.add_argument("--num-workers", type=int, default=DEFAULT_SHARED_DEFAULTS.num_workers)
+    parser.add_argument("--max-train-examples", type=int, default=DEFAULT_SHARED_DEFAULTS.max_train_examples)
+    parser.add_argument(
+        "--max-validation-examples",
+        type=int,
+        default=DEFAULT_SHARED_DEFAULTS.max_validation_examples,
+    )
+    parser.add_argument("--max-test-examples", type=int, default=DEFAULT_SHARED_DEFAULTS.max_test_examples)
     parser.add_argument("--gradient-checkpointing", action="store_true")
     parser.add_argument("--no-save-optimizer-state", action="store_true")
     parser.add_argument("--strict-parser", action="store_true")
@@ -167,6 +239,9 @@ def _build_defaults(args: argparse.Namespace) -> SharedTrainDefaults:
         max_grad_norm=args.max_grad_norm,
         max_input_tokens=args.max_input_tokens,
         max_new_tokens=args.max_new_tokens,
+        max_train_examples=args.max_train_examples,
+        max_validation_examples=args.max_validation_examples,
+        max_test_examples=args.max_test_examples,
         device=args.device,
         dtype=args.dtype,
         attn_implementation=None if args.attn_implementation in {"", "none", "auto"} else args.attn_implementation,
@@ -257,49 +332,69 @@ def main() -> None:
     if args.dry_run:
         return
 
-    failures: list[dict[str, str]] = []
-    for run_tag in run_tags:
-        spec = resolve_run_spec(run_tag)
-        if is_main_process:
-            print(f"\n[run] {run_tag} method={spec.method} condition={spec.condition}")
-        try:
-            method, runner = build_runner(
-                run_id=run_id,
-                run_tag=run_tag,
-                paths=paths,
-                baseline_output_dir=args.baseline_output_dir,
-                train_output_dir=args.train_output_dir,
-                defaults=defaults,
-                environment=environment,
-                target_layer_overrides=target_layer_overrides,
-            )
-            if method == "baseline":
-                if defaults.distributed_mode == "fsdp" and not is_main_process:
-                    continue
-                examples = load_local_jsonl(paths.baseline_eval_path)
-                items, summary = runner.evaluate(examples)
-                run_dir = runner.save_results(items, summary)
-                if is_main_process:
-                    print(
-                        f"[done] {run_tag} acc={summary.accuracy:.4f} "
-                        f"macro_f1={summary.macro_f1:.4f} saved={run_dir}"
-                    )
-            else:
-                summary = runner.run()
-                if is_main_process:
-                    print(
-                        f"[done] {run_tag} best_acc={summary.best_validation_accuracy:.4f} "
-                        f"best_macro_f1={summary.best_validation_macro_f1:.4f} "
-                        f"saved={summary.best_checkpoint_dir}"
-                    )
-        except Exception as exc:
-            failures.append({"run_tag": run_tag, "error": str(exc)})
-            print(f"[failed][rank={rank}] {run_tag}: {exc}")
-            if not args.continue_on_error:
-                break
+    control_group = (
+        _initialize_fsdp_control_group()
+        if defaults.distributed_mode == "fsdp"
+        else None
+    )
 
-    if failures:
-        raise RuntimeError(f"Experiment execution failed: {failures}")
+    try:
+        failures: list[dict[str, str]] = []
+        for run_tag in run_tags:
+            spec = resolve_run_spec(run_tag)
+            if is_main_process:
+                print(f"\n[run] {run_tag} method={spec.method} condition={spec.condition}")
+            try:
+                method, runner = build_runner(
+                    run_id=run_id,
+                    run_tag=run_tag,
+                    paths=paths,
+                    baseline_output_dir=args.baseline_output_dir,
+                    train_output_dir=args.train_output_dir,
+                    defaults=defaults,
+                    environment=environment,
+                    target_layer_overrides=target_layer_overrides,
+                )
+                if method == "baseline":
+                    def run_baseline() -> str:
+                        examples = load_local_jsonl(paths.baseline_eval_path)
+                        items, summary = runner.evaluate(examples)
+                        run_dir = runner.save_results(items, summary)
+                        return (
+                            f"[done] {run_tag} acc={summary.accuracy:.4f} "
+                            f"macro_f1={summary.macro_f1:.4f} saved={run_dir}"
+                        )
+
+                    baseline_message = _run_on_rank_zero(
+                        run_baseline,
+                        is_main_process=is_main_process,
+                        control_group=control_group,
+                        operation_name=f"{run_tag} baseline evaluation",
+                    )
+                    if is_main_process:
+                        print(baseline_message)
+                else:
+                    try:
+                        summary = runner.run()
+                    finally:
+                        runner.close()
+                    if is_main_process:
+                        print(
+                            f"[done] {run_tag} best_acc={summary.best_validation_accuracy:.4f} "
+                            f"best_macro_f1={summary.best_validation_macro_f1:.4f} "
+                            f"saved={summary.best_checkpoint_dir}"
+                        )
+            except Exception as exc:
+                failures.append({"run_tag": run_tag, "error": str(exc)})
+                print(f"[failed][rank={rank}] {run_tag}: {exc}")
+                if not args.continue_on_error:
+                    break
+
+        if failures:
+            raise RuntimeError(f"Experiment execution failed: {failures}")
+    finally:
+        if defaults.distributed_mode == "fsdp":
+            _destroy_fsdp_process_groups(control_group)
 
 
 if __name__ == "__main__":

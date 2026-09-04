@@ -34,23 +34,16 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from pubmedqa.answer_parser import parse_pubmedqa_answer
 from pubmedqa.prompt_builder import PubMedQAExample, build_tokenizer_prompt, example_from_record
+from pubmedqa.runtime_settings import EVAL_CONFIG
 
-
-DEFAULT_BASE_MODELS: tuple[str, ...] = (
-    # "Qwen/Qwen3-0.6B",
-    # "meta-llama/Llama-3.2-1B-Instruct",
-    "Qwen/Qwen3-1.7B",
-    # "meta-llama/Llama-3.2-3B-Instruct",
-    # "Qwen/Qwen3-4B",
-    # "google/gemma-3-4b-it",
-)
+DEFAULT_MODEL_NAME = EVAL_CONFIG.default_model_name
+DEFAULT_BASE_MODELS = EVAL_CONFIG.default_base_models
 
 # BF16 MLX conversions intended to preserve model-selection accuracy as much as possible.
 DEFAULT_MLX_MODEL_MAP: dict[str, str] = {
     "Qwen/Qwen3-0.6B": "mlx-community/Qwen3-0.6B-bf16",
     "meta-llama/Llama-3.2-1B-Instruct": "mlx-community/Llama-3.2-1B-Instruct-bf16",
     "Qwen/Qwen3-1.7B": "mlx-community/Qwen3-1.7B-bf16",
-    "meta-llama/Llama-3.2-3B-Instruct": "mlx-community/Llama-3.2-3B-Instruct-bf16",
     "Qwen/Qwen3-4B": "mlx-community/Qwen3-4B-bf16",
     "google/gemma-3-4b-it": "mlx-community/gemma-3-4b-it-bf16",
 }
@@ -101,16 +94,16 @@ class EnvironmentConfig:
 @dataclass(frozen=True)
 class ModelRuntimeConfig:
     model_name: str
-    backend: str = "auto"  # auto | torch | mlx
-    device: str = "auto"  # auto | cuda:0 | mps | cpu
-    dtype: str = "auto"  # auto | bf16 | fp16 | fp32
-    max_new_tokens: int = 4
+    backend: str = EVAL_CONFIG.default_backend  # auto | torch | mlx
+    device: str = EVAL_CONFIG.default_device  # auto | cuda:0 | mps | cpu
+    dtype: str = EVAL_CONFIG.default_dtype  # auto | bf16 | fp16 | fp32
+    max_new_tokens: int = EVAL_CONFIG.default_max_new_tokens
     batch_size: int | None = None
     max_input_tokens: int | None = None
-    attn_implementation: str | None = "auto"  # auto | sdpa | eager | ... | none
+    attn_implementation: str | None = EVAL_CONFIG.default_attn_implementation  # auto | sdpa | eager | ... | none
     trust_remote_code: bool = False
-    cpu_threads: int = max(1, (os.cpu_count() or 1) - 2)
-    strict_parser: bool = False
+    cpu_threads: int = EVAL_CONFIG.default_cpu_threads
+    strict_parser: bool = EVAL_CONFIG.default_strict_parser
 
 
 @dataclass(frozen=True)
@@ -170,51 +163,60 @@ class CliBatchConfig:
 
     @classmethod
     def from_env(cls) -> "CliBatchConfig":
-        test_path_raw = os.getenv("PUBMEDQA_TEST_PATH")
+        test_path_raw = os.getenv(EVAL_CONFIG.env_test_path)
         if not test_path_raw:
             raise RuntimeError(
-                "PUBMEDQA_TEST_PATH is required. Point it to the model-selection/validation or test JSONL."
+                f"{EVAL_CONFIG.env_test_path} is required. Point it to the model-selection/validation or test JSONL."
             )
 
-        expected_raw = os.getenv("PUBMEDQA_EXPECTED_TEST_SIZE", "500").strip().lower()
+        expected_raw = os.getenv(
+            EVAL_CONFIG.env_expected_test_size,
+            str(EVAL_CONFIG.default_expected_test_size),
+        ).strip().lower()
         expected_test_size = None if expected_raw in {"", "none", "off"} else int(expected_raw)
 
-        raw_models = os.getenv("PUBMEDQA_MODELS")
+        raw_models = os.getenv(EVAL_CONFIG.env_models)
         if raw_models:
             models = tuple(part.strip() for part in raw_models.split(",") if part.strip())
             if not models:
-                raise ValueError("PUBMEDQA_MODELS was set but contains no valid model names.")
+                raise ValueError(f"{EVAL_CONFIG.env_models} was set but contains no valid model names.")
         else:
             models = DEFAULT_BASE_MODELS
 
-        attn = os.getenv("PUBMEDQA_ATTN_IMPLEMENTATION", "auto").strip().lower()
+        attn = os.getenv(
+            EVAL_CONFIG.env_attn_implementation,
+            EVAL_CONFIG.default_attn_implementation,
+        ).strip().lower()
         if attn in {"", "none"}:
             attn = None
 
-        batch_raw = os.getenv("PUBMEDQA_BATCH_SIZE")
+        batch_raw = os.getenv(EVAL_CONFIG.env_batch_size)
         batch_size = int(batch_raw) if batch_raw else None
 
         runtime_defaults = ModelRuntimeConfig(
             model_name=models[0],
-            backend=os.getenv("PUBMEDQA_BACKEND", "auto").strip().lower(),
-            device=os.getenv("PUBMEDQA_DEVICE", "auto").strip().lower(),
-            dtype=os.getenv("PUBMEDQA_DTYPE", "auto").strip().lower(),
-            max_new_tokens=_env_int("PUBMEDQA_MAX_NEW_TOKENS", 4),
+            backend=os.getenv(EVAL_CONFIG.env_backend, EVAL_CONFIG.default_backend).strip().lower(),
+            device=os.getenv(EVAL_CONFIG.env_device, EVAL_CONFIG.default_device).strip().lower(),
+            dtype=os.getenv(EVAL_CONFIG.env_dtype, EVAL_CONFIG.default_dtype).strip().lower(),
+            max_new_tokens=_env_int(
+                EVAL_CONFIG.env_max_new_tokens,
+                EVAL_CONFIG.default_max_new_tokens,
+            ),
             batch_size=batch_size,
-            max_input_tokens=_env_optional_int("PUBMEDQA_MAX_INPUT_TOKENS"),
+            max_input_tokens=_env_optional_int(EVAL_CONFIG.env_max_input_tokens),
             attn_implementation=attn,
-            trust_remote_code=_env_bool("PUBMEDQA_TRUST_REMOTE_CODE", False),
-            cpu_threads=_env_int("PUBMEDQA_CPU_THREADS", max(1, (os.cpu_count() or 1) - 2)),
-            strict_parser=_env_bool("PUBMEDQA_STRICT_PARSER", False),
+            trust_remote_code=_env_bool(EVAL_CONFIG.env_trust_remote_code, False),
+            cpu_threads=_env_int(EVAL_CONFIG.env_cpu_threads, EVAL_CONFIG.default_cpu_threads),
+            strict_parser=_env_bool(EVAL_CONFIG.env_strict_parser, EVAL_CONFIG.default_strict_parser),
         )
 
         return cls(
             test_path=Path(test_path_raw),
-            output_dir=Path(os.getenv("PUBMEDQA_OUTPUT_DIR", "outputs/pubmedqa_eval")),
+            output_dir=Path(os.getenv(EVAL_CONFIG.env_output_dir, str(EVAL_CONFIG.default_output_dir))),
             models=models,
             expected_test_size=expected_test_size,
-            condition=os.getenv("PUBMEDQA_CONDITION", "baseline"),
-            run_id=os.getenv("PUBMEDQA_RUN_ID") or datetime.now().strftime("%Y%m%d_%H%M%S"),
+            condition=os.getenv(EVAL_CONFIG.env_condition, EVAL_CONFIG.default_condition),
+            run_id=os.getenv(EVAL_CONFIG.env_run_id) or datetime.now().strftime("%Y%m%d_%H%M%S"),
             runtime_defaults=runtime_defaults,
             environment=EnvironmentConfig.from_env(),
         )
