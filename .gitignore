@@ -226,3 +226,8 @@ __marimo__/
 !/outputs/**/*
 /outputs/**/checkpoints
 /outputs/**/checkpoints/**
+
+# Row-level artifacts may reproduce dataset questions, contexts, labels, or predictions.
+/outputs/**/outputs.jsonl
+/outputs/**/evaluations/*_predictions.jsonl
+/outputs/**/prediction_transitions/*.jsonl

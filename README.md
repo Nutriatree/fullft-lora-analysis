@@ -1,8 +1,8 @@
 <div align="center">
 
-# PubMedQA Fine-Tuning Study
+# Full Fine-Tuning vs. LoRA Analysis
 
-**Full Fine-Tuning과 LoRA의 성능·효율 및 layer-wise task adaptation 비교**
+**Performance, efficiency, and layer-wise task adaptation on PubMedQA**
 
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white)
@@ -18,6 +18,9 @@
 ## Overview
 
 이 저장소는 PubMedQA에서 Full Fine-Tuning과 LoRA를 동일한 데이터·prompt·평가 파이프라인으로 비교하고, LoRA의 rank, target module, target layer에 따른 task adaptation 차이를 분석합니다. 학습 중 25/50/75/100% checkpoint를 저장하여 성능 변화뿐 아니라 layer별 update와 low-rank structure의 시간적 변화도 추적합니다.
+
+> This is an independent research project and is not affiliated with or endorsed by the
+> original PubMedQA authors.
 
 연구 질문은 다음 세 가지입니다.
 
@@ -39,6 +42,8 @@
 
 ### Collection sources
 
+- Dataset description and paper: [PubMedQA official website](https://pubmedqa.github.io/)
+- Upstream code and labeled data: [pubmedqa/pubmedqa](https://github.com/pubmedqa/pubmedqa)
 - PQA-A는 Hugging Face의 [`qiaojin/PubMedQA`](https://huggingface.co/datasets/qiaojin/PubMedQA) `pqa_artificial` subset에서 수집합니다.
 - PQA-L의 question, abstract context, long answer와 expert label은 공식 PubMedQA 저장소의 [`ori_pqal.json`](https://github.com/pubmedqa/pubmedqa/blob/master/data/ori_pqal.json)을 기본 source로 사용합니다.
 - PQA-L test는 공식 [`test_ground_truth.json`](https://github.com/pubmedqa/pubmedqa/blob/master/data/test_ground_truth.json)에 포함된 PMID 500개로 고정한 **test-only** set입니다. 따라서 PQA-L development/CV 데이터는 post-training에 사용하지 않습니다.
@@ -308,7 +313,10 @@ reports/pubmedqa/<study_id>/
 └── figures/{main,appendix}/
 ```
 
-`outputs/`의 metrics와 analysis artifact는 versioning할 수 있지만, 용량이 큰 `checkpoints/` 내부 파일만 Git에서 제외합니다. `reports/`에는 재생성된 PNG/PDF와 provenance manifest를 저장합니다.
+`outputs/`에서는 aggregate metrics와 analysis artifact만 versioning합니다. Dataset의
+question/context/label 또는 sample별 prediction을 포함하는 row-level JSONL과 용량이 큰
+`checkpoints/`는 Git에서 제외합니다. `reports/`에는 재생성된 PNG/PDF와 provenance
+manifest를 저장합니다.
 
 ## Validation
 
@@ -341,6 +349,26 @@ PYTHONPATH=src python scripts/run_pubmedqa_experiments.py \
 - [Evaluation](.github/guides/pubmedqa_evaluation.md)
 - [LoRA Fine-Tuning](.github/guides/pubmedqa_lora_finetune.md)
 - [FSDP Troubleshooting](.github/guides/pubmedqa_fsdp_troubleshooting.md)
+- [Third-Party Notices](THIRD_PARTY_NOTICES.md)
+
+## Citation
+
+이 저장소의 실험이나 결과를 사용할 때는 원본 PubMedQA 논문을 함께 인용해 주세요.
+
+```bibtex
+@inproceedings{jin2019pubmedqa,
+  title     = {PubMedQA: A Dataset for Biomedical Research Question Answering},
+  author    = {Jin, Qiao and Dhingra, Bhuwan and Liu, Zhengping and
+               Cohen, William W. and Lu, Xinghua},
+  booktitle = {Proceedings of EMNLP-IJCNLP},
+  pages     = {2567--2577},
+  year      = {2019},
+  url       = {https://aclanthology.org/D19-1259/}
+}
+```
+
+PubMedQA source와 license attribution은 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)에
+정리되어 있습니다.
 
 ## Scope and Limitations
 

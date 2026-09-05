@@ -7,6 +7,7 @@ from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 README_PATH = REPOSITORY_ROOT / "README.md"
+THIRD_PARTY_NOTICES_PATH = REPOSITORY_ROOT / "THIRD_PARTY_NOTICES.md"
 
 
 class ReadmeContractTests(unittest.TestCase):
@@ -70,6 +71,38 @@ class ReadmeContractTests(unittest.TestCase):
         self.assertIn("outputs/", self.readme)
         self.assertIn("reports/", self.readme)
         self.assertIn("checkpoints/", self.readme)
+
+    def test_uses_dataset_independent_project_name(self) -> None:
+        self.assertIn("# Full Fine-Tuning vs. LoRA Analysis", self.readme)
+        pyproject = (REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+        self.assertIn('name = "fullft-lora-analysis"', pyproject)
+
+    def test_cites_and_attributes_pubmedqa(self) -> None:
+        for expected in (
+            "https://pubmedqa.github.io/",
+            "https://github.com/pubmedqa/pubmedqa",
+            "## Citation",
+            "jin2019pubmedqa",
+            "not affiliated with or endorsed by",
+            "THIRD_PARTY_NOTICES.md",
+        ):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, self.readme)
+
+        notices = THIRD_PARTY_NOTICES_PATH.read_text(encoding="utf-8")
+        self.assertIn("Copyright (c) 2019 pubmedqa", notices)
+        self.assertIn("MIT License", notices)
+        self.assertIn("https://github.com/pubmedqa/pubmedqa", notices)
+
+    def test_row_level_dataset_artifacts_are_ignored(self) -> None:
+        gitignore = (REPOSITORY_ROOT / ".gitignore").read_text(encoding="utf-8")
+        for expected in (
+            "/outputs/**/outputs.jsonl",
+            "/outputs/**/evaluations/*_predictions.jsonl",
+            "/outputs/**/prediction_transitions/*.jsonl",
+        ):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, gitignore.splitlines())
 
 
 if __name__ == "__main__":
