@@ -1,27 +1,86 @@
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from dataclasses import replace
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from pubmedqa.experiment_runs import (
+from pubmedqa.config import EnvironmentConfig
+from pubmedqa.experiments.factory import build_full_ft_config, build_lora_config
+from pubmedqa.experiments.orchestrator import ExperimentStudy, save_manifest
+from pubmedqa.experiments.specs import (
     DEFAULT_PATHS,
     DEFAULT_SHARED_DEFAULTS,
-    build_full_ft_config,
-    build_lora_config,
     resolve_data_fraction,
     resolve_run_spec,
 )
 from scripts.run_pubmedqa_experiments import (
-    _destroy_fsdp_process_groups,
+    _destroy_distributed_process_groups,
     _run_on_rank_zero,
     parse_args as parse_experiment_args,
 )
 
 
 class PubMedQAExperimentRunsTest(unittest.TestCase):
+    def test_registered_training_configs_preserve_method_specific_values(self) -> None:
+        expected = {
+            "F1": ("full-ft", (), None, DEFAULT_SHARED_DEFAULTS.full_ft_learning_rate),
+            "L1": ("lora", ("q_proj", "v_proj"), 8, DEFAULT_SHARED_DEFAULTS.lora_learning_rate),
+            "L2": ("lora", ("q_proj", "k_proj", "v_proj", "o_proj"), 8, DEFAULT_SHARED_DEFAULTS.lora_learning_rate),
+            "L3": ("lora", ("q_proj", "v_proj"), 4, DEFAULT_SHARED_DEFAULTS.lora_learning_rate),
+            "L4": ("lora", ("q_proj", "v_proj"), 16, DEFAULT_SHARED_DEFAULTS.lora_learning_rate),
+            "LL1": ("lora", ("q_proj", "v_proj"), 8, DEFAULT_SHARED_DEFAULTS.lora_learning_rate),
+            "LL2": ("lora", ("q_proj", "v_proj"), 8, DEFAULT_SHARED_DEFAULTS.lora_learning_rate),
+        }
+        self.assertEqual("baseline", resolve_run_spec("B0").method)
+        for run_tag, (method, modules, rank, learning_rate) in expected.items():
+            spec = resolve_run_spec(run_tag)
+            if method == "full-ft":
+                config = build_full_ft_config(
+                    run_id="snapshot",
+                    spec=spec,
+                    paths=DEFAULT_PATHS,
+                    output_dir=Path("outputs/pubmedqa_train"),
+                    defaults=DEFAULT_SHARED_DEFAULTS,
+                )
+            else:
+                config = build_lora_config(
+                    run_id="snapshot",
+                    spec=spec,
+                    paths=DEFAULT_PATHS,
+                    output_dir=Path("outputs/pubmedqa_train"),
+                    defaults=DEFAULT_SHARED_DEFAULTS,
+                    target_layers_override=(0,) if spec.layer_scope != "all" else None,
+                )
+            self.assertEqual(method, config.method_name, run_tag)
+            self.assertEqual(modules, config.target_modules, run_tag)
+            self.assertEqual(rank, config.lora_rank, run_tag)
+            self.assertEqual(learning_rate, config.learning_rate, run_tag)
+
+    def test_manifest_schema_is_stable_across_distributed_modes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            keys_by_mode: dict[str, set[str]] = {}
+            for mode in ("single", "ddp", "fsdp"):
+                study = ExperimentStudy(
+                    run_id=f"manifest-{mode}",
+                    run_tags=("B0", "F1", "L1"),
+                    paths=DEFAULT_PATHS,
+                    defaults=replace(DEFAULT_SHARED_DEFAULTS, distributed_mode=mode),
+                    baseline_output_dir=Path(tmp_dir) / "baseline",
+                    train_output_dir=Path(tmp_dir) / "train",
+                    target_layer_overrides={},
+                    environment=EnvironmentConfig(),
+                )
+                payload = json.loads(save_manifest(study).read_text(encoding="utf-8"))
+                keys_by_mode[mode] = set(payload)
+                self.assertEqual(mode, payload["shared_defaults"]["distributed_mode"])
+                self.assertEqual(["B0", "F1", "L1"], payload["requested_runs"])
+
+            self.assertEqual(keys_by_mode["single"], keys_by_mode["ddp"])
+            self.assertEqual(keys_by_mode["single"], keys_by_mode["fsdp"])
+
     def test_resolve_data_fraction_for_low_data_run(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             train_path = Path(tmp_dir) / "train.jsonl"
@@ -85,7 +144,7 @@ class PubMedQAExperimentRunsTest(unittest.TestCase):
 
     def test_rank_zero_operation_uses_long_running_control_group(self) -> None:
         control_group = object()
-        with patch("scripts.run_pubmedqa_experiments.dist.broadcast_object_list") as broadcast:
+        with patch("pubmedqa.runtime.distributed.dist.broadcast_object_list") as broadcast:
             result = _run_on_rank_zero(
                 lambda: "baseline-complete",
                 is_main_process=True,
@@ -103,7 +162,7 @@ class PubMedQAExperimentRunsTest(unittest.TestCase):
             payload[0] = {"ok": True, "result": "rank-zero-result"}
 
         with patch(
-            "scripts.run_pubmedqa_experiments.dist.broadcast_object_list",
+            "pubmedqa.runtime.distributed.dist.broadcast_object_list",
             side_effect=receive_result,
         ):
             result = _run_on_rank_zero(
@@ -116,13 +175,13 @@ class PubMedQAExperimentRunsTest(unittest.TestCase):
         self.assertEqual("rank-zero-result", result)
         operation.assert_not_called()
 
-    def test_destroy_fsdp_process_groups_destroys_control_then_default(self) -> None:
+    def test_destroy_distributed_process_groups_destroys_control_then_default(self) -> None:
         control_group = object()
         with (
-            patch("scripts.run_pubmedqa_experiments.dist.is_initialized", return_value=True),
-            patch("scripts.run_pubmedqa_experiments.dist.destroy_process_group") as destroy,
+            patch("pubmedqa.runtime.distributed.dist.is_initialized", return_value=True),
+            patch("pubmedqa.runtime.distributed.dist.destroy_process_group") as destroy,
         ):
-            _destroy_fsdp_process_groups(control_group)
+            _destroy_distributed_process_groups(control_group)
 
         self.assertEqual([((control_group,), {}), ((), {})], destroy.call_args_list)
 

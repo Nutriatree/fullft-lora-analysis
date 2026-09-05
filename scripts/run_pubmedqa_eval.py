@@ -6,14 +6,14 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from pubmedqa.evaluation import (
+from pubmedqa.config import EnvironmentConfig
+from pubmedqa.inference import ModelRuntimeConfig
+from pubmedqa.inference.runner import (
     DEFAULT_BASE_MODELS,
-    EnvironmentConfig,
-    ModelRuntimeConfig,
     PubMedQAEvaluationRunner,
-    _resolve_dtype,
-    configure_parallelism,
+    load_local_jsonl,
 )
+from pubmedqa.runtime.torch_runtime import configure_parallelism
 
 
 def parse_args() -> argparse.Namespace:
@@ -36,7 +36,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--hf-token", default=None, help="Hugging Face token injected at runtime if required.")
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--max-new-tokens", type=int, default=4)
-    parser.add_argument("--device-map", default=None)
+    parser.add_argument("--device", default="auto", help="Torch device such as auto, cuda:0, mps, or cpu.")
+    parser.add_argument(
+        "--device-map",
+        default=None,
+        help="Deprecated alias for --device, retained for command compatibility.",
+    )
     parser.add_argument("--torch-dtype", default="bfloat16", choices=("float16", "bfloat16", "float32"))
     parser.add_argument("--max-input-tokens", type=int, default=None)
     parser.add_argument("--attn-implementation", default="sdpa")
@@ -47,14 +52,14 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main() -> None:
-    args = parse_args()
-    configure_parallelism(args.cpu_threads)
+def build_runtime(args: argparse.Namespace) -> ModelRuntimeConfig:
+    """Translate CLI values into the public inference runtime contract."""
 
-    runtime = ModelRuntimeConfig(
+    return ModelRuntimeConfig(
         model_name=args.model_name,
-        torch_dtype=_resolve_dtype(args.torch_dtype),
-        device_map=args.device_map,
+        backend="torch",
+        device=args.device_map or args.device,
+        dtype=args.torch_dtype,
         max_new_tokens=args.max_new_tokens,
         batch_size=args.batch_size,
         max_input_tokens=args.max_input_tokens,
@@ -63,6 +68,13 @@ def main() -> None:
         trust_remote_code=args.trust_remote_code,
         strict_parser=args.strict_parser,
     )
+
+
+def main() -> None:
+    args = parse_args()
+    configure_parallelism(args.cpu_threads)
+
+    runtime = build_runtime(args)
     runner = PubMedQAEvaluationRunner(
         run_id=args.run_id,
         model_name=args.model_name,
@@ -71,7 +83,7 @@ def main() -> None:
         runtime=runtime,
         environment=EnvironmentConfig(hf_token=args.hf_token),
     )
-    examples = runner.load_local_jsonl(args.data_file, expected_size=args.expected_size)
+    examples = load_local_jsonl(args.data_file, expected_size=args.expected_size)
     items, summary = runner.evaluate(examples)
     run_dir = runner.save_results(items, summary)
 

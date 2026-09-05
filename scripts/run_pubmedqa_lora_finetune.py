@@ -6,20 +6,20 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from pubmedqa.evaluation import EnvironmentConfig
-from pubmedqa.lora_finetune import (
-    LoRAFineTuneConfig,
-    PubMedQALoRAFineTuner,
-    _load_target_layers,
-    _normalize_lora_target_modules,
-    _resolve_dtype,
-)
-from pubmedqa.runtime_settings import (
+from pubmedqa.config import (
+    EnvironmentConfig,
     TRAIN_FULL_FINE_TUNE_CONFIG,
     TRAIN_LAYER_CONFIG,
     TRAIN_LORA_CONFIG,
     parse_checkpoint_percents,
 )
+from pubmedqa.training.strategies.lora import (
+    LoRAFineTuneConfig,
+    PubMedQALoRAFineTuner,
+    load_target_layers,
+    normalize_lora_target_modules,
+)
+from pubmedqa.runtime.torch_runtime import resolve_dtype as _resolve_dtype
 
 CLI_DEFAULT_DTYPE = (
     "bfloat16"
@@ -146,10 +146,10 @@ def main() -> None:
         save_optimizer_state=TRAIN_FULL_FINE_TUNE_CONFIG.default_save_optimizer_state and not args.no_save_optimizer_state,
         strict_parser=args.strict_parser,
         seed=args.seed,
-        target_modules=_normalize_lora_target_modules(
+        target_modules=normalize_lora_target_modules(
             tuple(part.strip() for part in args.target_modules.split(",") if part.strip())
         ),
-        target_layers=_load_target_layers(args.target_layers, args.target_layers_file),
+        target_layers=load_target_layers(args.target_layers, args.target_layers_file),
         layer_scope=args.layer_scope,
         lora_rank=args.lora_rank,
         lora_alpha=args.lora_alpha,

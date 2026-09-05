@@ -6,7 +6,7 @@ import json
 import re
 from dataclasses import dataclass
 
-from pubmedqa.labels import LABEL_PATTERN, normalize_label
+from pubmedqa.domain.labels import LABEL_PATTERN, normalize_label
 
 ANSWER_LINE_PATTERN = re.compile(r"^\s*answer\s*:\s*(yes|no|maybe)\b", re.IGNORECASE)
 JSON_LABEL_KEYS = ("answer", "label", "final_decision", "prediction")

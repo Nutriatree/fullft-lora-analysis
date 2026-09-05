@@ -4,100 +4,31 @@
 from __future__ import annotations
 
 import argparse
-import json
-import os
 import time
-from dataclasses import asdict, replace
-from datetime import timedelta
+from dataclasses import replace
 from pathlib import Path
-from typing import Any, Callable, TypeVar, cast
 
-import torch
-import torch.distributed as dist
-
-from pubmedqa.evaluation import EnvironmentConfig, load_local_jsonl
-from pubmedqa.experiment_runs import (
+from pubmedqa.config import EnvironmentConfig
+from pubmedqa.experiments.orchestrator import (
+    ExperimentStudy,
+    execute_study,
+    print_run_table as _print_run_table,
+    to_jsonable as _jsonable,
+    validate_target_layer_overrides as _validate_target_layer_overrides,
+)
+from pubmedqa.experiments.specs import (
     DEFAULT_BASELINE_OUTPUT_DIR,
     DEFAULT_PATHS,
     DEFAULT_SHARED_DEFAULTS,
     ExperimentPaths,
     SharedTrainDefaults,
-    build_runner,
     list_run_tags,
-    resolve_run_spec,
 )
-
-T = TypeVar("T")
-
-
-def _run_on_rank_zero(
-    operation: Callable[[], T],
-    *,
-    is_main_process: bool,
-    control_group: Any | None,
-    operation_name: str,
-) -> T:
-    payload: list[dict[str, Any] | None] = [None]
-    if is_main_process:
-        try:
-            payload[0] = {"ok": True, "result": operation()}
-        except Exception as exc:
-            payload[0] = {
-                "ok": False,
-                "error_type": type(exc).__name__,
-                "error": str(exc),
-            }
-    if control_group is not None:
-        dist.broadcast_object_list(payload, src=0, group=control_group)
-
-    message = payload[0]
-    if message is None:
-        raise RuntimeError(f"{operation_name} produced no rank-0 result.")
-    if not message["ok"]:
-        raise RuntimeError(
-            f"{operation_name} failed on rank 0: "
-            f"{message['error_type']}: {message['error']}"
-        )
-    return cast(T, message["result"])
-
-
-def _initialize_distributed_control_group(mode: str) -> Any:
-    required = ("RANK", "LOCAL_RANK", "WORLD_SIZE")
-    missing = [name for name in required if name not in os.environ]
-    if missing:
-        raise RuntimeError(
-            f"{mode.upper()} mode must be launched with torchrun; missing environment variables: "
-            + ", ".join(missing)
-        )
-    if not torch.cuda.is_available():
-        raise RuntimeError(f"{mode.upper()} mode requires CUDA.")
-    local_rank = int(os.environ["LOCAL_RANK"])
-    torch.cuda.set_device(local_rank)
-    if not dist.is_initialized():
-        dist.init_process_group(backend="nccl")
-    return dist.new_group(backend="gloo", timeout=timedelta(hours=24))
-
-
-def _destroy_distributed_process_groups(control_group: Any | None) -> None:
-    if not dist.is_initialized():
-        return
-    try:
-        if control_group is not None:
-            dist.destroy_process_group(control_group)
-    finally:
-        if dist.is_initialized():
-            dist.destroy_process_group()
-
-
-def _jsonable(value: Any) -> Any:
-    if isinstance(value, Path):
-        return str(value)
-    if isinstance(value, dict):
-        return {str(key): _jsonable(item) for key, item in value.items()}
-    if isinstance(value, (list, tuple)):
-        return [_jsonable(item) for item in value]
-    return value
-
+from pubmedqa.runtime.distributed import (
+    destroy_process_groups as _destroy_distributed_process_groups,
+    initialize_control_group as _initialize_distributed_control_group,
+    run_on_rank_zero as _run_on_rank_zero,
+)
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -219,29 +150,6 @@ def _parse_target_layer_overrides(values: list[str]) -> dict[str, tuple[int, ...
     return overrides
 
 
-def _validate_target_layer_overrides(
-    run_tags: list[str],
-    overrides: dict[str, tuple[int, ...]],
-) -> None:
-    selected_runs = set(run_tags)
-    unused_overrides = sorted(set(overrides) - selected_runs)
-    if unused_overrides:
-        raise ValueError(
-            "Target-layer overrides were supplied for runs not selected in --runs: "
-            + ", ".join(unused_overrides)
-        )
-    for run_tag in run_tags:
-        spec = resolve_run_spec(run_tag)
-        override = overrides.get(run_tag)
-        if override and spec.layer_scope == "all":
-            raise ValueError(f"{run_tag} is not a selective LoRA run and cannot receive a layer override.")
-        if spec.layer_scope != "all" and not spec.target_layers and not override:
-            raise ValueError(
-                f"{run_tag} requires --target-layer-override {run_tag}=LAYER[,LAYER...] "
-                "after layer-wise analysis."
-            )
-
-
 def _generate_run_id() -> str:
     return f"exp_{time.strftime('%Y%m%d_%H%M%S')}"
 
@@ -307,43 +215,6 @@ def _build_defaults(args: argparse.Namespace) -> SharedTrainDefaults:
     )
 
 
-def _print_run_table(run_tags: list[str]) -> None:
-    for run_tag in run_tags:
-        spec = resolve_run_spec(run_tag)
-        print(
-            f"{run_tag}\tmethod={spec.method}\tcondition={spec.condition}\t"
-            f"data_regime={spec.data_regime}\ttarget_modules={','.join(spec.target_modules) or '-'}\t"
-            f"rank={spec.lora_rank if spec.lora_rank is not None else '-'}\t"
-            f"layer_scope={spec.layer_scope}"
-        )
-
-
-def _save_manifest(
-    *,
-    run_id: str,
-    run_tags: list[str],
-    paths: ExperimentPaths,
-    defaults: SharedTrainDefaults,
-    target_layer_overrides: dict[str, tuple[int, ...]],
-    baseline_output_dir: Path,
-    train_output_dir: Path,
-) -> Path:
-    manifest_path = train_output_dir / run_id / "run_manifest.json"
-    manifest = {
-        "run_id": run_id,
-        "requested_runs": run_tags,
-        "paths": _jsonable(asdict(paths)),
-        "shared_defaults": _jsonable(asdict(defaults)),
-        "baseline_output_dir": str(baseline_output_dir),
-        "train_output_dir": str(train_output_dir),
-        "run_specs": {run_tag: _jsonable(asdict(resolve_run_spec(run_tag))) for run_tag in run_tags},
-        "target_layer_overrides": _jsonable(target_layer_overrides),
-    }
-    manifest_path.parent.mkdir(parents=True, exist_ok=True)
-    manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    return manifest_path
-
-
 def main() -> None:
     args = parse_args()
     run_id = args.run_id or _generate_run_id()
@@ -353,96 +224,24 @@ def main() -> None:
         _print_run_table(list_run_tags())
         return
 
-    if not run_tags:
-        raise RuntimeError("No run tags were provided.")
-
     paths = _build_paths(args)
     defaults = _build_defaults(args)
     target_layer_overrides = _parse_target_layer_overrides(args.target_layer_override)
-    _validate_target_layer_overrides(run_tags, target_layer_overrides)
     environment = EnvironmentConfig(hf_token=args.hf_token) if args.hf_token else EnvironmentConfig.from_env()
-    rank = int(os.environ.get("RANK", "0"))
-    is_main_process = rank == 0
-
-    if is_main_process:
-        manifest_path = _save_manifest(
+    execute_study(
+        ExperimentStudy(
             run_id=run_id,
-            run_tags=run_tags,
+            run_tags=tuple(run_tags),
             paths=paths,
             defaults=defaults,
-            target_layer_overrides=target_layer_overrides,
             baseline_output_dir=args.baseline_output_dir,
             train_output_dir=args.train_output_dir,
-        )
-        print(f"[manifest] {manifest_path}")
-        _print_run_table(run_tags)
-
-    if args.dry_run:
-        return
-
-    control_group = (
-        _initialize_distributed_control_group(defaults.distributed_mode)
-        if defaults.distributed_mode != "single"
-        else None
+            target_layer_overrides=target_layer_overrides,
+            environment=environment,
+            continue_on_error=args.continue_on_error,
+        ),
+        dry_run=args.dry_run,
     )
-
-    try:
-        failures: list[dict[str, str]] = []
-        for run_tag in run_tags:
-            spec = resolve_run_spec(run_tag)
-            if is_main_process:
-                print(f"\n[run] {run_tag} method={spec.method} condition={spec.condition}")
-            try:
-                method, runner = build_runner(
-                    run_id=run_id,
-                    run_tag=run_tag,
-                    paths=paths,
-                    baseline_output_dir=args.baseline_output_dir,
-                    train_output_dir=args.train_output_dir,
-                    defaults=defaults,
-                    environment=environment,
-                    target_layer_overrides=target_layer_overrides,
-                )
-                if method == "baseline":
-                    def run_baseline() -> str:
-                        examples = load_local_jsonl(paths.baseline_eval_path)
-                        items, summary = runner.evaluate(examples)
-                        run_dir = runner.save_results(items, summary)
-                        return (
-                            f"[done] {run_tag} acc={summary.accuracy:.4f} "
-                            f"macro_f1={summary.macro_f1:.4f} saved={run_dir}"
-                        )
-
-                    baseline_message = _run_on_rank_zero(
-                        run_baseline,
-                        is_main_process=is_main_process,
-                        control_group=control_group,
-                        operation_name=f"{run_tag} baseline evaluation",
-                    )
-                    if is_main_process:
-                        print(baseline_message)
-                else:
-                    try:
-                        summary = runner.run()
-                    finally:
-                        runner.close()
-                    if is_main_process:
-                        print(
-                            f"[done] {run_tag} best_acc={summary.best_validation_accuracy:.4f} "
-                            f"best_macro_f1={summary.best_validation_macro_f1:.4f} "
-                            f"saved={summary.best_checkpoint_dir}"
-                        )
-            except Exception as exc:
-                failures.append({"run_tag": run_tag, "error": str(exc)})
-                print(f"[failed][rank={rank}] {run_tag}: {exc}")
-                if not args.continue_on_error:
-                    break
-
-        if failures:
-            raise RuntimeError(f"Experiment execution failed: {failures}")
-    finally:
-        if defaults.distributed_mode != "single":
-            _destroy_distributed_process_groups(control_group)
 
 
 if __name__ == "__main__":

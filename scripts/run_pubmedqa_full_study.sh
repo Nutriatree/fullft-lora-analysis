@@ -162,8 +162,7 @@ echo "[study] run_id=$RUN_ID model=$MODEL_NAME gpus=$GPU_IDS mode=$DISTRIBUTED_M
 #   L3: q/v, rank 4, alpha 8
 #   L4: q/v, rank 16, alpha 32
 echo "[phase 1] B0, F1, L1, L2, L3, L4"
-# Add B0, F1 When running the experiments to evaluate the baseline model without any fine-tuning.
-run_experiments "L1,L2,L3,L4"
+run_experiments "B0,F1,L1,L2,L3,L4"
 
 # L1의 100% checkpoint update 통계를 이용해 변화량이 큰/작은 layer를 각각 선택한다.
 echo "[phase 2] select high/low layers from L1 final update"

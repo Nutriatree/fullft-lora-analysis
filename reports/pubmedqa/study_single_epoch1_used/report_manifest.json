@@ -1,0 +1,32 @@
+{
+  "study_id": "study_single_epoch1_used",
+  "input_study_dir": "outputs/pubmedqa_train/study_single_epoch1_used",
+  "report_root": "reports/pubmedqa/study_single_epoch1_used",
+  "generated_at": "2026-09-05T08:53:53.117337+00:00",
+  "figure_files": [
+    "figures/appendix/appendix_a1_layer_selection_profile.pdf",
+    "figures/appendix/appendix_a1_layer_selection_profile.png",
+    "figures/appendix/appendix_a2_final_update_heatmaps.pdf",
+    "figures/appendix/appendix_a2_final_update_heatmaps.png",
+    "figures/appendix/appendix_a3_temporal_layer_updates.pdf",
+    "figures/appendix/appendix_a3_temporal_layer_updates.png",
+    "figures/appendix/appendix_a4_lora_update_dynamics.pdf",
+    "figures/appendix/appendix_a4_lora_update_dynamics.png",
+    "figures/appendix/appendix_a5_effective_rank_trajectory.pdf",
+    "figures/appendix/appendix_a5_effective_rank_trajectory.png",
+    "figures/appendix/appendix_a6_singular_value_spectra.pdf",
+    "figures/appendix/appendix_a6_singular_value_spectra.png",
+    "figures/main/figure_rq1_test_performance.pdf",
+    "figures/main/figure_rq1_test_performance.png",
+    "figures/main/figure_rq1_train_validation_loss.pdf",
+    "figures/main/figure_rq1_train_validation_loss.png",
+    "figures/main/figure_rq2_performance_parameter_tradeoff.pdf",
+    "figures/main/figure_rq2_performance_parameter_tradeoff.png",
+    "figures/main/figure_rq2_train_validation_loss.pdf",
+    "figures/main/figure_rq2_train_validation_loss.png",
+    "figures/main/figure_rq3_selective_performance_parameter.pdf",
+    "figures/main/figure_rq3_selective_performance_parameter.png",
+    "figures/main/figure_rq3_train_validation_loss.pdf",
+    "figures/main/figure_rq3_train_validation_loss.png"
+  ]
+}
