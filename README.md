@@ -9,7 +9,7 @@
 ![Transformers](https://img.shields.io/badge/Transformers-Qwen3--1.7B-FFD21E)
 ![PEFT](https://img.shields.io/badge/PEFT-LoRA-7A5AF8)
 
-[최종 보고서](.github/reports/PubMedQA%20Fine-Tune%20Report.pdf) ·
+[최종 보고서](.github/reports/Full-FT%20VS%20LoRA%20Report.pdf) ·
 [실험 실행 가이드](.github/guides/pubmedqa_full_study.md) ·
 [코드 아키텍처](.github/ARCHITECTURE.md)
 
@@ -94,6 +94,11 @@ Respond with only one word: yes, no, or maybe.
 Assistant
 {answer}
 ```
+
+추론 시 모델에는 `yes`, `no`, `maybe` 중 하나를 출력하도록 지시합니다. 이는 decoding
+단계에서 vocabulary를 강제하는 hard constraint가 아니며, 생성된 응답을 parser로 처리해
+최종 prediction label로 변환합니다. 유효한 label을 추출하지 못한 응답은 invalid
+prediction으로 처리합니다.
 
 - **Full FT:** pretrained model의 전체 parameter를 update합니다.
 - **LoRA:** base weight는 freeze하고 target linear layer의 low-rank matrices `A`, `B`만 학습합니다. `ΔW = (α/r)BA`를 checkpoint마다 복원해 update norm, singular values, effective rank를 분석합니다.
@@ -341,7 +346,7 @@ PYTHONPATH=src python scripts/run_pubmedqa_experiments.py \
 
 ## Documentation
 
-- [Final Report — Full Fine-Tuning vs. LoRA](.github/reports/PubMedQA%20Fine-Tune%20Report.pdf)
+- [Final Report — Full Fine-Tuning vs. LoRA](.github/reports/Full-FT%20VS%20LoRA%20Report.pdf)
 - [Code Architecture](.github/ARCHITECTURE.md)
 - [Full Study Runner](.github/guides/pubmedqa_full_study.md)
 - [Data CLI](.github/guides/pubmedqa_data_cli.md)

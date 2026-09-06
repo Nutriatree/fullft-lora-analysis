@@ -8,6 +8,9 @@ from pathlib import Path
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 README_PATH = REPOSITORY_ROOT / "README.md"
 THIRD_PARTY_NOTICES_PATH = REPOSITORY_ROOT / "THIRD_PARTY_NOTICES.md"
+REPORT_PATH = REPOSITORY_ROOT / ".github/reports/Full-FT VS LoRA Report.pdf"
+PROMPT_GUIDE_PATH = REPOSITORY_ROOT / ".github/guides/pubmedqa_prompt_parser.md"
+EVALUATION_GUIDE_PATH = REPOSITORY_ROOT / ".github/guides/pubmedqa_evaluation.md"
 
 
 class ReadmeContractTests(unittest.TestCase):
@@ -48,7 +51,8 @@ class ReadmeContractTests(unittest.TestCase):
         self.assertIn("scripts/plot_pubmedqa_rq_learning_curves.py", self.readme)
 
     def test_links_final_report_and_existing_readme_images(self) -> None:
-        self.assertIn(".github/reports/PubMedQA%20Fine-Tune%20Report.pdf", self.readme)
+        self.assertIn(".github/reports/Full-FT%20VS%20LoRA%20Report.pdf", self.readme)
+        self.assertTrue(REPORT_PATH.is_file())
         self.assertIn(".github/ARCHITECTURE.md", self.readme)
         image_paths = re.findall(r"!\[[^\]]*\]\((\.github/assets/readme/[^)]+)\)", self.readme)
         self.assertGreaterEqual(len(image_paths), 3)
@@ -103,6 +107,25 @@ class ReadmeContractTests(unittest.TestCase):
         ):
             with self.subTest(expected=expected):
                 self.assertIn(expected, gitignore.splitlines())
+
+    def test_documents_prompt_instruction_and_prediction_parsing(self) -> None:
+        normalized_readme = " ".join(self.readme.split())
+        for expected in (
+            "hard constraint가 아니며",
+            "생성된 응답을 parser로 처리",
+            "최종 prediction label",
+            "invalid prediction",
+        ):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, normalized_readme)
+
+        prompt_guide = PROMPT_GUIDE_PATH.read_text(encoding="utf-8")
+        evaluation_guide = EVALUATION_GUIDE_PATH.read_text(encoding="utf-8")
+        self.assertNotIn("출력은 반드시 `yes`, `no`, `maybe` 중 하나여야 합니다", prompt_guide)
+        self.assertIn("출력하도록 prompt에서 지시", prompt_guide)
+        self.assertIn("direct-answer-only 형식을 유도", prompt_guide)
+        self.assertIn("최종 prediction label", evaluation_guide)
+        self.assertIn("invalid prediction", evaluation_guide)
 
 
 if __name__ == "__main__":

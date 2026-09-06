@@ -29,15 +29,15 @@ PYTHONPATH=src
 
 - 모델에게 제공되는 입력은 `question`과 `context.contexts`뿐입니다.
 - `pubid`, `labels`, `meshes`, `long_answer`, `gold label`은 추론 프롬프트에 넣지 않습니다.
-- 출력은 반드시 `yes`, `no`, `maybe` 중 하나여야 합니다.
+- `yes`, `no`, `maybe` 중 하나를 출력하도록 prompt에서 지시하지만, decoding vocabulary를 강제로 제한하지 않습니다.
 - 영어 이외의 응답이나 추론 체인을 유도하지 않도록 직접 답변만 요구합니다.
 
 즉, 모델은 아래 형태의 입력을 받습니다.
 
 - system message: PubMedQA QA 역할 정의
-- user message: 질문, abstract context, 출력 제약
+- user message: 질문, abstract context, 응답 형식 지시
 
-그리고 최종 출력은 아래처럼 한 단어만 기대합니다.
+가장 선호하는 출력 형식은 아래와 같은 한 단어 응답입니다.
 
 ```text
 yes
@@ -65,7 +65,10 @@ prediction = parse_pubmedqa_answer(decoded)
 
 `build_tokenizer_prompt()`는 tokenizer에 chat template이 있으면 그것을 사용하고, 없으면 plain prompt fallback을 사용합니다.
 
-또한 Qwen3 계열에서는 `enable_thinking=False`를 우선 적용해서 direct-answer-only 형식을 유지합니다.
+또한 Qwen3 계열에서는 `enable_thinking=False`를 우선 적용해서 direct-answer-only 형식을 유도합니다.
+
+생성된 응답은 `parse_pubmedqa_answer()`를 통해 최종 prediction label로 변환합니다. Parser가
+유효한 label을 추출하지 못하면 해당 응답은 invalid prediction으로 처리됩니다.
 
 ## 학습용 타깃 구성
 

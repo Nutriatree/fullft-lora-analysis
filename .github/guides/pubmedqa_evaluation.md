@@ -166,10 +166,13 @@ PYTHONPATH=src python -m pubmedqa.evaluation
 
 ## 현재 프롬프트 동작과의 관계
 
-평가 코드는 `src/pubmedqa/prompt_builder.py`를 사용합니다.  
-현재 프롬프트는 `question`과 `context`만 모델에 제공하고, 응답은 `yes`, `no`, `maybe` 중 하나만 기대합니다.
+평가 코드는 `src/pubmedqa/prompt_builder.py`를 사용합니다. 현재 프롬프트는 `question`과
+`context`만 모델에 제공하고, `yes`, `no`, `maybe` 중 하나를 출력하도록 지시합니다. 이는
+decoding vocabulary를 제한하는 hard constraint가 아닙니다.
 
-Qwen3 계열에서는 chat template 렌더링 시 `enable_thinking=False`를 우선 적용해 direct-answer-only 형식을 유지합니다.
+생성된 응답은 parser를 통해 최종 prediction label로 변환하며, 유효한 label을 추출하지 못한
+응답은 invalid prediction으로 처리합니다. Qwen3 계열에서는 chat template 렌더링 시
+`enable_thinking=False`를 우선 적용해 direct-answer-only 형식을 유도합니다.
 
 ## 권장 실행 순서
 
