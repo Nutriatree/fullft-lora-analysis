@@ -3,11 +3,12 @@
 이 문서는 [scripts/run_pubmedqa_experiments.py](../../scripts/run_pubmedqa_experiments.py)를 사용해 PubMedQA의 baseline, Full Fine-Tuning, LoRA run들을 중앙 정의 기반으로 실행하는 방법을 설명한다.
 
 실험 정의의 단일 기준은 [src/pubmedqa/config/experiments.py](../../src/pubmedqa/config/experiments.py)이다.
-`train/study.py::build_training_config`는 설정만 반환하고,
-`train/study.py`는 `train/pipeline.py::run_training`을 직접 호출한다.
-`build_runner`와 기존 Trainer는 공개 import 호환용이며 핵심 학습 경로에서 사용하지 않는다.
-study는 통신 그룹을 소유하고 각 `TrainingSession`에 빌려준다. 학습 성공·실패 모두
-세션을 정리하되 빌린 그룹은 study 종료 시에만 정리한다.
+`config/experiments.py::build_training_config`는 설정만 반환하고,
+experiment script는 `train/pipeline.py::run_training`을 직접 호출한다.
+단일 학습은 `build_training_config`로 설정을 만든 뒤 `run_training`을 호출하고,
+baseline B0는 `build_baseline_runner`를 사용한다.
+experiment script는 통신 그룹을 소유하고 각 `TrainingSession`에 빌려준다. 학습 성공·실패
+모두 세션을 정리하되 빌린 그룹은 전체 script 종료 시에만 정리한다.
 `--dry-run`은 manifest/표만 만들고 모델 적재나 분산 초기화를 실행하지 않는다.
 
 기준 환경은 서버의 `conda` 환경 `jw` 이다. 이 문서의 실행 예시는 모두 이 환경 안에서 바로 실행한다고 가정한다.

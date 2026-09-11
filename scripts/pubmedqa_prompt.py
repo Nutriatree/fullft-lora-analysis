@@ -7,8 +7,8 @@ import argparse
 import json
 from pathlib import Path
 
-from pubmedqa.answer_parser import parse_pubmedqa_answer
-from pubmedqa.prompt_builder import build_messages, build_plain_prompt, example_from_record
+from pubmedqa.eval.metrics import parse_pubmedqa_answer
+from pubmedqa.data.prompts import build_messages, build_plain_prompt, example_from_record
 
 
 def parse_args() -> argparse.Namespace:

@@ -1,15 +1,17 @@
-from dataclasses import asdict
 import json
-from pathlib import Path
 import tempfile
 import unittest
+from functools import partial
+from pathlib import Path
 
 import torch
-
 from helpers.offline import offline_cpu
-from helpers.tiny_training import make_config, environment
-from pubmedqa.full_finetune import PubMedQAFullFineTuner
-from pubmedqa.lora_finetune import LoRAFineTuneConfig, PubMedQALoRAFineTuner
+from helpers.tiny_training import environment, make_config, model_options, with_lora
+
+from pubmedqa.model.loading import load_full_model
+from pubmedqa.model.lora import AdapterOptions, load_lora_model
+from pubmedqa.train.artifacts import RunFiles
+from pubmedqa.train.pipeline import run_training
 
 
 class TrainingDryRunTest(unittest.TestCase):
@@ -17,10 +19,17 @@ class TrainingDryRunTest(unittest.TestCase):
         from dataclasses import replace
 
         with tempfile.TemporaryDirectory() as directory:
-            trainer, summary = self.run_fixture(Path(directory), "lora")
-            _, adapter = trainer.load_model_and_tokenizer(summary.best_checkpoint_dir)
-            trainer.lora_config = replace(trainer.lora_config, merge_for_eval=True)
-            _, merged = trainer.load_model_and_tokenizer(summary.best_checkpoint_dir)
+            config, summary = self.run_fixture(Path(directory), "lora")
+            options = model_options(config)
+            adapter_options = AdapterOptions.from_config(config)
+            _, adapter = load_lora_model(
+                summary.best_checkpoint_dir, options=options, adapter=adapter_options
+            )
+            _, merged = load_lora_model(
+                summary.best_checkpoint_dir,
+                options=options,
+                adapter=replace(adapter_options, merge_for_eval=True),
+            )
             tokens = torch.tensor([[3, 4, 5]])
             adapter.eval()
             merged.eval()
@@ -35,39 +44,30 @@ class TrainingDryRunTest(unittest.TestCase):
     def run_fixture(self, root, method, **changes):
         config = make_config(root, **changes)
         if method != "full":
-            values = asdict(config)
-            values.update(
-                lora_rank=2,
-                lora_alpha=4.0,
-                lora_dropout=0.0,
+            config = with_lora(
+                config,
                 target_modules=("q_proj", "v_proj"),
                 target_layers=(0,) if method == "selective" else (),
                 layer_scope="selected" if method == "selective" else "all",
             )
-            config = LoRAFineTuneConfig(
-                **values,
-                lora_bias="none",
-                lora_task_type="CAUSAL_LM",
-                modules_to_save=(),
-                merge_for_eval=False,
+            load_model = partial(
+                load_lora_model,
+                options=model_options(config),
+                adapter=AdapterOptions.from_config(config),
             )
-            trainer = PubMedQALoRAFineTuner(config, environment())
         else:
-            trainer = PubMedQAFullFineTuner(config, environment())
+            load_model = partial(load_full_model, options=model_options(config))
         # Compare a fresh loader's base weights to the persisted result. Adapter
         # A is randomly initialized, so only B (zero at initialization) is used
         # to prove a real update; every frozen base tensor must stay identical.
-        _, initial = trainer.load_model_and_tokenizer(config.model_name)
+        _, initial = load_model(config.model_name)
         before = {
             name: value.detach().clone() for name, value in initial.named_parameters()
         }
         del initial
-        try:
-            with offline_cpu():
-                summary = trainer.run()
-        finally:
-            trainer.close()
-        _, restored = trainer.load_model_and_tokenizer(summary.best_checkpoint_dir)
+        with offline_cpu():
+            summary = run_training(config, environment())
+        _, restored = load_model(summary.best_checkpoint_dir)
         after = dict(restored.named_parameters())
         if method == "full":
             self.assertTrue(
@@ -88,11 +88,11 @@ class TrainingDryRunTest(unittest.TestCase):
                 )
             )
         del restored
-        return trainer, summary
+        return config, summary
 
     def test_epoch_snapshot_and_scheduled_checkpoint_with_accumulation(self):
         with tempfile.TemporaryDirectory() as directory:
-            trainer, summary = self.run_fixture(
+            config, summary = self.run_fixture(
                 Path(directory),
                 "full",
                 checkpoint_percents=(100,),
@@ -104,7 +104,13 @@ class TrainingDryRunTest(unittest.TestCase):
             self.assertEqual(4, summary.optimizer_steps)
             self.assertEqual("scheduled", summary.best_checkpoint_kind)
             self.assertEqual(
-                [], list((trainer.output_root / ".evaluation_snapshots").glob("*"))
+                [],
+                list(
+                    (
+                        RunFiles.from_config(config).output_root
+                        / ".evaluation_snapshots"
+                    ).glob("*")
+                ),
             )
 
     def test_snapshot_is_removed_when_checkpoint_evaluation_fails(self):
@@ -117,19 +123,21 @@ class TrainingDryRunTest(unittest.TestCase):
                 save_every_epoch=False,
                 num_epochs=2,
             )
-            trainer = PubMedQAFullFineTuner(config, environment())
-            try:
-                with patch(
-                    "pubmedqa.train.pipeline.evaluate_checkpoint_on_main",
-                    side_effect=RuntimeError("evaluation failed"),
-                ):
-                    with self.assertRaisesRegex(RuntimeError, "evaluation failed"):
-                        trainer.run()
-                self.assertEqual(
-                    [], list((trainer.output_root / ".evaluation_snapshots").glob("*"))
-                )
-            finally:
-                trainer.close()
+            with patch(
+                "pubmedqa.train.pipeline.evaluate_checkpoint_on_main",
+                side_effect=RuntimeError("evaluation failed"),
+            ):
+                with self.assertRaisesRegex(RuntimeError, "evaluation failed"):
+                    run_training(config, environment())
+            self.assertEqual(
+                [],
+                list(
+                    (
+                        RunFiles.from_config(config).output_root
+                        / ".evaluation_snapshots"
+                    ).glob("*")
+                ),
+            )
 
     def test_real_cpu_full_lora_and_selective_pipeline(self):
         for method in ("full", "lora", "selective"):
@@ -137,18 +145,23 @@ class TrainingDryRunTest(unittest.TestCase):
                 self.subTest(method=method),
                 tempfile.TemporaryDirectory() as directory,
             ):
-                trainer, summary = self.run_fixture(Path(directory), method)
+                config, summary = self.run_fixture(Path(directory), method)
                 self.assertEqual(2, summary.optimizer_steps)
                 self.assertTrue(torch.isfinite(torch.tensor(summary.final_train_loss)))
                 checkpoint = Path(summary.best_checkpoint_dir)
                 self.assertTrue((checkpoint / "optimizer.pt").is_file())
                 self.assertTrue((checkpoint / "training_state.json").is_file())
                 self.assertTrue(
-                    (trainer.evaluations_dir / "test_summary.json").is_file()
+                    (
+                        RunFiles.from_config(config).evaluations_dir
+                        / "test_summary.json"
+                    ).is_file()
                 )
                 logs = [
                     json.loads(line)
-                    for line in (trainer.logs_dir / "train_steps.jsonl")
+                    for line in (
+                        RunFiles.from_config(config).logs_dir / "train_steps.jsonl"
+                    )
                     .read_text()
                     .splitlines()
                 ]

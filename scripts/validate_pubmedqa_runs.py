@@ -10,13 +10,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from pubmedqa.experiment_runs import (
-    DEFAULT_BASELINE_OUTPUT_DIR,
-    DEFAULT_SHARED_DEFAULTS,
-    DEFAULT_TRAIN_OUTPUT_DIR,
-    list_run_tags,
-    resolve_run_spec,
-)
+from pubmedqa.config.experiments import DEFAULT_BASELINE_OUTPUT_DIR, DEFAULT_SHARED_DEFAULTS, DEFAULT_TRAIN_OUTPUT_DIR, list_run_tags, resolve_run_spec
 from pubmedqa.data.records import safe_name
 
 

@@ -1,21 +1,31 @@
-from contextlib import nullcontext
-from dataclasses import replace
-from pathlib import Path
-from types import SimpleNamespace
 import tempfile
 import unittest
-from unittest.mock import patch, Mock
-import torch
+from contextlib import nullcontext
+from functools import partial
+from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
-from helpers.tiny_training import make_config, environment
-from pubmedqa.full_finetune import PubMedQAFullFineTuner
-from pubmedqa.data.supervised import PubMedQASupervisedDataset
-from pubmedqa.eval.inference import load_local_jsonl
+import torch
+from helpers.tiny_training import make_config, model_options
+
+from pubmedqa.data.supervised import PubMedQASupervisedDataset, build_eval_dataloader
+from pubmedqa.data.records import load_local_jsonl
+from pubmedqa.eval.validation import (
+    EvaluationSettings,
+    evaluate_checkpoint_on_main,
+    evaluate_split,
+)
+from pubmedqa.model.loading import load_full_model
+from pubmedqa.train.artifacts import RunFiles
+from pubmedqa.train.checkpoints import create_evaluation_snapshot
+from pubmedqa.train.distributed import TrainingSession
 
 
 class TrainingEvaluationTest(unittest.TestCase):
     def test_both_ranks_receive_same_evaluation_result_or_failure(self):
         from helpers.distributed import FakeRanks
+
         from pubmedqa.train.distributed import TrainingSession
 
         ranks = FakeRanks()
@@ -36,28 +46,41 @@ class TrainingEvaluationTest(unittest.TestCase):
             cfg = make_config(
                 Path(directory), distributed_mode="fsdp", dtype=torch.bfloat16
             )
-            owner = PubMedQAFullFineTuner(cfg, environment())
-            owner.device = torch.device("cuda:0")
+            session = TrainingSession.from_config(cfg)
+            files = RunFiles.from_config(cfg)
+            session.device = torch.device("cuda:0")
             with patch("torch.cuda.empty_cache"):
-                result = owner._evaluate_checkpoint_on_main(
+                result = evaluate_checkpoint_on_main(
+                    session=session,
+                    settings=EvaluationSettings.from_config(cfg, session.device),
+                    evaluations_dir=files.evaluations_dir,
+                    load_model=partial(
+                        load_full_model,
+                        options=model_options(cfg, device=session.device),
+                    ),
                     checkpoint_dir=Path(cfg.model_name),
                     examples=load_local_jsonl(cfg.validation_path),
                     split_name="checkpoint",
                 )
             self.assertEqual(3, result.metrics.num_examples)
-            self.assertEqual("cuda", owner.device.type)
-            self.assertEqual(
-                "torch.float32", owner._distributed_metadata()["evaluation_dtype"]
-            )
+            self.assertEqual("cuda", session.device.type)
+            self.assertEqual("torch.float32", session.metadata()["evaluation_dtype"])
 
     def test_success_and_each_failure_restore_training_and_padding(self):
         with tempfile.TemporaryDirectory() as directory:
             cfg = make_config(Path(directory))
-            owner = PubMedQAFullFineTuner(cfg, environment())
-            tokenizer, model = owner.load_model_and_tokenizer(cfg.model_name)
+            session = TrainingSession.from_config(cfg)
+            files = RunFiles.from_config(cfg)
+            tokenizer, model = load_full_model(
+                cfg.model_name, options=model_options(cfg, device=session.device)
+            )
             examples = load_local_jsonl(cfg.validation_path)
-            loader = owner.build_eval_dataloader(
-                PubMedQASupervisedDataset(examples, tokenizer), tokenizer
+            loader = build_eval_dataloader(
+                PubMedQASupervisedDataset(examples, tokenizer),
+                tokenizer,
+                batch_size=cfg.eval_batch_size,
+                num_workers=cfg.num_workers,
+                max_input_tokens=cfg.max_input_tokens,
             )
             for initial in (False, True):
                 for failure in (None, "forward", "generate", "write"):
@@ -77,7 +100,11 @@ class TrainingEvaluationTest(unittest.TestCase):
                         with context:
                             if failure:
                                 with self.assertRaisesRegex(Exception, "injected"):
-                                    owner.evaluate_split(
+                                    evaluate_split(
+                                        settings=EvaluationSettings.from_config(
+                                            cfg, session.device
+                                        ),
+                                        evaluations_dir=files.evaluations_dir,
                                         model=model,
                                         tokenizer=tokenizer,
                                         supervised_loader=loader,
@@ -85,7 +112,11 @@ class TrainingEvaluationTest(unittest.TestCase):
                                         split_name="probe",
                                     )
                             else:
-                                owner.evaluate_split(
+                                evaluate_split(
+                                    settings=EvaluationSettings.from_config(
+                                        cfg, session.device
+                                    ),
+                                    evaluations_dir=files.evaluations_dir,
                                     model=model,
                                     tokenizer=tokenizer,
                                     supervised_loader=loader,
@@ -105,7 +136,8 @@ class TrainingEvaluationTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as directory:
             cfg = make_config(Path(directory))
-            owner = PubMedQAFullFineTuner(cfg, environment())
+            session = TrainingSession.from_config(cfg)
+            files = RunFiles.from_config(cfg)
             model = TokenLoss()
             tokenizer = SimpleNamespace(padding_side="right")
             # Three tokens of NLL 1 plus one of NLL 9 => token mean 3.
@@ -117,8 +149,8 @@ class TrainingEvaluationTest(unittest.TestCase):
                     for part in partitions
                 ]
                 result = evaluate_split(
-                    settings=EvaluationSettings.from_config(cfg, owner.device),
-                    evaluations_dir=owner.files.evaluations_dir,
+                    settings=EvaluationSettings.from_config(cfg, session.device),
+                    evaluations_dir=files.evaluations_dir,
                     model=model,
                     tokenizer=tokenizer,
                     supervised_loader=batches,
@@ -130,17 +162,25 @@ class TrainingEvaluationTest(unittest.TestCase):
 
     def test_snapshot_creation_failure_removes_partial_files(self):
         with tempfile.TemporaryDirectory() as directory:
-            owner = PubMedQAFullFineTuner(make_config(Path(directory)), environment())
-            tokenizer, model = owner.load_model_and_tokenizer(owner.config.model_name)
+            cfg = make_config(Path(directory))
+            session = TrainingSession.from_config(cfg)
+            files = RunFiles.from_config(cfg)
+            tokenizer, model = load_full_model(
+                cfg.model_name, options=model_options(cfg, device=session.device)
+            )
             with patch.object(
                 tokenizer, "save_pretrained", side_effect=OSError("tokenizer failure")
             ):
                 with self.assertRaisesRegex(RuntimeError, "tokenizer failure"):
-                    owner._create_evaluation_snapshot(
-                        model=model, tokenizer=tokenizer, split_name="probe"
+                    create_evaluation_snapshot(
+                        session=session,
+                        files=files,
+                        model=model,
+                        tokenizer=tokenizer,
+                        split_name="probe",
                     )
             self.assertEqual(
-                [], list((owner.output_root / ".evaluation_snapshots").glob("*"))
+                [], list((files.output_root / ".evaluation_snapshots").glob("*"))
             )
 
     def test_fsdp_reference_and_checkpoint_evaluate_on_cpu_without_device_mutation(
@@ -148,14 +188,23 @@ class TrainingEvaluationTest(unittest.TestCase):
     ):
         with tempfile.TemporaryDirectory() as directory:
             cfg = make_config(Path(directory), distributed_mode="fsdp")
-            owner = PubMedQAFullFineTuner(cfg, environment())
-            owner.device = torch.device("cuda:0")
-            tokenizer, model = owner.load_model_and_tokenizer(cfg.model_name)
-            examples = load_local_jsonl(cfg.validation_path)
-            loader = owner.build_eval_dataloader(
-                PubMedQASupervisedDataset(examples, tokenizer), tokenizer
+            session = TrainingSession.from_config(cfg)
+            files = RunFiles.from_config(cfg)
+            session.device = torch.device("cuda:0")
+            tokenizer, model = load_full_model(
+                cfg.model_name, options=model_options(cfg, device=session.device)
             )
-            result = owner.evaluate_split(
+            examples = load_local_jsonl(cfg.validation_path)
+            loader = build_eval_dataloader(
+                PubMedQASupervisedDataset(examples, tokenizer),
+                tokenizer,
+                batch_size=cfg.eval_batch_size,
+                num_workers=cfg.num_workers,
+                max_input_tokens=cfg.max_input_tokens,
+            )
+            result = evaluate_split(
+                settings=EvaluationSettings.from_config(cfg, session.device),
+                evaluations_dir=files.evaluations_dir,
                 model=model,
                 tokenizer=tokenizer,
                 supervised_loader=loader,
@@ -163,5 +212,5 @@ class TrainingEvaluationTest(unittest.TestCase):
                 split_name="reference",
             )
             self.assertEqual(3, result.metrics.num_examples)
-            self.assertEqual("cuda", owner.device.type)
+            self.assertEqual("cuda", session.device.type)
             self.assertEqual("cpu", next(model.parameters()).device.type)

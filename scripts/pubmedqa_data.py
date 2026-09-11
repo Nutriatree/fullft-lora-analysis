@@ -13,9 +13,8 @@ import argparse
 from pathlib import Path
 
 from pubmedqa.data.prepare import CanonicalSplitConfig, prepare_canonical_splits
-from pubmedqa.data.sources import RemotePubMedQASource
+from pubmedqa.data.sources import RemotePubMedQASource, verify_sources
 from pubmedqa.data.summary import describe_directory
-from pubmedqa.data.verification import verify_sources
 
 
 def parse_args() -> argparse.Namespace:
@@ -51,7 +50,9 @@ def parse_args() -> argparse.Namespace:
         help="Recreate the PQA-L 500/500 split with the official seed if GitHub access is unavailable.",
     )
 
-    describe = subparsers.add_parser("describe", help="Summarize generated PubMedQA split files.")
+    describe = subparsers.add_parser(
+        "describe", help="Summarize generated PubMedQA split files."
+    )
     describe.add_argument("--data-dir", type=Path, default=Path("data/processed"))
     describe.add_argument(
         "--strict",
@@ -99,7 +100,10 @@ def command_verify_sources(_: argparse.Namespace) -> None:
         print("First mismatches:", report["field_mismatches"][:10])
     print("Official GitHub PQA-L test PMIDs:", report["official_test_pmids"])
     print("Official test PMIDs all present in HF:", report["official_test_all_in_hf"])
-    print("Official test label mismatches vs HF:", len(report["official_test_label_mismatches"]))
+    print(
+        "Official test label mismatches vs HF:",
+        len(report["official_test_label_mismatches"]),
+    )
     if report["official_test_label_mismatches"]:
         print("First label mismatches:", report["official_test_label_mismatches"][:10])
     print("HF pqa_artificial examples:", report["hf_artificial_examples"])

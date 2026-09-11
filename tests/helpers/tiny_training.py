@@ -6,13 +6,13 @@ from pathlib import Path
 from unittest.mock import patch
 
 import torch
-from transformers import LlamaConfig, LlamaForCausalLM, PreTrainedTokenizerFast
 from tokenizers import Tokenizer
 from tokenizers.models import WordLevel
 from tokenizers.pre_tokenizers import Whitespace
+from transformers import LlamaConfig, LlamaForCausalLM, PreTrainedTokenizerFast
 
-from pubmedqa.config import EnvironmentConfig
-from pubmedqa.config.full_ft import FullFineTuneCliConfig
+from pubmedqa.config.env import EnvironmentConfig
+from pubmedqa.config.train import LoRAOptions, TrainingCliConfig
 
 
 def make_local_model(root: Path) -> Path:
@@ -76,7 +76,7 @@ def make_config(root: Path, **changes):
         },
         clear=True,
     ):
-        config = FullFineTuneCliConfig.from_env().config
+        config = TrainingCliConfig.from_env().config
     return replace(
         config,
         **{
@@ -104,5 +104,49 @@ def make_config(root: Path, **changes):
     )
 
 
+def with_lora(
+    config,
+    *,
+    rank: int = 2,
+    alpha: float = 4.0,
+    dropout: float = 0.0,
+    target_modules: tuple[str, ...] = ("q_proj", "v_proj"),
+    target_layers: tuple[int, ...] = (),
+    layer_scope: str = "all",
+    merge_for_eval: bool = False,
+):
+    """Compose LoRA at the model-preparation boundary used by dry-run tests."""
+    return replace(
+        config,
+        method_name="lora",
+        adapter=LoRAOptions(
+            rank=rank,
+            alpha=alpha,
+            dropout=dropout,
+            target_modules=target_modules,
+            target_layers=target_layers,
+            layer_scope=layer_scope,
+            merge_for_eval=merge_for_eval,
+        ),
+    )
+
+
 def environment():
     return EnvironmentConfig(hf_token=None)
+
+
+def model_options(config, *, device=None):
+    """Build only loader inputs; tests call real Full/LoRA loaders directly.
+
+    No Trainer, lifecycle, dispatch or model state is hidden in this fixture.
+    """
+    from pubmedqa.model.loading import ModelLoadOptions
+
+    return ModelLoadOptions(
+        device=torch.device(config.device) if device is None else device,
+        dtype=config.dtype,
+        distributed_mode=config.distributed_mode,
+        attn_implementation=config.attn_implementation,
+        trust_remote_code=config.trust_remote_code,
+        hf_token=None,
+    )

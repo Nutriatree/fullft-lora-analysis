@@ -4,55 +4,37 @@ These tests deliberately do not inspect inheritance, private helper names, or
 the number of modules. The tiny model is real; external I/O and GPUs are not.
 """
 
-from copy import deepcopy
-from dataclasses import asdict
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
+from copy import deepcopy
+from dataclasses import asdict
+from pathlib import Path
 
 import torch
-
 from helpers.offline import offline_cpu
-from helpers.tiny_training import environment, make_config
-from pubmedqa import PubMedQAFullFineTuner, PubMedQALoRAFineTuner
-from pubmedqa.lora_finetune import LoRAFineTuneConfig
+from helpers.tiny_training import environment, make_config, with_lora
+
+from pubmedqa.train.pipeline import run_training
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class PipelineContractsTest(unittest.TestCase):
     def run_fixture(self, root, method, **changes):
-        """Use the public compatibility API, so core ownership may move freely."""
+        """Exercise the actual pipeline; preserve every on-disk assertion."""
         with offline_cpu():
             config = make_config(root, **changes)
-            if method == "full":
-                trainer = PubMedQAFullFineTuner(config, environment())
-            else:
-                config = LoRAFineTuneConfig(
-                    **{
-                        **asdict(config),
-                        "method_name": "lora",
-                        "lora_rank": 2,
-                        "lora_alpha": 4.0,
-                        "lora_dropout": 0.0,
-                        "target_modules": ("q_proj", "v_proj"),
-                        "target_layers": (0,) if method == "selective" else (),
-                        "layer_scope": "selected" if method == "selective" else "all",
-                    },
-                    lora_bias="none",
-                    lora_task_type="CAUSAL_LM",
-                    modules_to_save=(),
-                    merge_for_eval=False,
+            if method != "full":
+                config = with_lora(
+                    config,
+                    target_layers=(0,) if method == "selective" else (),
+                    layer_scope="selected" if method == "selective" else "all",
                 )
-                trainer = PubMedQALoRAFineTuner(config, environment())
-            try:
-                summary = trainer.run()
-            finally:
-                trainer.close()
+            summary = run_training(config, environment())
         # The returned checkpoint, not an internal trainer field, locates output.
         output_root = Path(summary.best_checkpoint_dir).parent.parent
         return config, summary, output_root
@@ -215,11 +197,15 @@ with offline_cpu(), ExitStack() as stack:
         stack.enter_context(patch(target, side_effect=AssertionError('import loaded a model')))
     for name in (
         'pubmedqa',
-        'pubmedqa.full_finetune',
-        'pubmedqa.lora_finetune',
+        'pubmedqa.train.pipeline',
+        'pubmedqa.model.lora',
         'scripts.run_pubmedqa_full_finetune',
         'scripts.run_pubmedqa_lora_finetune',
         'scripts.run_pubmedqa_experiments',
+        'scripts.run_pubmedqa_eval',
+        'scripts.pubmedqa_prompt',
+        'scripts.select_pubmedqa_lora_layers',
+        'scripts.validate_pubmedqa_runs',
     ):
         importlib.import_module(name)
 """

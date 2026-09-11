@@ -7,18 +7,24 @@ from dataclasses import replace
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from pubmedqa.config import EnvironmentConfig
-from pubmedqa.train.study import build_full_ft_config, build_lora_config
-from pubmedqa.train.study import ExperimentStudy, save_manifest
-from pubmedqa.experiment_runs import (
+from pubmedqa.config.env import EnvironmentConfig
+from pubmedqa.config.experiments import (
     DEFAULT_PATHS,
     DEFAULT_SHARED_DEFAULTS,
+    build_full_ft_config,
+    build_lora_config,
     resolve_data_fraction,
     resolve_run_spec,
 )
 from scripts.run_pubmedqa_experiments import (
+    ExperimentStudy,
+    save_manifest,
+)
+from scripts.run_pubmedqa_experiments import (
     _destroy_distributed_process_groups,
     _run_on_rank_zero,
+)
+from scripts.run_pubmedqa_experiments import (
     parse_args as parse_experiment_args,
 )
 
@@ -27,12 +33,42 @@ class PubMedQAExperimentRunsTest(unittest.TestCase):
     def test_registered_training_configs_preserve_method_specific_values(self) -> None:
         expected = {
             "F1": ("full-ft", (), None, DEFAULT_SHARED_DEFAULTS.full_ft_learning_rate),
-            "L1": ("lora", ("q_proj", "v_proj"), 8, DEFAULT_SHARED_DEFAULTS.lora_learning_rate),
-            "L2": ("lora", ("q_proj", "k_proj", "v_proj", "o_proj"), 8, DEFAULT_SHARED_DEFAULTS.lora_learning_rate),
-            "L3": ("lora", ("q_proj", "v_proj"), 4, DEFAULT_SHARED_DEFAULTS.lora_learning_rate),
-            "L4": ("lora", ("q_proj", "v_proj"), 16, DEFAULT_SHARED_DEFAULTS.lora_learning_rate),
-            "LL1": ("lora", ("q_proj", "v_proj"), 8, DEFAULT_SHARED_DEFAULTS.lora_learning_rate),
-            "LL2": ("lora", ("q_proj", "v_proj"), 8, DEFAULT_SHARED_DEFAULTS.lora_learning_rate),
+            "L1": (
+                "lora",
+                ("q_proj", "v_proj"),
+                8,
+                DEFAULT_SHARED_DEFAULTS.lora_learning_rate,
+            ),
+            "L2": (
+                "lora",
+                ("q_proj", "k_proj", "v_proj", "o_proj"),
+                8,
+                DEFAULT_SHARED_DEFAULTS.lora_learning_rate,
+            ),
+            "L3": (
+                "lora",
+                ("q_proj", "v_proj"),
+                4,
+                DEFAULT_SHARED_DEFAULTS.lora_learning_rate,
+            ),
+            "L4": (
+                "lora",
+                ("q_proj", "v_proj"),
+                16,
+                DEFAULT_SHARED_DEFAULTS.lora_learning_rate,
+            ),
+            "LL1": (
+                "lora",
+                ("q_proj", "v_proj"),
+                8,
+                DEFAULT_SHARED_DEFAULTS.lora_learning_rate,
+            ),
+            "LL2": (
+                "lora",
+                ("q_proj", "v_proj"),
+                8,
+                DEFAULT_SHARED_DEFAULTS.lora_learning_rate,
+            ),
         }
         self.assertEqual("baseline", resolve_run_spec("B0").method)
         for run_tag, (method, modules, rank, learning_rate) in expected.items():
@@ -118,7 +154,9 @@ class PubMedQAExperimentRunsTest(unittest.TestCase):
         )
         self.assertEqual("L2", config.run_tag)
         self.assertEqual("lora", config.method_name)
-        self.assertEqual(("q_proj", "k_proj", "v_proj", "o_proj"), config.target_modules)
+        self.assertEqual(
+            ("q_proj", "k_proj", "v_proj", "o_proj"), config.target_modules
+        )
         self.assertEqual(8, config.lora_rank)
 
     def test_selective_lora_requires_explicit_layers(self) -> None:
@@ -144,7 +182,9 @@ class PubMedQAExperimentRunsTest(unittest.TestCase):
 
     def test_rank_zero_operation_uses_long_running_control_group(self) -> None:
         control_group = object()
-        with patch("pubmedqa.train.distributed.dist.broadcast_object_list") as broadcast:
+        with patch(
+            "pubmedqa.train.distributed.dist.broadcast_object_list"
+        ) as broadcast:
             result = _run_on_rank_zero(
                 lambda: "baseline-complete",
                 is_main_process=True,
@@ -175,7 +215,9 @@ class PubMedQAExperimentRunsTest(unittest.TestCase):
         self.assertEqual("rank-zero-result", result)
         operation.assert_not_called()
 
-    def test_destroy_distributed_process_groups_destroys_control_then_default(self) -> None:
+    def test_destroy_distributed_process_groups_destroys_control_then_default(
+        self,
+    ) -> None:
         control_group = object()
         with (
             patch("pubmedqa.train.distributed.dist.is_initialized", return_value=True),

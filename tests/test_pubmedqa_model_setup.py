@@ -1,19 +1,20 @@
-from pathlib import Path
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
-from helpers.tiny_training import make_config, environment
-from pubmedqa.full_finetune import PubMedQAFullFineTuner
+from helpers.tiny_training import make_config
 
 
 class ModelSetupTest(unittest.TestCase):
     def test_shared_loader_keeps_full_only_multimodal_fallback(self):
         from types import SimpleNamespace
         from unittest.mock import Mock
+
         import torch
+
+        from pubmedqa.model.loading import load_full_model
         from pubmedqa.model.loading import ModelLoadOptions
-        from pubmedqa.model.full_ft import load_full_model
         from pubmedqa.model.lora import AdapterOptions, load_lora_model
 
         options = ModelLoadOptions(device=torch.device("cpu"), dtype=torch.float32)
@@ -45,9 +46,10 @@ class ModelSetupTest(unittest.TestCase):
             fallback.assert_not_called()
 
     def test_loading_lives_in_models_and_keeps_padding(self):
-        from pubmedqa.model.loading import ModelLoadOptions
-        from pubmedqa.model.full_ft import load_full_model
         import torch
+
+        from pubmedqa.model.loading import load_full_model
+        from pubmedqa.model.loading import ModelLoadOptions
 
         with tempfile.TemporaryDirectory() as directory:
             config = make_config(Path(directory))
@@ -59,9 +61,11 @@ class ModelSetupTest(unittest.TestCase):
 
     def test_missing_padding_and_eos_reports_actionable_error(self):
         from types import SimpleNamespace
-        from pubmedqa.model.loading import ModelLoadOptions
-        from pubmedqa.model.full_ft import load_full_model
+
         import torch
+
+        from pubmedqa.model.loading import load_full_model
+        from pubmedqa.model.loading import ModelLoadOptions
 
         options = ModelLoadOptions(device=torch.device("cpu"), dtype=torch.float32)
         with patch(

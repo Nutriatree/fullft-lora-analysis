@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass, fields
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from pubmedqa.config.full_ft import FullFineTuneConfig
+from pubmedqa.config.train import TrainingConfig
 from pubmedqa.data.records import current_time_iso, safe_name, write_json
 
 
@@ -138,17 +138,21 @@ class RunFiles:
 
 
 def write_run_config(files, config, environment, distributed) -> None:
-    # LoRA's extra settings retain their historical metadata/analysis files;
-    # config.json keeps exactly the shared FullFineTuneConfig field set.
-    shared_fields = {item.name for item in fields(FullFineTuneConfig)}
+    # Keep the on-disk schema flat while the in-memory config composes LoRAOptions.
+    payload = asdict(config)
+    payload.pop("adapter", None)
+    payload.update(
+        target_modules=list(config.target_modules),
+        target_layers=list(config.target_layers),
+        layer_scope=config.layer_scope,
+        lora_rank=config.lora_rank,
+        lora_alpha=config.lora_alpha,
+        lora_dropout=config.lora_dropout,
+    )
     write_json(
         files.output_root / "config.json",
         {
-            **{
-                key: value
-                for key, value in asdict(config).items()
-                if key in shared_fields
-            },
+            **payload,
             "dtype": str(config.dtype).replace("torch.", ""),
             "environment": {"hf_token_set": bool(environment.hf_token)},
             "distributed": distributed,

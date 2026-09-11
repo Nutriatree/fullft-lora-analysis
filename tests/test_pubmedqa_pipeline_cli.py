@@ -1,25 +1,31 @@
-from contextlib import redirect_stdout
 import io
 import json
-from pathlib import Path
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from pathlib import Path
 from unittest.mock import patch
 
 from helpers.tiny_training import make_config
+
 from pubmedqa.eval.reports import RunArtifacts
 from scripts.run_pubmedqa_experiments import main
 
 
 class PipelineCliTest(unittest.TestCase):
-    def test_legacy_factory_keeps_variants_and_rejects_invalid_training_selection(self):
+    def test_direct_config_builders_keep_variants_and_reject_invalid_selection(self):
         from dataclasses import replace
+
         from helpers.tiny_training import environment
-        from pubmedqa.experiment_runs import build_runner
-        from pubmedqa.train.study import build_training_config
-        from pubmedqa.experiment_runs import DEFAULT_PATHS, DEFAULT_SHARED_DEFAULTS
-        from pubmedqa.config.full_ft import FullFineTuneConfig
-        from pubmedqa.config.lora import LoRAFineTuneConfig
+
+        from pubmedqa.config.experiments import (
+            DEFAULT_PATHS,
+            DEFAULT_SHARED_DEFAULTS,
+            build_training_config,
+            resolve_run_spec,
+        )
+        from pubmedqa.config.train import TrainingConfig
+        from scripts.run_pubmedqa_experiments import build_baseline_runner
 
         defaults = replace(DEFAULT_SHARED_DEFAULTS, device="cpu", dtype="float32")
         with tempfile.TemporaryDirectory() as directory:
@@ -29,22 +35,28 @@ class PipelineCliTest(unittest.TestCase):
                 ("L1", "lora"),
                 ("LL1", "lora"),
             ):
-                method, adapter = build_runner(
-                    run_id="legacy",
-                    run_tag=tag,
-                    defaults=defaults,
-                    environment=environment(),
-                    train_output_dir=Path(directory),
-                    baseline_output_dir=Path(directory),
-                    target_layer_overrides={"LL1": (0,)},
-                )
-                self.assertEqual(expected, method)
-                if method != "baseline":
-                    self.assertIsInstance(
-                        adapter.config,
-                        FullFineTuneConfig if tag == "F1" else LoRAFineTuneConfig,
+                spec = resolve_run_spec(tag)
+                self.assertEqual(expected, spec.method)
+                if tag == "B0":
+                    runner = build_baseline_runner(
+                        run_id="direct",
+                        spec=spec,
+                        defaults=defaults,
+                        output_dir=Path(directory),
+                        environment=environment(),
                     )
-                    adapter.close()
+                    self.assertEqual(defaults.device, runner.runtime.device)
+                else:
+                    config = build_training_config(
+                        run_id="direct",
+                        run_tag=tag,
+                        paths=DEFAULT_PATHS,
+                        output_dir=Path(directory),
+                        defaults=defaults,
+                        target_layer_overrides={"LL1": (0,)},
+                    )
+                    self.assertIsInstance(config, TrainingConfig)
+                    self.assertEqual(tag != "F1", config.adapter is not None)
             common = dict(
                 run_id="bad",
                 paths=DEFAULT_PATHS,
@@ -58,53 +70,32 @@ class PipelineCliTest(unittest.TestCase):
                     run_tag="L1", target_layer_overrides={"L1": (0,)}, **common
                 )
 
-    def test_environment_entrypoints_use_the_functional_program(self):
-        from dataclasses import asdict
+    def test_environment_configurations_feed_the_functional_program(self):
         from types import SimpleNamespace
-        from helpers.tiny_training import environment
-        from pubmedqa import full_finetune as engine
-        from pubmedqa import lora_finetune as lora
-        from pubmedqa.config.lora import LoRAFineTuneConfig
 
-        for entry, config_type in (
-            (engine, "FullFineTuneCliConfig"),
-            (lora, "LoRAFineTuneCliConfig"),
-        ):
+        from helpers.tiny_training import environment, with_lora
+
+        from pubmedqa.config.train import TrainingCliConfig
+        from pubmedqa.train.pipeline import run_training
+
+        for method in ("full-ft", "lora"):
             with tempfile.TemporaryDirectory() as directory:
                 cfg = make_config(Path(directory))
-                if entry is lora:
-                    cfg = LoRAFineTuneConfig(
-                        **{
-                            **asdict(cfg),
-                            "lora_rank": 2,
-                            "lora_alpha": 4,
-                            "lora_dropout": 0,
-                            "target_modules": ("q_proj",),
-                        },
-                        lora_bias="none",
-                        lora_task_type="CAUSAL_LM",
-                        modules_to_save=(),
-                        merge_for_eval=False,
-                    )
+                if method == "lora":
+                    cfg = with_lora(cfg, target_modules=("q_proj",))
                 cli = SimpleNamespace(config=cfg, environment=environment())
                 with (
-                    patch.object(
-                        getattr(entry, config_type), "from_env", return_value=cli
-                    ),
-                    patch(
-                        "pubmedqa.full_finetune.PubMedQATrainingEngine.__init__",
-                        side_effect=AssertionError(
-                            "environment entry constructed legacy trainer"
-                        ),
-                    ),
+                    patch.object(TrainingCliConfig, "from_env", return_value=cli),
                     redirect_stdout(io.StringIO()),
                 ):
-                    entry.main()
+                    parsed = TrainingCliConfig.from_env(method)
+                    run_training(parsed.config, parsed.environment)
                 self.assertTrue(list(Path(directory).rglob("summary.json")))
 
-    def test_standalone_commands_use_functional_pipeline_without_legacy_trainers(self):
-        from scripts import run_pubmedqa_full_finetune, run_pubmedqa_lora_finetune
+    def test_standalone_commands_run_the_training_pipeline(self):
         from helpers.offline import offline_cpu
+
+        from scripts import run_pubmedqa_full_finetune, run_pubmedqa_lora_finetune
 
         for command, extra in (
             (run_pubmedqa_full_finetune, []),
@@ -166,10 +157,6 @@ class PipelineCliTest(unittest.TestCase):
                 ]
                 with (
                     patch("sys.argv", argv),
-                    patch(
-                        "pubmedqa.full_finetune.PubMedQATrainingEngine.__init__",
-                        side_effect=AssertionError("CLI constructed a legacy trainer"),
-                    ),
                     redirect_stdout(io.StringIO()),
                 ):
                     command.main()
@@ -181,10 +168,12 @@ class PipelineCliTest(unittest.TestCase):
 
     def test_runner_errors_close_resources_and_obey_continue_flag(self):
         from dataclasses import replace
-        from pubmedqa.train.distributed import TrainingSession
-        from pubmedqa.train.study import ExperimentStudy, execute_study
-        from pubmedqa.experiment_runs import DEFAULT_PATHS, DEFAULT_SHARED_DEFAULTS
+
         from helpers.tiny_training import environment
+
+        from pubmedqa.config.experiments import DEFAULT_PATHS, DEFAULT_SHARED_DEFAULTS
+        from pubmedqa.train.distributed import TrainingSession
+        from scripts.run_pubmedqa_experiments import ExperimentStudy, execute_study
 
         with tempfile.TemporaryDirectory() as directory:
             for keep_going in (False, True):
@@ -245,15 +234,15 @@ class PipelineCliTest(unittest.TestCase):
             with (
                 patch("sys.argv", argv),
                 patch(
-                    "pubmedqa.train.study.run_training",
+                    "scripts.run_pubmedqa_experiments.run_training",
                     side_effect=AssertionError("dry-run must not construct a model"),
                 ),
                 patch(
-                    "pubmedqa.train.study.build_baseline_runner",
+                    "scripts.run_pubmedqa_experiments.build_baseline_runner",
                     side_effect=AssertionError("manifest constructed baseline"),
                 ),
                 patch(
-                    "pubmedqa.train.study.distributed_control_group",
+                    "scripts.run_pubmedqa_experiments.distributed_control_group",
                     side_effect=AssertionError("manifest initialized distributed"),
                 ),
                 redirect_stdout(io.StringIO()),
@@ -314,10 +303,6 @@ class PipelineCliTest(unittest.TestCase):
             ]
             with (
                 patch("sys.argv", argv),
-                patch(
-                    "pubmedqa.full_finetune.PubMedQATrainingEngine.__init__",
-                    side_effect=AssertionError("study constructed legacy trainer"),
-                ),
                 redirect_stdout(io.StringIO()),
             ):
                 main()

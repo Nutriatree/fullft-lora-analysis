@@ -2,12 +2,12 @@
 
 이 문서는 [학습 파이프라인](../../src/pubmedqa/train/pipeline.py)와 [LoRA CLI](../../scripts/run_pubmedqa_lora_finetune.py)를 사용해 PubMedQA LoRA 학습을 실행하는 방법을 설명한다.
 
-코드를 수정할 때 설정은 `config/lora.py`, 모델·adapter 구성은 `model/lora.py`,
-공통 학습 step은 `train/loop.py`, LoRA delta 분석은 `train/lora.py`에서 수정한다.
+코드를 수정할 때 설정은 `config/train.py`, 모델·adapter 구성은 `model/lora.py`,
+공통 학습 step은 `train/loop.py`, LoRA delta 분석은 `train/lora_analysis.py`에서 수정한다.
 Full/LoRA CLI는 `run_training(config, environment)`을 직접 호출한다.
 학습 순서는 `train/pipeline.py`의 지역 상태와 명시적 호출로 구성하고,
-분석 기록은 `AdapterHistory`에만 보관한다. 기존 Trainer 클래스와 import는 호환 진입점이며
-그 메서드를 override하는 방식은 새 파이프라인의 확장 지점이 아니다. 로컬 동작 검증은
+분석 기록은 `AdapterHistory`에만 보관한다. 설정은 `config.train`, 실행은
+`train.pipeline.run_training`을 직접 사용한다. 로컬 동작 검증은
 `python scripts/test_pubmedqa_offline.py`로 수행하며, 실제 PEFT를 적용한 소형 CPU 모델을 사용한다.
 
 기준 환경은 서버의 `conda` 환경 `jw` 이다.
@@ -238,7 +238,14 @@ export PUBMEDQA_LORA_ALPHA=16
 export PUBMEDQA_LORA_DROPOUT=0.0
 export PUBMEDQA_CHECKPOINT_PERCENTS=25,50,75,100
 
-PYTHONPATH=src python -m pubmedqa.lora_finetune
+PYTHONPATH=src python - <<'PY'
+from pubmedqa.config.train import TrainingCliConfig
+from pubmedqa.train.pipeline import run_training
+
+cli = TrainingCliConfig.from_env("lora")
+summary = run_training(cli.config, cli.environment)
+print(summary)
+PY
 ```
 
 ## selective layer JSON 형식

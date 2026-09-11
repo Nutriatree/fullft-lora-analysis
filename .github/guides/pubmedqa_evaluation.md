@@ -1,6 +1,6 @@
 # PubMedQA 평가 실행 가이드
 
-이 문서는 `src/pubmedqa/evaluation.py`와 `scripts/run_pubmedqa_eval.py`를 사용해 PubMedQA baseline QA 평가를 실행하는 방법을 설명합니다.  
+이 문서는 `src/pubmedqa/eval/inference.py`와 `scripts/run_pubmedqa_eval.py`를 사용해 PubMedQA baseline QA 평가를 실행하는 방법을 설명합니다.
 현재 기준으로 평가 대상은 base model이며, 이후 full fine-tune과 LoRA 결과도 같은 출력 형식으로 맞춰 비교할 수 있게 구성되어 있습니다.
 
 ## 개요
@@ -80,7 +80,7 @@ PYTHONPATH=src python scripts/run_pubmedqa_eval.py \
 
 ## 실행 방식 2: 다중 모델 일괄 평가
 
-`src/pubmedqa/evaluation.py`는 환경변수를 통해 여러 모델을 순차 평가하는 entrypoint도 제공합니다.
+동일한 평가 script는 `--from-env` 옵션으로 여러 모델을 순차 평가할 수도 있습니다.
 
 ```bash
 export HF_TOKEN=...
@@ -94,7 +94,7 @@ export PUBMEDQA_BATCH_SIZE=8
 export PUBMEDQA_MAX_NEW_TOKENS=4
 export PUBMEDQA_DTYPE=bf16
 
-PYTHONPATH=src python -m pubmedqa.evaluation
+PYTHONPATH=src python scripts/run_pubmedqa_eval.py --from-env
 ```
 
 이 방식은 지정한 모델들을 하나씩 순차 실행합니다.  
@@ -166,7 +166,7 @@ PYTHONPATH=src python -m pubmedqa.evaluation
 
 ## 현재 프롬프트 동작과의 관계
 
-평가 코드는 `src/pubmedqa/prompt_builder.py`를 사용합니다. 현재 프롬프트는 `question`과
+평가 코드는 `src/pubmedqa/data/prompts.py`를 사용합니다. 현재 프롬프트는 `question`과
 `context`만 모델에 제공하고, `yes`, `no`, `maybe` 중 하나를 출력하도록 지시합니다. 이는
 decoding vocabulary를 제한하는 hard constraint가 아닙니다.
 

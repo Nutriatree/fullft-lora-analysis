@@ -17,11 +17,10 @@ import torch
 from transformers import get_linear_schedule_with_warmup
 
 import pubmedqa.train.checkpoints as checkpoint_ops
-import pubmedqa.train.full_ft as analysis_ops
-import pubmedqa.train.lora as lora_analysis_ops
-from pubmedqa.config import EnvironmentConfig
-from pubmedqa.config.full_ft import FullFineTuneConfig, validate_training_config
-from pubmedqa.config.lora import LoRAFineTuneConfig
+import pubmedqa.train.analysis as analysis_ops
+import pubmedqa.train.lora_analysis as lora_analysis_ops
+from pubmedqa.config.env import EnvironmentConfig
+from pubmedqa.config.train import TrainingConfig, validate_training_config
 from pubmedqa.data.records import current_time_iso, load_local_jsonl, write_jsonl
 from pubmedqa.data.supervised import (
     PubMedQASupervisedDataset,
@@ -44,7 +43,7 @@ from pubmedqa.model.device import (
 from pubmedqa.model.device import (
     memory_snapshot as _memory_snapshot,
 )
-from pubmedqa.model.full_ft import load_full_model
+from pubmedqa.model.loading import load_full_model
 from pubmedqa.model.loading import ModelLoadOptions
 from pubmedqa.model.lora import AdapterOptions, load_lora_model
 from pubmedqa.train.artifacts import (
@@ -64,7 +63,7 @@ from pubmedqa.train.loop import TrainingMemory, TrainStepLog, train_epoch
 
 
 def run_training(
-    config: FullFineTuneConfig,
+    config: TrainingConfig,
     environment: EnvironmentConfig,
     *,
     session: TrainingSession | None = None,
@@ -88,11 +87,7 @@ def _run_training(config, environment, session):
         trust_remote_code=config.trust_remote_code,
         hf_token=environment.hf_token,
     )
-    adapter = (
-        AdapterOptions.from_config(config)
-        if isinstance(config, LoRAFineTuneConfig)
-        else None
-    )
+    adapter = AdapterOptions.from_config(config) if config.adapter is not None else None
     history = lora_analysis_ops.AdapterHistory()
     # Bind fixed, narrow inputs locally; these are not global strategy hooks.
     load_model = (

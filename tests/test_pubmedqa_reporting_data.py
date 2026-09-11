@@ -59,12 +59,8 @@ class PubMedQAReportingDataTest(unittest.TestCase):
 
     def test_balanced_split_is_seeded_disjoint_and_balanced(self) -> None:
         rows = [
-            {"pubid": f"yes-{index}", "final_decision": "yes"}
-            for index in range(8)
-        ] + [
-            {"pubid": f"no-{index}", "final_decision": "no"}
-            for index in range(8)
-        ]
+            {"pubid": f"yes-{index}", "final_decision": "yes"} for index in range(8)
+        ] + [{"pubid": f"no-{index}", "final_decision": "no"} for index in range(8)]
 
         first = split_balanced_artificial(
             rows,
@@ -99,12 +95,16 @@ class PubMedQAReportingDataTest(unittest.TestCase):
                 report_root=root / "reports" / "study",
             )
 
-            payload = json.loads(write_report_manifest(layout).read_text(encoding="utf-8"))
+            payload = json.loads(
+                write_report_manifest(layout).read_text(encoding="utf-8")
+            )
 
             self.assertEqual(str(study_dir), payload["input_study_dir"])
             self.assertEqual(["figures/main/figure.png"], payload["figure_files"])
 
-    def test_posttrain_service_writes_disjoint_balanced_splits_and_metadata(self) -> None:
+    def test_posttrain_service_writes_disjoint_balanced_splits_and_metadata(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             artificial_train = root / "source" / "train.jsonl"
@@ -144,8 +144,14 @@ class PubMedQAReportingDataTest(unittest.TestCase):
             )
 
             metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-            self.assertEqual({"yes": 4, "no": 4}, metadata["splits"]["pqa_artificial/train"]["label_counts"])
-            self.assertEqual({"yes": 2, "no": 2}, metadata["splits"]["pqa_artificial/validation"]["label_counts"])
+            self.assertEqual(
+                {"yes": 4, "no": 4},
+                metadata["splits"]["pqa_artificial/train"]["label_counts"],
+            )
+            self.assertEqual(
+                {"yes": 2, "no": 2},
+                metadata["splits"]["pqa_artificial/validation"]["label_counts"],
+            )
             self.assertFalse(metadata["policy"]["uses_folds"])
 
     def test_data_summary_reports_malformed_jsonl_line(self) -> None:
@@ -155,7 +161,9 @@ class PubMedQAReportingDataTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "broken.jsonl:2"):
                 read_jsonl_summary(path)
 
-    def test_lightweight_data_and_reporting_imports_do_not_load_ml_or_plot_frameworks(self) -> None:
+    def test_lightweight_data_and_reporting_imports_do_not_load_ml_or_plot_frameworks(
+        self,
+    ) -> None:
         process = subprocess.run(
             [
                 sys.executable,
@@ -174,12 +182,14 @@ class PubMedQAReportingDataTest(unittest.TestCase):
         )
         self.assertEqual(0, process.returncode, process.stderr)
 
-    def test_plot_scripts_are_thin_adapters_with_independent_output_directories(self) -> None:
+    def test_plot_scripts_own_their_flow_and_share_only_reporting_primitives(
+        self,
+    ) -> None:
         for path in Path("scripts").glob("plot_pubmedqa*.py"):
             source = path.read_text(encoding="utf-8")
             self.assertIn("--output-dir", source, path.name)
-            self.assertNotIn("savefig(", source, path.name)
-            self.assertNotIn("json.loads(", source, path.name)
+            self.assertIn("def generate_", source, path.name)
+            self.assertNotIn("pubmedqa.eval.plot_", source, path.name)
 
 
 def _counts(rows: list[dict]) -> dict[str, int]:

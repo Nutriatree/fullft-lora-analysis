@@ -1,19 +1,22 @@
-from contextlib import nullcontext
-from pathlib import Path
 import tempfile
 import unittest
+from contextlib import nullcontext
+from pathlib import Path
 from unittest.mock import Mock, patch
-import torch
 
-from helpers.tiny_training import make_config, environment
+import torch
+from helpers.tiny_training import environment, make_config, model_options
+
 from pubmedqa.data.supervised import SupervisedDataCollator, SupervisedExample
-from pubmedqa.full_finetune import PubMedQAFullFineTuner
+from pubmedqa.model.loading import load_full_model
+from pubmedqa.train.pipeline import run_training
 
 
 class SupervisedValidationTest(unittest.TestCase):
     def test_optional_limits_and_unsupported_save_config(self):
         from dataclasses import replace
-        from pubmedqa.config.full_ft import validate_training_config
+
+        from pubmedqa.config.train import validate_training_config
 
         with tempfile.TemporaryDirectory() as directory:
             cfg = make_config(Path(directory))
@@ -41,8 +44,9 @@ class SupervisedValidationTest(unittest.TestCase):
     def test_rank_local_bad_batch_prevents_forward_on_every_rank(self):
         from helpers.distributed import FakeRanks
         from test_pubmedqa_training_loop import ScalarLoss
-        from pubmedqa.train.loop import train_epoch
+
         from pubmedqa.train.distributed import SynchronizedOperationError
+        from pubmedqa.train.loop import train_epoch
 
         for failed_rank in (0, 1):
             ranks = FakeRanks()
@@ -90,24 +94,21 @@ class SupervisedValidationTest(unittest.TestCase):
                 forward.assert_not_called()
 
     def test_empty_split_and_masked_late_row_fail_before_optimizer(self):
-        from dataclasses import replace
         from pubmedqa.data.supervised import PubMedQASupervisedDataset
 
         with self.assertRaisesRegex(ValueError, "Empty"):
             PubMedQASupervisedDataset([], None)
         with tempfile.TemporaryDirectory() as directory:
             cfg = make_config(Path(directory), max_input_tokens=1)
-            owner = PubMedQAFullFineTuner(cfg, environment())
             with patch("torch.optim.AdamW") as optimizer:
                 with self.assertRaisesRegex(ValueError, "pubid="):
-                    owner.run()
+                    run_training(cfg, environment())
             optimizer.assert_not_called()
 
     def test_masked_row_rejected_with_pubid_and_no_raw_text(self):
         with tempfile.TemporaryDirectory() as directory:
             cfg = make_config(Path(directory))
-            owner = PubMedQAFullFineTuner(cfg, environment())
-            tokenizer, _ = owner.load_model_and_tokenizer(cfg.model_name)
+            tokenizer, _ = load_full_model(cfg.model_name, options=model_options(cfg))
             for side in ("left", "right"):
                 tokenizer.padding_side = side
                 for maximum in (1, 2):
@@ -127,9 +128,7 @@ class SupervisedValidationTest(unittest.TestCase):
     def test_valid_one_target_and_mixed_invalid_rows(self):
         with tempfile.TemporaryDirectory() as directory:
             cfg = make_config(Path(directory))
-            tokenizer, _ = PubMedQAFullFineTuner(
-                cfg, environment()
-            ).load_model_and_tokenizer(cfg.model_name)
+            tokenizer, _ = load_full_model(cfg.model_name, options=model_options(cfg))
             good = SupervisedExample("good", "test", "test yes", "yes")
             bad = SupervisedExample("bad", "test", "test", "yes")
             for side in ("left", "right"):
@@ -153,21 +152,20 @@ class SupervisedValidationTest(unittest.TestCase):
                 "gradient_accumulation_steps",
             ):
                 for value in (0, -1):
-                    owner = PubMedQAFullFineTuner(
-                        replace(cfg, **{field: value}), environment()
-                    )
+                    candidate = replace(cfg, **{field: value})
                     with (
-                        patch.object(owner, "load_model_and_tokenizer") as load,
+                        patch("pubmedqa.train.pipeline.load_full_model") as load,
                         patch("torch.optim.AdamW") as optimizer,
                     ):
                         with self.assertRaisesRegex(ValueError, field):
-                            owner.run()
+                            run_training(candidate, environment())
                     load.assert_not_called()
                     optimizer.assert_not_called()
 
     def test_nonfinite_loss_never_backward_or_steps(self):
-        from pubmedqa.train.loop import train_epoch
         from test_pubmedqa_training_loop import ScalarLoss
+
+        from pubmedqa.train.loop import train_epoch
 
         model = ScalarLoss()
         model.weight.data.fill_(float("nan"))

@@ -4,9 +4,9 @@
 
 기준 환경은 서버의 `conda` 환경 `jw` 이다.
 
-## 코드 변경 검증과 결과 수집의 차이
+## 코드 검증과 결과 수집의 차이
 
-이 문서의 결과 수집 CLI는 이미 생성된 실험 파일을 읽는다. 코드 리팩토링 검증은
+이 문서의 결과 수집 CLI는 이미 생성된 실험 파일을 읽는다. 코드 검증은
 저장소 루트에서 다음 명령으로 별도로 수행한다. Python 3.10 이상과 PyTorch,
 `requirements.txt`, 개발 의존성(`pip install -e '.[dev]'`)이 필요하다.
 
@@ -30,13 +30,12 @@ git diff --check
 launcher 검사는 Python/torchrun을 인자 기록용 stub으로 대체하며 실제 학습을 실행하지 않는다.
 소형 모델은 실제 CPU 수치 계산, 분산 wrapper/collective는 fake라는 경계를 유지한다.
 
-아키텍처 회귀 검증은 다음 계약도 포함한다.
+offline suite는 다음 실행 계약도 확인한다.
 
-- `train/pipeline.py::run_training` 및 standalone/환경변수/study 진입점은 기존 Trainer 생성 없이 실행된다.
+- `train/pipeline.py::run_training` 및 standalone/환경변수/study 진입점이 같은 학습 흐름을 사용한다.
 - `TrainingSession`·`RunFiles`·`EvaluationSettings`·`AdapterHistory`는 각자 필요한 상태만 보관한다.
-- 타입 정의는 각 기능에 위치하고 공개 import와 같은 객체를 반환한다. 옛 내부 `contracts` 파일은 제거했다.
 - 초기화·모델 적재·평가·writer 오류가 나도 정리/실패 전파가 유지되고 borrowed group은 파괴하지 않는다.
-- Phase 1 산출물 계약과 고정 CPU 수치 기준을 유지하며, 학습 모델이 해제된 뒤 best checkpoint를 적재한다.
+- 산출물 계약과 고정 CPU 수치 기준을 유지하며, 학습 모델이 해제된 뒤 best checkpoint를 적재한다.
 
 새 구조는 실제 GPU 검증 완료를 의미하지 않는다. GPU 수렴·성능·메모리와 NCCL 동작은 별도 검증이 필요하다.
 
@@ -253,11 +252,3 @@ validator는 train 계열 run에서 `F1`의 `config.json` 을 기준으로 다�
 - heatmap 생성, singular value 시각화, prediction transition 분석 자체는 하지 않는다.
 - selective LoRA의 layer 선택이 적절했는지 판단하지도 않는다.
 - low-data subset이 실질적으로 동일했는지는 run manifest와 central spec를 함께 봐야 한다.
-
-## 목적별 디렉토리 계약
-
-`tests/test_pubmedqa_purpose_layout.py`는 data/model/train/eval/config 다섯 패키지와
-중첩 패키지 부재를 검사한다. Full FT/LoRA는 설정·모델·분석의 별도 파일을 유지하고
-공유 base loader·optimizer loop를 중복 정의하지 않는다. `test_pubmedqa_directory_layout.py`는
-core의 구형/공개 호환 경로 역참조 금지와 모든 설정 기본값 snapshot을 검사한다.
-원격 다운로드 없이 Full-only multimodal fallback과 LoRA 오류 전파도 검증한다.

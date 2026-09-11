@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import unittest
 
-from pubmedqa.answer_parser import parse_pubmedqa_answer, require_pubmedqa_label
-from pubmedqa.prompt_builder import (
+from pubmedqa.data.prompts import (
     build_assistant_answer,
     build_messages,
     build_plain_prompt,
     build_tokenizer_prompt,
     example_from_record,
 )
+from pubmedqa.eval.metrics import parse_pubmedqa_answer, require_pubmedqa_label
 
 
 class PubMedQAPromptParserTest(unittest.TestCase):

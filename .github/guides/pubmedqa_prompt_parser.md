@@ -5,10 +5,9 @@
 
 ## 관련 모듈
 
-- `src/pubmedqa/prompt_builder.py`: PubMedQA 입력 프롬프트 생성
-- `src/pubmedqa/instruction.py`: system prompt, user prompt, assistant answer 템플릿 정의
-- `src/pubmedqa/labels.py`: `yes`, `no`, `maybe` 라벨 정규화 및 검증
-- `src/pubmedqa/answer_parser.py`: 모델 출력에서 최종 라벨 파싱
+- `src/pubmedqa/data/prompts.py`: system/user/assistant 템플릿과 프롬프트 구성의 실제 구현
+- `src/pubmedqa/data/records.py`: `yes`, `no`, `maybe` 라벨 정규화 및 검증
+- `src/pubmedqa/eval/metrics.py`: 모델 출력에서 최종 라벨 파싱
 - `scripts/pubmedqa_prompt.py`: 프롬프트 및 파서 동작을 빠르게 점검하는 CLI
 
 환경에서는 다음 둘 중 하나를 사용하면 됩니다.
@@ -48,8 +47,9 @@ yes
 추론 시에는 `include_answer=False` 상태로 prompt를 만듭니다.
 
 ```python
-from pubmedqa.prompt_builder import build_tokenizer_prompt, example_from_record
-from pubmedqa.answer_parser import parse_pubmedqa_answer
+from pubmedqa.data.prompts import build_tokenizer_prompt
+from pubmedqa.data.records import example_from_record
+from pubmedqa.eval.metrics import parse_pubmedqa_answer
 
 example = example_from_record(record)
 prompt = build_tokenizer_prompt(tokenizer, example, include_answer=False)
@@ -75,7 +75,8 @@ prediction = parse_pubmedqa_answer(decoded)
 full fine-tune과 LoRA에서는 gold answer를 assistant message로 붙여서 사용합니다.
 
 ```python
-from pubmedqa.prompt_builder import build_messages, example_from_record
+from pubmedqa.data.prompts import build_messages
+from pubmedqa.data.records import example_from_record
 
 example = example_from_record(record)
 messages = build_messages(example, include_answer=True)

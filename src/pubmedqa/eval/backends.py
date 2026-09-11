@@ -10,7 +10,7 @@ from typing import Any, Protocol, Sequence
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from pubmedqa.config import EnvironmentConfig
+from pubmedqa.config.env import EnvironmentConfig
 from pubmedqa.config.eval import ModelRuntimeConfig
 
 DEFAULT_MLX_MODEL_MAP: dict[str, str] = {

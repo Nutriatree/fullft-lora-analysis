@@ -7,8 +7,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from pubmedqa.evaluation import resolve_metric_labels
-from pubmedqa.full_finetune import FullFineTuneCliConfig, PubMedQAFullFineTuner
+from pubmedqa.config.train import TrainingCliConfig
+from pubmedqa.eval.metrics import resolve_metric_labels
 
 
 class PubMedQACharacterizationTest(unittest.TestCase):
@@ -29,7 +29,7 @@ class PubMedQACharacterizationTest(unittest.TestCase):
             "PUBMEDQA_CHECKPOINT_PERCENTS": "25,100",
         }
         with patch.dict(os.environ, environment, clear=True):
-            cli_config = FullFineTuneCliConfig.from_env()
+            cli_config = TrainingCliConfig.from_env("full-ft")
 
         self.assertEqual("local/test-model", cli_config.config.model_name)
         self.assertEqual(7, cli_config.config.num_epochs)
@@ -62,25 +62,6 @@ class PubMedQACharacterizationTest(unittest.TestCase):
                     "assert 'torch' not in sys.modules; "
                     "assert 'transformers' not in sys.modules; "
                     "assert 'peft' not in sys.modules"
-                ),
-            ],
-            check=False,
-            capture_output=True,
-            text=True,
-            env={**os.environ, "PYTHONPATH": "src"},
-        )
-
-        self.assertEqual(0, process.returncode, process.stderr)
-
-    def test_legacy_top_level_trainer_import_remains_available(self) -> None:
-        process = subprocess.run(
-            [
-                sys.executable,
-                "-c",
-                (
-                    "from pubmedqa import PubMedQAFullFineTuner, PubMedQALoRAFineTuner; "
-                    "assert PubMedQAFullFineTuner.__name__ == 'PubMedQAFullFineTuner'; "
-                    "assert PubMedQALoRAFineTuner.__name__ == 'PubMedQALoRAFineTuner'"
                 ),
             ],
             check=False,

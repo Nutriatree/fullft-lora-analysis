@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 import torch
 
-from pubmedqa.config.full_ft import normalize_checkpoint_percents
+from pubmedqa.config.train import normalize_checkpoint_percents
 from pubmedqa.data.records import (
     count_directory_size_bytes as _count_directory_size_bytes,
 )
@@ -33,7 +33,7 @@ from pubmedqa.train.distributed import (
 )
 
 if TYPE_CHECKING:
-    from pubmedqa.train.full_ft import LayerwiseReference
+    from pubmedqa.train.analysis import LayerwiseReference
 
 
 @dataclass(frozen=True)

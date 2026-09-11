@@ -9,7 +9,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from pubmedqa.experiment_runs import DEFAULT_SHARED_DEFAULTS
+from pubmedqa.config.experiments import DEFAULT_SHARED_DEFAULTS
 from pubmedqa.data.records import safe_name, write_json
 
 

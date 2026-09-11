@@ -197,13 +197,14 @@ Full FT와 LoRA는 동일한 optimizer-step 루프를 사용하며, 실험 결�
 
 ```text
 src/pubmedqa/
+├── __init__.py   # package marker only; no Trainer exports
 ├── data/         # records, prompts, prepare, supervised; source/inspection
-├── model/        # loading, full_ft, lora, device
-├── train/        # pipeline, loop, distributed, checkpoints, study; method analysis
-├── eval/         # inference, validation, metrics, reports, flat RQ plots
-└── config/       # full_ft, lora, eval, experiments; shared environment parsing
+├── model/        # shared/full loading, LoRA preparation, device policy
+├── train/        # pipeline, loop, distributed, checkpoints, artifacts, analysis
+├── eval/         # inference runner, validation, metrics, reports, plot helpers
+└── config/       # train, eval, experiments, explicit environment readers
 
-scripts/          # thin CLI adapters
+scripts/          # executable train/eval/study/plot data flows
 outputs/          # experiment logs, metrics and model artifacts
 reports/          # figures derived from outputs/
 .github/          # versioned guides, report and README assets
@@ -215,37 +216,43 @@ docs/             # local drafts and internal plans (Git-ignored)
 `data/prepare.py`, 학습 step·메모리 구간 측정은 `train/loop.py`,
 checkpoint 스케줄·저장은 `train/checkpoints.py`에 둡니다.
 
-Full FT와 LoRA의 전용 설정·모델 준비·분석은 구분하고, 동일한 학습 루프는 복제하지 않습니다.
-실제 실행 경계가 다른 원격 source, 오프라인 점검, Torch/MLX backend와 독립 RQ plot은
-별도 파일로 유지합니다. 상세한 기준은 [ARCHITECTURE.md](.github/ARCHITECTURE.md)에 정리했습니다.
+Full FT와 LoRA는 하나의 `TrainingConfig`를 사용하고 LoRA 전용 값만 `LoRAOptions`로
+조합합니다. 모델 준비와 분석의 실제 차이는 유지하되 동일한 학습 루프는 복제하지 않습니다.
+실행 가능한 study와 RQ plot은 `scripts/`에 두고, 재사용되는 reader와 스타일만 패키지에 둡니다.
 
 학습 방식 수정은 [공통 루프](src/pubmedqa/train/loop.py), 입력·loss mask 수정은
 [supervised data](src/pubmedqa/data/supervised.py), LoRA 구성 수정은
 [모델 준비](src/pubmedqa/model/lora.py)에서 시작합니다.
 [학습 프로그램](src/pubmedqa/train/pipeline.py)의 `run_training(config, environment)`이
 준비 → reference 평가 → 학습·검증·저장 → 학습 모델 해제 → best checkpoint test → 결과 저장을
-명시적으로 조립하고 세션을 `finally`에서 정리합니다. CLI와 `train/study.py`도 직접 호출합니다.
+명시적으로 조립하고 세션을 `finally`에서 정리합니다. 학습 CLI와 experiment script가 직접 호출합니다.
 
 | 수정할 목적 | 실제 소유자 |
 |---|---|
-| Full FT / LoRA 모델 준비 | `model/full_ft.py`, `model/lora.py`; 공통 적재는 `model/loading.py` |
-| Full FT / LoRA 설정·환경 변수·기본값 | `config/full_ft.py`, `config/lora.py` |
+| Full FT / LoRA 모델 준비 | `model/loading.py`, `model/lora.py`; 공통 적재는 `model/loading.py` |
+| 공통 학습 설정 / LoRA 옵션 | `config/train.py::TrainingConfig`, `LoRAOptions` |
 | 추론 설정 / 데이터-only 실험 정의 | `config/eval.py`, `config/experiments.py` |
 | 학습 세션, DDP/FSDP wrapping·분석 unshard·정리 | `train/distributed.py` |
 | 학습 step·학습 구간 메모리 측정 | `train/loop.py` |
-| checkpoint 평가 / Full FT·LoRA 분석 | `eval/validation.py`, `train/full_ft.py`, `train/lora.py` |
-| run 구성·순차 study / 최종 artifact | `train/study.py`, `train/artifacts.py` |
+| checkpoint 평가 / Full FT·LoRA 분석 | `eval/validation.py`, `train/analysis.py`, `train/lora_analysis.py` |
+| run 설정 변환 / 순차 study / 최종 artifact | `config/experiments.py`, `scripts/run_pubmedqa_experiments.py`, `train/artifacts.py` |
 
 `TrainingSession`은 통신 자원, `EvaluationSettings`는 평가 설정, `RunFiles`는 경로,
 `AdapterHistory`는 분석 기록만 보관합니다. 모델·optimizer·scheduler는 실행 함수의 지역 상태입니다.
-설정 조회는 torch-free이며 `config/__init__.py`는 공용 환경 파싱만 담당합니다.
+설정 조회는 torch-free이며 `config/env.py`가 공용 환경 파싱을 담당합니다. 각 패키지의
+`__init__.py`는 재수출 없이 package marker로만 사용합니다.
 
-기존 내부 호환 디렉토리는 제거했습니다. `domain`, `models`, `training`, `inference`,
-`reporting`, `runtime`, `experiments`, `compat` 및 옛 내부 shim import는 지원하지 않습니다.
-공개 notebook API인 `full_finetune.py`, `lora_finetune.py`, `evaluation.py`,
-`experiment_runs.py`, `runtime_settings.py`, label/prompt/parser 모듈은 root에 유지합니다.
-이 compatibility 표면으로 core가 역의존하지 않습니다. 기존 Trainer 메서드 override 대신
-위 실제 소유자를 수정합니다. CLI 인자와 결과 artifact 형식은 유지됩니다.
+root의 `__init__.py`와 각 패키지의 `__init__.py`는 재수출 없이 package marker로만
+사용합니다. CLI와 테스트는 다섯 패키지의 실제 구현을 직접 참조합니다.
+
+```python
+from pubmedqa.config.train import TrainingCliConfig
+from pubmedqa.train.pipeline import run_training
+
+# 환경변수에서 읽은 설정으로 실행한다. LoRA는 method="lora"를 지정한다.
+cli = TrainingCliConfig.from_env("full-ft")
+summary = run_training(cli.config, cli.environment)
+```
 
 ## Quick Start
 
@@ -407,8 +414,7 @@ DDP/FSDP는 fake를 통한 제어 흐름 검사만 포함합니다.
   tracking을 끄면 weight/adapter dynamics 할당·쓰기를 생략합니다. 학습 peak는 평가 peak와
   분리하며 `distributed_runtime.json`은 모든 rank의 측정값을 포함합니다.
 
-기존 보고서와 실험 산출물은 재생성하지 않았습니다. 과거 batch-mean loss·float16 reference
-분석·혼합 peak와 새 값을 직접 동일시하지 마세요. 상세 조건은
+artifact의 수치 provenance와 분산 환경별 해석 조건은
 [분산 실행 가이드](.github/guides/pubmedqa_fsdp_troubleshooting.md)를 참고하세요.
 
 기존 CLI `--dry-run`은 manifest만 생성하며 학습 루프를 실행하지 않습니다.

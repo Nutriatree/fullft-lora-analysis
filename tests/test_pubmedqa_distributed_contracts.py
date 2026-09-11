@@ -1,23 +1,25 @@
-from types import SimpleNamespace
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from helpers.distributed import FakeRanks
+
 from pubmedqa.train.distributed import run_on_rank_zero
 
 
 class DistributedContractsTest(unittest.TestCase):
     def test_study_continue_and_abort_are_shared_and_fatal_errors_never_continue(self):
+        import io
+        import tempfile
         from contextlib import nullcontext, redirect_stdout
         from dataclasses import replace
         from pathlib import Path
-        import io
-        import tempfile
-        from unittest.mock import Mock
-        from pubmedqa.train.study import ExperimentStudy, execute_study
-        from pubmedqa.experiment_runs import DEFAULT_PATHS, DEFAULT_SHARED_DEFAULTS
-        from pubmedqa.train.distributed import run_rank_local
+
         from helpers.tiny_training import environment
+
+        from pubmedqa.config.experiments import DEFAULT_PATHS, DEFAULT_SHARED_DEFAULTS
+        from pubmedqa.train.distributed import run_rank_local
+        from scripts.run_pubmedqa_experiments import ExperimentStudy, execute_study
 
         for recoverable, keep in ((True, False), (True, True), (False, True)):
             with tempfile.TemporaryDirectory() as directory:
@@ -53,14 +55,14 @@ class DistributedContractsTest(unittest.TestCase):
                     environ=SimpleNamespace(get=lambda *args: str(ranks.local.rank))
                 )
                 with (
-                    patch("pubmedqa.train.study.os", fake_os),
+                    patch("scripts.run_pubmedqa_experiments.os", fake_os),
                     patch(
-                        "pubmedqa.train.study.distributed_control_group",
+                        "scripts.run_pubmedqa_experiments.distributed_control_group",
                         side_effect=lambda _: nullcontext(ranks.group),
                     ),
-                    patch("pubmedqa.train.study.run_training", run),
+                    patch("scripts.run_pubmedqa_experiments.run_training", run),
                     patch(
-                        "pubmedqa.train.study.TrainingSession.from_config",
+                        "scripts.run_pubmedqa_experiments.TrainingSession.from_config",
                         side_effect=lambda _: SimpleNamespace(control_group=None),
                     ),
                     patch("torch.distributed.broadcast_object_list", ranks.broadcast),
@@ -78,6 +80,7 @@ class DistributedContractsTest(unittest.TestCase):
     def test_writer_failure_finishes_on_both_ranks_without_barriers(self):
         from contextlib import nullcontext
         from unittest.mock import Mock
+
         from pubmedqa.train.checkpoints import save_model_files_to_directory
         from pubmedqa.train.distributed import TrainingSession
 
@@ -118,6 +121,7 @@ class DistributedContractsTest(unittest.TestCase):
 
     def test_standalone_owns_control_group_and_closes_once(self):
         import torch
+
         from pubmedqa.train import distributed as training
 
         owner = SimpleNamespace(
@@ -196,8 +200,8 @@ class DistributedContractsTest(unittest.TestCase):
 
     def test_local_failure_is_shared_for_either_rank(self):
         from pubmedqa.train.distributed import (
-            run_rank_local,
             SynchronizedOperationError,
+            run_rank_local,
         )
 
         for failed_rank in (0, 1):
@@ -226,6 +230,7 @@ class DistributedContractsTest(unittest.TestCase):
     def test_fsdp_state_collection_on_nonwriter(self):
         from contextlib import nullcontext
         from unittest.mock import Mock
+
         from pubmedqa.train.checkpoints import save_model_files_to_directory
 
         for rank in (0, 1):

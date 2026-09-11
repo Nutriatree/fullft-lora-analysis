@@ -21,7 +21,7 @@ from pubmedqa.train.distributed import (
     rank_zero_analysis,
     tensor_bytes,
 )
-from pubmedqa.train.full_ft import (
+from pubmedqa.train.analysis import (
     LayerwiseReference,
     LayerwiseUpdateRecord,
     _average_cosine_similarity,
@@ -30,10 +30,10 @@ from pubmedqa.train.full_ft import (
     match_tracked_module,
     parse_layer_index,
 )
-from pubmedqa.train.full_ft import (
+from pubmedqa.train.analysis import (
     cosine_similarity as tensor_cosine_similarity,
 )
-from pubmedqa.train.full_ft import (
+from pubmedqa.train.analysis import (
     write_analysis_groups as write_full_analysis_groups,
 )
 

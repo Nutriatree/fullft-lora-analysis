@@ -80,3 +80,16 @@ def _load_pretrained(
 
     model.to(model_load_device(options))
     return tokenizer, model
+
+
+def load_full_model(
+    model_name_or_path: str, *, options: ModelLoadOptions
+) -> tuple[Any, torch.nn.Module]:
+    """Load the base model used by full fine-tuning.
+
+    The multimodal fallback is a historical Full FT policy, so it remains
+    explicit at this preparation boundary instead of in the training loop.
+    """
+    return _load_pretrained(
+        model_name_or_path, options=options, allow_multimodal_fallback=True
+    )

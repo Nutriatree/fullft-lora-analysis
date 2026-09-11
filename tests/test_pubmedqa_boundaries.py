@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import json
 import ast
+import json
 import os
 import subprocess
 import sys
@@ -13,20 +13,18 @@ from unittest.mock import patch
 import torch
 
 from pubmedqa.config.eval import EVAL_CONFIG
-from pubmedqa.config.full_ft import TRAIN_FULL_FINE_TUNE_CONFIG
-from pubmedqa.labels import VALID_LABELS, normalize_label
+from pubmedqa.config.train import TRAIN_CONFIG
+from pubmedqa.data.prompts import build_messages, example_from_record
+from pubmedqa.data.records import (
+    VALID_LABELS,
+    normalize_label,
+    safe_name,
+    write_json,
+    write_jsonl,
+)
 from pubmedqa.eval.metrics import accuracy, classwise_f1, confusion_matrix, macro_f1
-from pubmedqa.prompt_builder import build_messages, example_from_record
-from pubmedqa.evaluation import EvalSummary as LegacyEvalSummary
-from pubmedqa.full_finetune import TrainingSummary as LegacyTrainingSummary
-from pubmedqa.eval import EvalSummary
-from pubmedqa.labels import normalize_label as legacy_normalize_label
-from pubmedqa.prompt_builder import PubMedQAExample as LegacyPubMedQAExample
-from pubmedqa.data.records import safe_name, write_json, write_jsonl
-from pubmedqa.runtime_settings import EVAL_CONFIG as LEGACY_EVAL_CONFIG
-from pubmedqa.train import TrainingSummary
-from pubmedqa.train.distributed import destroy_process_groups, run_on_rank_zero
 from pubmedqa.model.device import count_parameters, memory_snapshot, resolve_dtype
+from pubmedqa.train.distributed import destroy_process_groups, run_on_rank_zero
 
 
 class PubMedQABoundaryTest(unittest.TestCase):
@@ -36,7 +34,7 @@ class PubMedQABoundaryTest(unittest.TestCase):
             name = ".".join(path.relative_to("src").with_suffix("").parts)
             name = name.removesuffix(".__init__")
             dependencies = set()
-            # Function-local compatibility imports are lazy, not startup edges.
+            # Function-local imports do not participate in startup dependency cycles.
             for node in ast.parse(path.read_text()).body:
                 if isinstance(node, ast.ImportFrom) and node.module:
                     dependencies.add(node.module)
@@ -56,35 +54,26 @@ class PubMedQABoundaryTest(unittest.TestCase):
         for name in graph:
             visit(name, [])
 
-    def test_pipeline_capabilities_do_not_import_the_engine(self) -> None:
-        paths = [*Path("src/pubmedqa/train").glob("model.py"),
-                 Path("src/pubmedqa/train/loop.py"),
-                 Path("src/pubmedqa/config/full_ft.py"),
-                 Path("src/pubmedqa/train/checkpoints.py"),
-                 Path("src/pubmedqa/train/full_ft.py"),
-                 Path("src/pubmedqa/train/lora.py")]
-        for path in paths:
-            for node in ast.walk(ast.parse(path.read_text())):
-                if isinstance(node, ast.ImportFrom):
-                    self.assertNotEqual("pubmedqa.full_finetune", node.module, str(path))
-                    self.assertFalse((node.module or "").startswith("pubmedqa.training.strategies"), str(path))
-
     def test_optimizer_update_has_one_owner(self) -> None:
         owners = []
         for path in Path("src/pubmedqa/train").rglob("*.py"):
             for node in ast.walk(ast.parse(path.read_text())):
                 if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
-                    if node.func.attr == "step" and isinstance(node.func.value, ast.Name) and node.func.value.id == "optimizer":
+                    if (
+                        node.func.attr == "step"
+                        and isinstance(node.func.value, ast.Name)
+                        and node.func.value.id == "optimizer"
+                    ):
                         owners.append(path.name)
         self.assertEqual(["loop.py"], owners)
 
-    def test_domain_package_is_independent_from_ml_frameworks(self) -> None:
+    def test_prompt_data_is_independent_from_ml_frameworks(self) -> None:
         process = subprocess.run(
             [
                 sys.executable,
                 "-c",
                 (
-                    "import sys; import pubmedqa.prompt_builder; "
+                    "import sys; import pubmedqa.data.prompts; "
                     "assert 'torch' not in sys.modules; "
                     "assert 'transformers' not in sys.modules; "
                     "assert 'peft' not in sys.modules"
@@ -97,7 +86,7 @@ class PubMedQABoundaryTest(unittest.TestCase):
         )
         self.assertEqual(0, process.returncode, process.stderr)
 
-    def test_domain_prompt_contract_matches_existing_format(self) -> None:
+    def test_prompt_contract_matches_training_format(self) -> None:
         example = example_from_record(
             {
                 "pubid": "1",
@@ -109,14 +98,18 @@ class PubMedQABoundaryTest(unittest.TestCase):
 
         messages = build_messages(example, include_answer=True)
 
-        self.assertEqual(["system", "user", "assistant"], [item["role"] for item in messages])
+        self.assertEqual(
+            ["system", "user", "assistant"], [item["role"] for item in messages]
+        )
         self.assertEqual("yes", messages[-1]["content"])
 
-    def test_domain_metrics_cover_binary_and_three_class_gold_sets(self) -> None:
+    def test_metrics_cover_binary_and_three_class_gold_sets(self) -> None:
         binary_gold = ["yes", "yes", "no"]
         binary_predicted = ["yes", "no", "no"]
         self.assertAlmostEqual(2 / 3, accuracy(binary_gold, binary_predicted))
-        self.assertEqual({"yes", "no"}, set(classwise_f1(binary_gold, binary_predicted)))
+        self.assertEqual(
+            {"yes", "no"}, set(classwise_f1(binary_gold, binary_predicted))
+        )
         self.assertGreater(macro_f1(binary_gold, binary_predicted), 0.0)
 
         matrix = confusion_matrix(
@@ -128,20 +121,13 @@ class PubMedQABoundaryTest(unittest.TestCase):
 
     def test_config_package_owns_existing_settings_objects(self) -> None:
         self.assertEqual("Qwen/Qwen3-1.7B", EVAL_CONFIG.default_model_name)
-        self.assertEqual(1, TRAIN_FULL_FINE_TUNE_CONFIG.default_num_epochs)
+        self.assertEqual(1, TRAIN_CONFIG.default_num_epochs)
         self.assertEqual(
             "PUBMEDQA_DISTRIBUTED_MODE",
-            TRAIN_FULL_FINE_TUNE_CONFIG.env_distributed_mode,
+            TRAIN_CONFIG.env_distributed_mode,
         )
         self.assertEqual(("yes", "no", "maybe"), VALID_LABELS)
         self.assertEqual("maybe", normalize_label(" MAYBE "))
-
-    def test_legacy_modules_reexport_new_public_contracts(self) -> None:
-        self.assertIs(normalize_label, legacy_normalize_label)
-        self.assertIs(EVAL_CONFIG, LEGACY_EVAL_CONFIG)
-        self.assertIs(EvalSummary, LegacyEvalSummary)
-        self.assertIs(TrainingSummary, LegacyTrainingSummary)
-        self.assertEqual("PubMedQAExample", LegacyPubMedQAExample.__name__)
 
     def test_runtime_io_preserves_json_and_jsonl_format(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -158,7 +144,10 @@ class PubMedQABoundaryTest(unittest.TestCase):
             )
             self.assertEqual(
                 [{"index": 0}, {"index": 1}],
-                [json.loads(line) for line in jsonl_path.read_text(encoding="utf-8").splitlines()],
+                [
+                    json.loads(line)
+                    for line in jsonl_path.read_text(encoding="utf-8").splitlines()
+                ],
             )
             self.assertEqual("Qwen_Qwen3-1.7B", safe_name("Qwen/Qwen3-1.7B"))
 
@@ -184,7 +173,9 @@ class PubMedQABoundaryTest(unittest.TestCase):
 
     def test_distributed_runtime_broadcasts_rank_zero_result(self) -> None:
         control_group = object()
-        with patch("pubmedqa.train.distributed.dist.broadcast_object_list") as broadcast:
+        with patch(
+            "pubmedqa.train.distributed.dist.broadcast_object_list"
+        ) as broadcast:
             result = run_on_rank_zero(
                 lambda: "complete",
                 is_main_process=True,

@@ -8,7 +8,7 @@ from typing import Any, Sequence
 
 import torch
 
-from pubmedqa.config.full_ft import TRAIN_LAYER_CONFIG
+from pubmedqa.config.train import TRAIN_LAYER_CONFIG
 from pubmedqa.data.records import (
     write_json,
     write_jsonl,

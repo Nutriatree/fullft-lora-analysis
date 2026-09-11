@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from pubmedqa.config import default_cpu_threads
+from pubmedqa.config.env import default_cpu_threads
 
 
 @dataclass(frozen=True)

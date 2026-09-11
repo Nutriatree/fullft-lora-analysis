@@ -1,21 +1,25 @@
-from contextlib import nullcontext
-from dataclasses import replace, asdict
-from pathlib import Path
-from types import SimpleNamespace
 import tempfile
 import unittest
+from contextlib import nullcontext
+from dataclasses import replace
+from functools import partial
+from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 import torch
+from helpers.tiny_training import environment, make_config, model_options, with_lora
 
-from helpers.tiny_training import make_config, environment
-from pubmedqa.full_finetune import PubMedQAFullFineTuner
+from pubmedqa.model.loading import load_full_model
+from pubmedqa.model.lora import AdapterOptions, load_lora_model
 from pubmedqa.train import distributed as training
+from pubmedqa.train.checkpoints import save_model_files_to_directory
 
 
 class DistributedLoadingTest(unittest.TestCase):
     def test_two_rank_engine_checkpoint_evaluation_and_finalize_trace(self):
         from threading import Lock
+
         from helpers.distributed import FakeRanks
         from helpers.wrappers import CPUWrapper
 
@@ -94,41 +98,31 @@ class DistributedLoadingTest(unittest.TestCase):
                 self.assertEqual(ranks.traces[0], ranks.traces[1])
 
     def test_half_precision_fsdp_peft_has_uniform_fp32_master_weights(self):
-        from pubmedqa.lora_finetune import PubMedQALoRAFineTuner
-        from pubmedqa.config.lora import LoRAFineTuneConfig
-
         with tempfile.TemporaryDirectory() as directory:
             cfg = make_config(Path(directory), distributed_mode="fsdp")
             for dtype in (torch.float16, torch.bfloat16):
-                values = asdict(replace(cfg, dtype=dtype))
-                values.update(
-                    lora_rank=2,
-                    lora_alpha=4,
-                    lora_dropout=0,
+                config = with_lora(
+                    replace(cfg, dtype=dtype),
                     target_modules=("q_proj",),
                     target_layers=(0,),
                     layer_scope="selected",
                 )
-                config = LoRAFineTuneConfig(
-                    **values,
-                    lora_bias="none",
-                    lora_task_type="CAUSAL_LM",
-                    modules_to_save=(),
-                    merge_for_eval=False,
+                session = training.TrainingSession.from_config(config)
+                _, model = load_lora_model(
+                    config.model_name,
+                    options=model_options(config),
+                    adapter=AdapterOptions.from_config(config),
                 )
-                owner = PubMedQALoRAFineTuner(config, environment())
-                _, model = owner.load_model_and_tokenizer(config.model_name)
                 self.assertEqual({torch.float32}, {p.dtype for p in model.parameters()})
                 with patch.object(training, "FullyShardedDataParallel") as fsdp:
-                    owner.wrap_model_for_training(model)
+                    session.wrap_model(model)
                 self.assertEqual(
                     dtype, fsdp.call_args.kwargs["mixed_precision"].param_dtype
                 )
 
     def test_nine_method_mode_load_step_save_reload_contracts(self):
         from helpers.wrappers import CPUWrapper
-        from pubmedqa.lora_finetune import PubMedQALoRAFineTuner
-        from pubmedqa.config.lora import LoRAFineTuneConfig
+
         from pubmedqa.train.loop import train_epoch
 
         with tempfile.TemporaryDirectory() as directory:
@@ -140,31 +134,26 @@ class DistributedLoadingTest(unittest.TestCase):
                     with self.subTest(method=method, mode=mode):
                         cfg = replace(config, distributed_mode=mode)
                         if method == "full":
-                            owner = PubMedQAFullFineTuner(cfg, environment())
+                            load_model = partial(
+                                load_full_model, options=model_options(cfg)
+                            )
                         else:
-                            values = asdict(cfg)
-                            values.update(
-                                lora_rank=2,
-                                lora_alpha=4,
-                                lora_dropout=0,
+                            cfg = with_lora(
+                                cfg,
                                 target_modules=("q_proj", "v_proj"),
                                 target_layers=(0,) if method == "selective" else (),
                                 layer_scope="selected"
                                 if method == "selective"
                                 else "all",
                             )
-                            cfg = LoRAFineTuneConfig(
-                                **values,
-                                lora_bias="none",
-                                lora_task_type="CAUSAL_LM",
-                                modules_to_save=(),
-                                merge_for_eval=False,
+                            load_model = partial(
+                                load_lora_model,
+                                options=model_options(cfg),
+                                adapter=AdapterOptions.from_config(cfg),
                             )
-                            owner = PubMedQALoRAFineTuner(cfg, environment())
+                        session = training.TrainingSession.from_config(cfg)
                         torch.manual_seed(123)
-                        tokenizer, original = owner.load_model_and_tokenizer(
-                            cfg.model_name
-                        )
+                        tokenizer, original = load_model(cfg.model_name)
                         before = {
                             n: p.clone()
                             for n, p in original.named_parameters()
@@ -182,7 +171,7 @@ class DistributedLoadingTest(unittest.TestCase):
                                 CPUWrapper,
                             ),
                         ):
-                            model = owner.wrap_model_for_training(original)
+                            model = session.wrap_model(original)
                             optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
                             scheduler = torch.optim.lr_scheduler.LambdaLR(
                                 optimizer, lambda _: 1
@@ -209,12 +198,13 @@ class DistributedLoadingTest(unittest.TestCase):
                                 )
                             )
                             destination = root / f"{method}-{mode}"
-                            owner._save_model_files_to_directory(
+                            save_model_files_to_directory(
+                                session=session,
                                 model=model,
                                 tokenizer=tokenizer,
                                 checkpoint_dir=destination,
                             )
-                        _, restored = owner.load_model_and_tokenizer(str(destination))
+                        _, restored = load_model(str(destination))
                         restored.eval()
                         logits = restored(batch["input_ids"]).logits.detach()
                         if expected is None:
@@ -230,22 +220,23 @@ class DistributedLoadingTest(unittest.TestCase):
     def test_fsdp_load_preserves_cpu_weights_before_wrap(self):
         with tempfile.TemporaryDirectory() as directory:
             config = make_config(Path(directory))
-            owner = PubMedQAFullFineTuner(config, environment())
-            _, reference = owner.load_model_and_tokenizer(config.model_name)
-            owner.config = replace(config, distributed_mode="fsdp")
-            owner.session.config = replace(
-                owner.session.config, distributed_mode="fsdp"
+            _, reference = load_full_model(
+                config.model_name, options=model_options(config)
             )
-            owner.device = torch.device("cuda:0")
-            _, model = owner.load_model_and_tokenizer(config.model_name)
+            config = replace(config, distributed_mode="fsdp")
+            session = training.TrainingSession.from_config(config)
+            session.device = torch.device("cuda:0")
+            _, model = load_full_model(
+                config.model_name, options=model_options(config, device=session.device)
+            )
             for actual, expected in zip(model.parameters(), reference.parameters()):
                 self.assertEqual("cpu", actual.device.type)
                 torch.testing.assert_close(actual, expected)
             with patch.object(training, "FullyShardedDataParallel") as wrapper:
-                owner.wrap_model_for_training(model)
+                session.wrap_model(model)
             policy = wrapper.call_args.kwargs["auto_wrap_policy"]
             self.assertTrue(policy(model.model.layers[0], False, 1))
-            self.assertEqual(["LlamaDecoderLayer"], owner._fsdp_layer_classes)
+            self.assertEqual(["LlamaDecoderLayer"], session._fsdp_layer_classes)
 
     def test_fsdp_unsupported_structure_fails_explicitly(self):
         owner = SimpleNamespace(
@@ -258,8 +249,9 @@ class DistributedLoadingTest(unittest.TestCase):
             training.TrainingSession.wrap_model(owner, torch.nn.Linear(2, 2))
 
     def test_fsdp_clipping_uses_global_method(self):
-        from pubmedqa.train.loop import train_epoch
         from test_pubmedqa_training_loop import ScalarLoss
+
+        from pubmedqa.train.loop import train_epoch
 
         model = ScalarLoss()
         # Local shard norms 3 and 4 require the wrapper's global norm 5.

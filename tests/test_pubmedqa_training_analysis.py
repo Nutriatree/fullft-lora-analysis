@@ -1,38 +1,50 @@
-from types import SimpleNamespace
 import unittest
+from types import SimpleNamespace
+
 import torch
+
+from pubmedqa.train.artifacts import RunFiles
+from pubmedqa.train.distributed import TrainingSession
+from pubmedqa.train.analysis import (
+    capture_layerwise_references,
+    write_layerwise_update_artifacts,
+)
 
 
 class TrainingAnalysisTest(unittest.TestCase):
     def test_fsdp_full_access_normalizes_prefix_and_nonwriter_skips_empty_shard(self):
-        from contextlib import contextmanager
-        from pathlib import Path
-        from dataclasses import replace
-        from unittest.mock import patch
         import tempfile
-        from helpers.tiny_training import make_config, environment
-        from pubmedqa.full_finetune import PubMedQAFullFineTuner
+        from contextlib import contextmanager
+        from dataclasses import replace
+        from pathlib import Path
+        from unittest.mock import patch
+
+        from helpers.tiny_training import make_config
 
         with tempfile.TemporaryDirectory() as directory:
-            owner = PubMedQAFullFineTuner(make_config(Path(directory)), environment())
+            cfg = make_config(Path(directory))
+            session = TrainingSession.from_config(cfg)
+            files = RunFiles.from_config(cfg)
             model = torch.nn.Module()
             model.self_attn = torch.nn.Module()
             model.self_attn.q_proj = torch.nn.Linear(2, 2, bias=False)
-            references = owner.capture_layerwise_references(model)
+            references = capture_layerwise_references(
+                model, session=session, files=files, enabled=cfg.track_layerwise_updates
+            )
             parameter = model.self_attn.q_proj.weight
             full = parameter.detach().clone()
             wrapped = torch.nn.Module()
             wrapped._fsdp_wrapped_module = model
             parameter.data = torch.empty(0)
-            owner.config = replace(owner.config, distributed_mode="fsdp")
+            cfg = replace(cfg, distributed_mode="fsdp")
             entries = []
 
             @contextmanager
             def summon(model, **kwargs):
                 self.assertTrue(kwargs["rank0_only"])
                 self.assertFalse(kwargs["writeback"])
-                entries.append(owner.rank)
-                parameter.data = full.clone() if owner.rank == 0 else torch.empty(0)
+                entries.append(session.rank)
+                parameter.data = full.clone() if session.rank == 0 else torch.empty(0)
                 try:
                     yield
                 finally:
@@ -49,10 +61,13 @@ class TrainingAnalysisTest(unittest.TestCase):
                 ),
             ):
                 for rank in (0, 1):
-                    owner.rank = rank
+                    session.rank = rank
                     destination = Path(directory) / f"rank-{rank}"
                     previous = {}
-                    owner.write_layerwise_update_artifacts(
+                    write_layerwise_update_artifacts(
+                        session=session,
+                        files=files,
+                        enabled=cfg.track_layerwise_updates,
                         model=wrapped,
                         checkpoint_kind="probe",
                         checkpoint_percent=0,
@@ -71,30 +86,38 @@ class TrainingAnalysisTest(unittest.TestCase):
             self.assertEqual([0, 1], entries)
 
     def test_reference_preserves_dtype_and_independent_small_updates(self):
-        from pathlib import Path
-        import tempfile
-        from helpers.tiny_training import make_config, environment
-        from pubmedqa.full_finetune import PubMedQAFullFineTuner
         import json
+        import tempfile
+        from pathlib import Path
+
+        from helpers.tiny_training import make_config
 
         for dtype in (torch.float32, torch.float16, torch.bfloat16):
             with tempfile.TemporaryDirectory() as directory:
-                owner = PubMedQAFullFineTuner(
-                    make_config(Path(directory)), environment()
-                )
+                cfg = make_config(Path(directory))
+                session = TrainingSession.from_config(cfg)
+                files = RunFiles.from_config(cfg)
                 model = torch.nn.Module()
                 model.self_attn = torch.nn.Module()
                 model.self_attn.q_proj = torch.nn.Linear(2, 2, bias=False, dtype=dtype)
                 with torch.no_grad():
                     model.self_attn.q_proj.weight.fill_(0.1234567)
-                references = owner.capture_layerwise_references(model)
+                references = capture_layerwise_references(
+                    model,
+                    session=session,
+                    files=files,
+                    enabled=cfg.track_layerwise_updates,
+                )
                 self.assertEqual(dtype, references[0].base_tensor.dtype)
                 previous, increments = {}, {}
                 for step in (0, 1, 2):
                     if step == 1:
                         with torch.no_grad():
                             model.self_attn.q_proj.weight.add_(0.0001)
-                    owner.write_layerwise_update_artifacts(
+                    write_layerwise_update_artifacts(
+                        session=session,
+                        files=files,
+                        enabled=cfg.track_layerwise_updates,
                         model=model,
                         checkpoint_kind="probe",
                         checkpoint_percent=step,
@@ -139,24 +162,34 @@ class TrainingAnalysisTest(unittest.TestCase):
                 )
 
     def test_tracking_disabled_and_nonwriter_allocate_no_references(self):
-        from pathlib import Path
-        from dataclasses import replace
         import tempfile
-        from helpers.tiny_training import make_config, environment
-        from pubmedqa.full_finetune import PubMedQAFullFineTuner
+        from dataclasses import replace
+        from pathlib import Path
+
+        from helpers.tiny_training import make_config
 
         with tempfile.TemporaryDirectory() as directory:
-            owner = PubMedQAFullFineTuner(make_config(Path(directory)), environment())
+            cfg = make_config(Path(directory))
+            session = TrainingSession.from_config(cfg)
+            files = RunFiles.from_config(cfg)
             model = torch.nn.Module()
             model.q_proj = torch.nn.Linear(2, 2)
             for rank, enabled in ((0, False), (1, True)):
-                owner.rank = rank
-                owner.config = replace(owner.config, track_layerwise_updates=enabled)
-                self.assertEqual([], owner.capture_layerwise_references(model))
-                self.assertFalse(owner.layerwise_dir.exists())
+                session.rank = rank
+                cfg = replace(cfg, track_layerwise_updates=enabled)
+                self.assertEqual(
+                    [],
+                    capture_layerwise_references(
+                        model,
+                        session=session,
+                        files=files,
+                        enabled=cfg.track_layerwise_updates,
+                    ),
+                )
+                self.assertFalse(files.layerwise_dir.exists())
 
     def test_lora_delta_matches_independent_matrix_product(self):
-        from pubmedqa.train.lora import _compute_lora_delta_tensor
+        from pubmedqa.train.lora_analysis import _compute_lora_delta_tensor
 
         module = SimpleNamespace(
             lora_A={"default": SimpleNamespace(weight=torch.tensor([[1.0, 2.0]]))},
@@ -169,8 +202,8 @@ class TrainingAnalysisTest(unittest.TestCase):
         self.assertFalse(delta.requires_grad)
 
     def test_effective_rank_and_zero_update_boundaries(self):
-        from pubmedqa.train.lora import _effective_rank_from_singular_values
-        from pubmedqa.train.full_ft import cosine_similarity
+        from pubmedqa.train.analysis import cosine_similarity
+        from pubmedqa.train.lora_analysis import _effective_rank_from_singular_values
 
         self.assertEqual(0.0, _effective_rank_from_singular_values(torch.tensor([])))
         self.assertEqual(0.0, _effective_rank_from_singular_values(torch.zeros(2)))
@@ -180,10 +213,10 @@ class TrainingAnalysisTest(unittest.TestCase):
         self.assertIsNone(cosine_similarity(torch.zeros(2), torch.ones(2)))
 
     def test_empty_analysis_groups_and_missing_layers(self):
-        from pubmedqa.train.full_ft import (
+        from pubmedqa.train.analysis import (
+            parse_layer_index,
             summarize_by_component,
             summarize_by_layer,
-            parse_layer_index,
         )
 
         self.assertEqual({}, summarize_by_component([]))
