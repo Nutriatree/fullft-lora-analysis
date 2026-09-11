@@ -8,9 +8,9 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 from pubmedqa.config import EnvironmentConfig
-from pubmedqa.experiments.factory import build_full_ft_config, build_lora_config
-from pubmedqa.experiments.orchestrator import ExperimentStudy, save_manifest
-from pubmedqa.experiments.specs import (
+from pubmedqa.train.study import build_full_ft_config, build_lora_config
+from pubmedqa.train.study import ExperimentStudy, save_manifest
+from pubmedqa.experiment_runs import (
     DEFAULT_PATHS,
     DEFAULT_SHARED_DEFAULTS,
     resolve_data_fraction,
@@ -144,7 +144,7 @@ class PubMedQAExperimentRunsTest(unittest.TestCase):
 
     def test_rank_zero_operation_uses_long_running_control_group(self) -> None:
         control_group = object()
-        with patch("pubmedqa.runtime.distributed.dist.broadcast_object_list") as broadcast:
+        with patch("pubmedqa.train.distributed.dist.broadcast_object_list") as broadcast:
             result = _run_on_rank_zero(
                 lambda: "baseline-complete",
                 is_main_process=True,
@@ -162,7 +162,7 @@ class PubMedQAExperimentRunsTest(unittest.TestCase):
             payload[0] = {"ok": True, "result": "rank-zero-result"}
 
         with patch(
-            "pubmedqa.runtime.distributed.dist.broadcast_object_list",
+            "pubmedqa.train.distributed.dist.broadcast_object_list",
             side_effect=receive_result,
         ):
             result = _run_on_rank_zero(
@@ -178,8 +178,8 @@ class PubMedQAExperimentRunsTest(unittest.TestCase):
     def test_destroy_distributed_process_groups_destroys_control_then_default(self) -> None:
         control_group = object()
         with (
-            patch("pubmedqa.runtime.distributed.dist.is_initialized", return_value=True),
-            patch("pubmedqa.runtime.distributed.dist.destroy_process_group") as destroy,
+            patch("pubmedqa.train.distributed.dist.is_initialized", return_value=True),
+            patch("pubmedqa.train.distributed.dist.destroy_process_group") as destroy,
         ):
             _destroy_distributed_process_groups(control_group)
 

@@ -6,7 +6,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from pubmedqa.data.posttrain import PosttrainSplitConfig, prepare_posttrain_splits
+from pubmedqa.data.prepare import PosttrainSplitConfig, prepare_posttrain_splits
 
 
 def parse_args() -> argparse.Namespace:

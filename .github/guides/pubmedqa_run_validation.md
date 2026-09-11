@@ -4,6 +4,62 @@
 
 기준 환경은 서버의 `conda` 환경 `jw` 이다.
 
+## 코드 변경 검증과 결과 수집의 차이
+
+이 문서의 결과 수집 CLI는 이미 생성된 실험 파일을 읽는다. 코드 리팩토링 검증은
+저장소 루트에서 다음 명령으로 별도로 수행한다. Python 3.10 이상과 PyTorch,
+`requirements.txt`, 개발 의존성(`pip install -e '.[dev]'`)이 필요하다.
+
+```bash
+.venv/bin/python -m compileall -q src scripts tests
+.venv/bin/python -m ruff check src scripts tests
+bash -n scripts/run_pubmedqa_full_study.sh
+bash -n scripts/run_pubmedqa_fsdp_smoke.sh
+git diff --check
+.venv/bin/python -m coverage run --source=src/pubmedqa scripts/test_pubmedqa_offline.py
+.venv/bin/python -m coverage report -m
+```
+
+동적 테스트는 실제 학습 자료 없이 합성 데이터·소형 CPU 모델·PEFT adapter를 사용하며,
+네트워크 및 GPU 실행을 차단한다. 학습·저장·재로딩과 report reader 호환성을 확인한다.
+필수 테스트의 skip도 실패로 처리한다. 실제 GPU 성능과 다중 rank collective는 검증 범위 밖이다.
+`run_pubmedqa_experiments.py --dry-run`은 manifest만 생성하므로 이 테스트를 대체하지 않는다.
+
+추가 offline 검증은 Full/LoRA/selective × single/DDP/FSDP 9개 조합의 CPU step·저장·reload,
+두 fake rank의 제어 흐름, 실패 전파와 계속/중단 결정, launcher 명령 생성까지 포함한다.
+launcher 검사는 Python/torchrun을 인자 기록용 stub으로 대체하며 실제 학습을 실행하지 않는다.
+소형 모델은 실제 CPU 수치 계산, 분산 wrapper/collective는 fake라는 경계를 유지한다.
+
+아키텍처 회귀 검증은 다음 계약도 포함한다.
+
+- `train/pipeline.py::run_training` 및 standalone/환경변수/study 진입점은 기존 Trainer 생성 없이 실행된다.
+- `TrainingSession`·`RunFiles`·`EvaluationSettings`·`AdapterHistory`는 각자 필요한 상태만 보관한다.
+- 타입 정의는 각 기능에 위치하고 공개 import와 같은 객체를 반환한다. 옛 내부 `contracts` 파일은 제거했다.
+- 초기화·모델 적재·평가·writer 오류가 나도 정리/실패 전파가 유지되고 borrowed group은 파괴하지 않는다.
+- Phase 1 산출물 계약과 고정 CPU 수치 기준을 유지하며, 학습 모델이 해제된 뒤 best checkpoint를 적재한다.
+
+새 구조는 실제 GPU 검증 완료를 의미하지 않는다. GPU 수렴·성능·메모리와 NCCL 동작은 별도 검증이 필요하다.
+
+## 새 결과의 provenance 확인
+
+- `evaluations/*_summary.json`: `loss_reduction=token_mean`. nonignored `labels[:,1:]`
+  수로 가중한 validation NLL이다. 기존 batch 평균 loss나 학습 로그의 microbatch 평균과 다르다.
+  loss 차이로 best checkpoint 선택이 달라질 수 있다.
+- `run_metadata.json`: `validation_loss_reduction`, `training_loss_reduction`,
+  `analysis_schema_version=2`를 확인한다. 이전 파일에 필드가 없으면 새 정의로 추정하지 않는다.
+- Layerwise summary: reference dtype, float32 accumulation, reference/snapshot/increment 바이트 수.
+  이전 float16 reference 분석과 미세한 update 수치가 달라질 수 있다.
+- `distributed_runtime.json`: `per_rank` 길이와 `world_size` 일치, rank 중복/누락 없음,
+  training peak만 집계했는지 확인한다. CPU는 `memory_measured=false`; numeric max 0은
+  실제 GPU 메모리 사용 0이라는 뜻이 아니다.
+- FSDP distributed metadata: CPU float32 evaluation, float32 master, auto-wrap layer classes,
+  Gloo control timeout. CPU 평가의 latency·memory는 과거 GPU 평가와 직접 비교하지 않는다.
+
+truncation으로 shifted target가 없는 row는 pubid·length 오류로 거절하며 sample을 조용히
+버리지 않는다. 0/음수 epoch/batch/accumulation, 빈 train/validation도 오류다.
+`save_every_epoch=true`는 fresh validation metric을 위해 `eval_every_epoch=true`를 요구한다.
+기존 outputs/reports는 재작성하지 않았고 기존 reader의 경로·필드는 유지된다.
+
 ## 개요
 
 이 스크립트는 두 가지 역할을 한다.
@@ -197,3 +253,11 @@ validator는 train 계열 run에서 `F1`의 `config.json` 을 기준으로 다�
 - heatmap 생성, singular value 시각화, prediction transition 분석 자체는 하지 않는다.
 - selective LoRA의 layer 선택이 적절했는지 판단하지도 않는다.
 - low-data subset이 실질적으로 동일했는지는 run manifest와 central spec를 함께 봐야 한다.
+
+## 목적별 디렉토리 계약
+
+`tests/test_pubmedqa_purpose_layout.py`는 data/model/train/eval/config 다섯 패키지와
+중첩 패키지 부재를 검사한다. Full FT/LoRA는 설정·모델·분석의 별도 파일을 유지하고
+공유 base loader·optimizer loop를 중복 정의하지 않는다. `test_pubmedqa_directory_layout.py`는
+core의 구형/공개 호환 경로 역참조 금지와 모든 설정 기본값 snapshot을 검사한다.
+원격 다운로드 없이 Full-only multimodal fallback과 LoRA 오류 전파도 검증한다.

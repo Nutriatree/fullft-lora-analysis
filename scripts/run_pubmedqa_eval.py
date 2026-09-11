@@ -7,13 +7,13 @@ import argparse
 from pathlib import Path
 
 from pubmedqa.config import EnvironmentConfig
-from pubmedqa.inference import ModelRuntimeConfig
-from pubmedqa.inference.runner import (
+from pubmedqa.eval import ModelRuntimeConfig
+from pubmedqa.eval.inference import (
     DEFAULT_BASE_MODELS,
     PubMedQAEvaluationRunner,
     load_local_jsonl,
 )
-from pubmedqa.runtime.torch_runtime import configure_parallelism
+from pubmedqa.model.device import configure_parallelism
 
 
 def parse_args() -> argparse.Namespace:

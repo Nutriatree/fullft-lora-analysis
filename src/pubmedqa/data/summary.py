@@ -28,7 +28,9 @@ def read_jsonl_summary(path: Path) -> dict[str, Any]:
             try:
                 row = json.loads(line)
             except json.JSONDecodeError as exc:
-                raise ValueError(f"Malformed JSONL at {path}:{line_number}: {exc.msg}") from exc
+                raise ValueError(
+                    f"Malformed JSONL at {path}:{line_number}: {exc.msg}"
+                ) from exc
             examples += 1
             dataset_ids[str(row.get("dataset_id"))] += 1
             collections[str(row.get("dataset_collection"))] += 1
@@ -51,7 +53,11 @@ def read_jsonl_summary(path: Path) -> dict[str, Any]:
 
 def expected_dataset_id(path: Path) -> str | None:
     return next(
-        (EXPECTED_DATASET_ID_BY_PATH[part] for part in path.parts if part in EXPECTED_DATASET_ID_BY_PATH),
+        (
+            EXPECTED_DATASET_ID_BY_PATH[part]
+            for part in path.parts
+            if part in EXPECTED_DATASET_ID_BY_PATH
+        ),
         None,
     )
 

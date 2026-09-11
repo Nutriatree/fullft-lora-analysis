@@ -6,9 +6,9 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from pubmedqa.reporting.figures.rq3_selective import generate_rq3_selective_figure
-from pubmedqa.reporting.layout import StudyLayout
-from pubmedqa.reporting.manifest import write_report_manifest
+from pubmedqa.eval.plot_rq3 import generate_rq3_selective_figure
+from pubmedqa.eval.reports import StudyLayout
+from pubmedqa.eval.reports import write_report_manifest
 
 
 def parse_args() -> argparse.Namespace:

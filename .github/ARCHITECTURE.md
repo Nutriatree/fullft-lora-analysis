@@ -1,7 +1,53 @@
 # PubMedQA Code Architecture
 
-This document records the compatibility surface that must remain stable while the
-codebase is migrated from monolithic training modules to capability-oriented packages.
+This document records a nanochat-inspired **Modular Monolith** for ML experiments:
+one program with concept-oriented modules, not controller/service/repository layers.
+Its execution is **Pipeline / Data-flow**, its organization follows **Conceptual Cohesion**
+and **Locality**, and model construction uses PyTorch **Module-based OOP**.
+
+## Architectural rules
+
+- Read the training program in `train/pipeline.py::run_training`. Preparation,
+  reference evaluation, optimizer updates, checkpoint evaluation, model release,
+  best-checkpoint test and final persistence are explicit calls.
+- Keep data, model, optimization, evaluation and analysis concepts cohesive. A file
+  boundary must have a concrete owner or independent consumer, not just a technical layer name.
+- Put records beside their producer: step logs in `loop.py`, evaluation records in
+  `validation.py`, checkpoint records in `checkpoints.py`, weight records in
+  `train/full_ft.py`, and run summaries in `train/artifacts.py`. The package's lazy exports
+  point directly to these owners; there is no separate contracts package.
+- Pass the inputs a function actually uses. Do not introduce a whole-run Context,
+  a generic callback registry, method-injection framework or Trainer inheritance chain
+  as the execution architecture. Local partials only bind fixed inputs for repeated calls.
+- Use classes for real state or resources. Hugging Face models and PEFT adapters remain
+  composed `nn.Module` objects; communication resources and immutable settings are
+  bounded objects, not owners of the training program.
+- Preserve real alternatives (Torch/MLX inference) and output/report boundaries.
+  Modular monolith does not require collapsing every file or removing every class.
+- When changing behavior, add a failing behavior/boundary test first. Run static checks
+  and offline CPU/fake-rank tests; update user documentation after implementation.
+
+## Execution and state ownership
+
+All training CLIs and `train/study.py::execute_study` call `run_training(config, environment)`
+directly. `train/study.py::build_training_config` resolves settings, not runners.
+The optional `session=` argument supplies a TrainingSession prepared for the same config,
+normally to borrow a study-owned control group.
+
+| Owner | Holds | Must not hold |
+|---|---|---|
+| `run_training` / its local program | model, optimizer, scheduler, loaders, checkpoint schedule, references/snapshots | a global mutable registry or reusable Trainer |
+| `TrainingSession` + `RuntimeSettings` | device/ranks, communication handles and ownership, execution policy | datasets, output paths, model or analysis history |
+| `ModelLoadOptions` / `AdapterOptions` | HF loading and PEFT construction inputs | training loop or evaluation state |
+| `EvaluationSettings` | evaluation device/dtype, batching, generation/parser settings | training device mutation |
+| `RunFiles` | artifact identity and derived paths | tensors or communication handles |
+| `AdapterHistory` | adapter/module-share measurements | model or optimizer references |
+
+The run closes its session in `finally`, including initialization and model-load failures.
+A borrowed study group remains study-owned. Every rank participates in required tensor
+collectives; only designated persistence/evaluation operations execute on rank zero.
+Model/optimizer/scheduler references are released before final best-checkpoint loading.
+No live Trainer is passed to evaluation, checkpoint or analysis functions.
 
 ## Stable Behavior
 
@@ -15,7 +61,8 @@ The refactor must not change the following experiment behavior:
   25/50/75/100 percent checkpoints occur at 313/625/938/1,250.
 - Checkpoint directory names use
   `<kind>_pct_<percent>_epoch_<epoch>_step_<global-step>` with zero padding.
-- Run tags B0, F1, L1, L2, L3, L4, LL1, and LL2 keep their current meanings.
+- Run tags B0, F1, L1, L2, L3, L4, LL1, LL2, F2, and L5 keep their current meanings.
+  The default eight-run study is a selection from this ten-tag registry.
 - `single`, `ddp`, and `fsdp` remain accepted distributed modes.
 - Existing JSON and JSONL filenames and fields remain readable by report tooling.
 
@@ -58,8 +105,7 @@ Trainer classes are resolved lazily when requested.
 - `scripts/plot_pubmedqa_rq3_selective_performance.py`
 - `scripts/plot_pubmedqa_appendix_dynamics.py`
 
-The Python scripts will become thin command adapters, but their existing arguments will
-remain accepted unless a deprecation is documented explicitly.
+Python scripts are command/config adapters; their existing arguments remain accepted.
 
 ## Artifact Boundaries
 
@@ -79,20 +125,148 @@ from it and must not be written back into a study directory.
 
 ## Package Ownership
 
-- `pubmedqa.domain`: framework-independent labels, examples, prompts, and metrics.
-- `pubmedqa.config`: environment credentials, environment readers, and immutable settings.
-- `pubmedqa.runtime`: filesystem artifact writing plus PyTorch/distributed runtime adapters.
-- `pubmedqa.inference`: inference contracts, Torch/MLX backend adapters, and the shared
-  evaluation runner.
-- `pubmedqa.training`: shared engine, supervised data/collation, validation, checkpoint,
-  and layer-update services, plus independent Full FT and LoRA strategies.
-- `pubmedqa.experiments`: data-only run registry, concrete runner factory, and multi-run
-  orchestration service.
-- `pubmedqa.data`: pure split rules and summary validation, preparation application
-  services, source ports, and Hugging Face/GitHub adapters.
-- `pubmedqa.reporting`: typed study readers, report layout/provenance, shared plot style,
-  and RQ/Appendix figure-generation services.
+Exactly five flat purpose packages are used: `data`, `model`, `train`, `eval`, `config`.
+There are no internal subpackages. A new file needs a distinct method, lifecycle or
+independent consumer; technical labels such as service, repository, contracts or runtime
+are not sufficient reasons to add a boundary.
 
-The legacy modules `labels`, `instruction`, `prompt_builder`, `runtime_settings`,
-`evaluation`, `full_finetune`, `lora_finetune`, and `experiment_runs` are compatibility
-facades. New application code should import from the owning package above.
+| Package | Concrete ownership and consolidation |
+|---|---|
+| `data/` | `records.py` owns labels, examples and direct local JSON I/O; `prompts.py` owns templates and composition; `prepare.py` owns split rules and canonical/posttrain preparation; `supervised.py` owns tokenization, batching and loss masking. |
+| `model/` | `full_ft.py` and `lora.py` prepare distinct training methods; `loading.py` is the one shared base loader; `device.py` owns device/dtype helpers. |
+| `train/` | `pipeline.py` is the program; `loop.py` owns optimizer updates and training-memory windows; `distributed.py` owns sessions, groups, wrapping and full-parameter contexts; `checkpoints.py` owns cadence and persistence. `study.py` resolves configs and executes runs; `artifacts.py` owns run summaries. |
+| `eval/` | `inference.py` runs baseline evaluation; `validation.py` evaluates live/checkpoint models; `metrics.py` owns answer parsing and metrics; `reports.py` owns artifact readers, paths and manifest. |
+| `config/` | `full_ft.py`, `lora.py`, `eval.py` own defaults and executable config; `experiments.py` contains data-only run definitions; `__init__.py` owns shared environment parsing. |
+
+The separation that remains has a concrete purpose:
+
+- Full FT and LoRA keep `model/full_ft.py` / `model/lora.py`,
+  `config/full_ft.py` / `config/lora.py`, and `train/full_ft.py` / `train/lora.py`
+  for method-specific preparation, settings and weight/adapter analysis.
+  Both use one `train/loop.py`; shared defaults and the base loader are not copied.
+- `data/sources.py` accesses remote sources, `data/summary.py` performs offline inspection,
+  and `data/verification.py` compares remote provenance. Combining them would make local
+  inspection depend on the remote-source boundary. The preparation source protocol is
+  declared beside its consumer in `data/prepare.py`, not in a ports package.
+- `eval/backends.py` keeps real Torch/MLX execution alternatives. `eval/plotting.py`
+  isolates optional plotting dependencies from lightweight report reading; flat
+  `plot_rq1.py`, `plot_rq2.py`, `plot_rq3.py`, `plot_learning_curves.py` and
+  `plot_appendix.py` generate independently invoked report artifacts.
+- Shared direct JSON writers stay in `data/records.py`, without a writer interface,
+  injection layer or global writer instance. Output schemas still belong to their
+  train/eval producers.
+
+## Editing a training experiment
+
+| Change | Owner |
+|---|---|
+| Input schema, labels / prompt text | `data/records.py`, `data/prompts.py` |
+| Dataset splitting / loss masking | `data/prepare.py`, `data/supervised.py` |
+| Overall training flow / optimizer updates | `train/pipeline.py`, `train/loop.py` |
+| Full FT / LoRA model preparation | `model/full_ft.py`, `model/lora.py` |
+| Method-specific configuration | `config/full_ft.py`, `config/lora.py` |
+| Inference defaults / run definitions | `config/eval.py`, `config/experiments.py` |
+| Communication lifetime, wrapping and unshard | `train/distributed.py` |
+| Evaluation and checkpoint selection | `eval/validation.py`, `train/checkpoints.py` |
+| Full FT / LoRA update analysis | `train/full_ft.py`, `train/lora.py` |
+| Run overrides and sequential execution | `train/study.py` |
+| Report reading / figures | `eval/reports.py`, `eval/plot_*.py` |
+
+Config dataclass types, environment keys, precedence and read timing remain unchanged.
+LoRA learning-rate and gradient-checkpointing defaults remain method-specific.
+Configuration/registry imports do not initialize torch, transformers or peft.
+
+### Public compatibility and removed internal paths
+
+The root public notebook modules remain: `full_finetune.py`, `lora_finetune.py`,
+`evaluation.py`, `experiment_runs.py`, `runtime_settings.py`, `labels.py`,
+`instruction.py`, `prompt_builder.py` and `answer_parser.py`.
+Historical Trainer adapters delegate to `run_training`; the core never imports them.
+The historical `experiment_runs.build_runner` is the only compatibility factory,
+not the study execution path. Overrides of old Trainer methods are not pipeline hooks.
+
+Old internal directories and forwarding shims have been removed, including their leftover
+bytecode directories. Internal module-qualified imports/pickles must migrate; there are
+no `sys.modules` aliases or import hooks that pretend these paths still exist.
+
+| Removed internal path | Current owner |
+|---|---|
+| `domain/{labels,examples}.py`, `data/io.py` | `data/records.py` |
+| `domain/{instructions,prompts}.py` | `data/prompts.py` |
+| `domain/metrics.py` | `eval/metrics.py` |
+| `data/{catalog,ports,splits,canonical,posttrain}.py` | `data/prepare.py` |
+| `models/{loading,lora}.py` | `model/loading.py`, `model/full_ft.py`, `model/lora.py` |
+| `training/{settings,config,lora_config,preflight}.py` | `config/full_ft.py`, `config/lora.py` |
+| `inference/{settings,config,contracts}.py` | `config/eval.py` |
+| `runtime/{distributed,training,fsdp}.py`, `training/{session,fsdp,analysis_context}.py` | `train/distributed.py` |
+| `training/{loop,memory}.py`, `runtime/memory.py` | `train/loop.py` |
+| `runtime/torch_runtime.py`, `runtime/io.py` | `model/device.py`, `data/records.py` |
+| `training/{checkpoints,schedules}.py` | `train/checkpoints.py` |
+| `training/{pipeline,artifacts}.py` | `train/pipeline.py`, `train/artifacts.py` |
+| `training/{analysis,lora_analysis}.py` | `train/full_ft.py`, `train/lora.py` |
+| `training/validation.py`, `inference/{runner,backends}.py` | `eval/validation.py`, `eval/inference.py`, `eval/backends.py` |
+| `experiments/specs.py`, `experiments/{factory,orchestrator}.py` | `config/experiments.py`, `train/study.py` |
+| `reporting/{layout,readers,manifest}.py` | `eval/reports.py` |
+| `reporting/style.py`, `reporting/figures/*.py` | `eval/plotting.py`, flat `eval/plot_*.py` |
+| `compat/*`, `training/engine.py`, `training/strategies/*` | root public `full_finetune.py`, `lora_finetune.py` |
+| `training/data.py`, `training/contracts.py` | `data/supervised.py`, records beside their producers |
+| `config/settings.py` | `config/{full_ft,lora,eval}.py`; public `runtime_settings.py` re-exports these |
+
+The optimizer loop yields only after clipping, optimizer step, scheduler step and gradient
+reset. Evaluation/serialization between yields is excluded from the next throughput interval.
+The final partial accumulation window keeps the original configured loss divisor.
+
+## Offline verification
+
+Use `scripts/test_pubmedqa_offline.py` for the whole unittest suite. It blocks external
+network access, CUDA/MPS execution and real process-group initialization. Subprocesses
+inherit a network audit guard. Shape-only meta tensors are allowed during local model
+loading. Synthetic data, tiny local model checkpoints and caches use temporary directories.
+
+The tests compare fixed-seed losses and trainable counts, real parameter updates, frozen
+LoRA base weights, adapter merge logits, checkpoint reload, artifact readers and CLI
+contracts. Static tests check eager import cycles and unique optimizer-loop ownership.
+Directory tests also check the exact five packages, absence of nested packages and retired
+paths, physical class ownership, core-to-compatibility dependencies, public export identity, every pre-move environment key/default, and lightweight imports.
+Run compileall, Ruff, both shell syntax checks and `git diff --check` at each change boundary.
+
+Manifest-only CLI dry-run is a separate contract test and does not prove training correctness.
+
+### Distributed correctness and numerical provenance
+
+`train/distributed.py` owns rank-zero I/O, rank-local error agreement, control timeout
+and group lifecycle. Studies lend their Gloo control group to TrainingSession objects;
+standalone run sessions own their groups. Only acknowledged local errors may continue to the next run. Tensor
+collective failures escape the study without an attempted recovery broadcast.
+
+`config/full_ft.py` validates settings; `data/supervised.py` validates every row's
+shifted target count before optimizer construction. The loop coordinates batch retrieval,
+finite loss and local optimizer failures. Both DDP and FSDP use `no_sync` for intermediate
+accumulation microbatches; FSDP uses its global norm clipping method. FSDP accumulation
+can retain unsharded gradients and therefore needs more memory than a single microbatch.
+
+FSDP loading retains float32 CPU master weights, including PEFT adapters. Declared
+Transformer `_no_split_modules` classes define auto-wrap units; embeddings/shared heads
+remain at the root. `device_id` moves and shards one unit at a time. No model-wide CUDA
+move is performed before wrapping. Unsupported model boundaries fail explicitly.
+Reference/checkpoint evaluation uses rank-zero CPU float32/eager attention, while
+training mixed precision uses the configured dtype. This does not eliminate CPU RAM
+requirements or the GPU capacity requirement for the largest unit.
+
+All ranks collect a full checkpoint state; only rank zero writes it. `optimizer.pt` still
+contains local rank-zero state, not a resumable full FSDP optimizer. Analysis uses
+`train/distributed.py` to unshard on all ranks and analyze only rank-zero CPU full
+values, never local shards. Names are normalized and missing tracked parameters fail.
+Analysis schema 2 retains original reference precision and float32 arithmetic with byte
+counts; disabling tracking avoids weight-dynamics allocations and files.
+
+`train/loop.py` records only training windows, excluding evaluation/checkpoint work.
+Each CUDA window synchronizes before resetting and sampling peaks; actual overhead is
+unmeasured. Final per-rank records are gathered, validated and sorted. CPU records mark
+memory as unmeasured. Validation uses shifted-target-token mean NLL and restores the
+original training/padding state in `finally`; training logs retain microbatch-mean loss.
+Historical artifacts remain unchanged, so old and new numerical provenance differs.
+CPU/fake-rank results do not establish GPU convergence, throughput, memory use or real
+distributed collectives. Baseline full-device loading, FP16 loss scaling and partial-window
+normalization remain separate follow-up decisions; this architecture refactor does not
+change those numerical/loading policies or implement exact FSDP optimizer resume.

@@ -1,6 +1,6 @@
 """Reusable PubMedQA data preparation and validation services."""
 
-from pubmedqa.data.splits import (
+from pubmedqa.data.prepare import (
     annotate_rows,
     combine_folds,
     label_counts,

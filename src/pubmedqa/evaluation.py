@@ -1,14 +1,15 @@
-"""Compatibility facade for :mod:`pubmedqa.inference`."""
+"""Established evaluation API; implementation is owned by pubmedqa.eval."""
 
 from pubmedqa.config import EnvironmentConfig
-from pubmedqa.domain.labels import VALID_LABELS
-from pubmedqa.domain.metrics import accuracy, macro_f1, resolve_metric_labels
-from pubmedqa.inference.contracts import EvalItem, EvalSummary, ModelRuntimeConfig
-from pubmedqa.inference.runner import (
+from pubmedqa.config.eval import ModelRuntimeConfig
+from pubmedqa.data.records import current_time_iso, safe_name, write_json, write_jsonl
+from pubmedqa.eval.inference import (
     DEFAULT_BASE_MODELS,
     DEFAULT_MLX_MODEL_MAP,
     DEFAULT_MODEL_NAME,
     CliBatchConfig,
+    EvalItem,
+    EvalSummary,
     InferenceBackend,
     MLXBackend,
     PubMedQAEvaluationRunner,
@@ -29,8 +30,9 @@ from pubmedqa.inference.runner import (
     save_results,
     synchronize_device,
 )
-from pubmedqa.runtime.io import current_time_iso, safe_name, write_json, write_jsonl
-from pubmedqa.runtime.torch_runtime import configure_parallelism
+from pubmedqa.eval.metrics import accuracy, macro_f1, resolve_metric_labels
+from pubmedqa.labels import VALID_LABELS
+from pubmedqa.model.device import configure_parallelism
 
 __all__ = [
     "DEFAULT_BASE_MODELS",

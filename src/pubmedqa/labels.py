@@ -1,5 +1,10 @@
-"""Compatibility facade for :mod:`pubmedqa.domain.labels`."""
+"""Established public imports; implementation is owned by pubmedqa.data.records."""
 
-from pubmedqa.domain.labels import LABEL_PATTERN, VALID_LABELS, normalize_label, require_label
+from pubmedqa.data.records import (
+    LABEL_PATTERN,
+    VALID_LABELS,
+    normalize_label,
+    require_label,
+)
 
 __all__ = ["LABEL_PATTERN", "VALID_LABELS", "normalize_label", "require_label"]

@@ -1,6 +1,6 @@
-"""Compatibility facade for :mod:`pubmedqa.domain.prompts`."""
+"""Established public imports; implementation is owned by pubmedqa.data.prompts."""
 
-from pubmedqa.domain.prompts import (
+from pubmedqa.data.prompts import (
     ChatMessage,
     PubMedQAExample,
     build_assistant_answer,

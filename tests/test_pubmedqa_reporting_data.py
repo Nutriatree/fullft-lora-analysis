@@ -8,12 +8,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from pubmedqa.data.posttrain import PosttrainSplitConfig, prepare_posttrain_splits
-from pubmedqa.data.splits import split_balanced_artificial
+from pubmedqa.data.prepare import PosttrainSplitConfig, prepare_posttrain_splits
+from pubmedqa.data.prepare import split_balanced_artificial
 from pubmedqa.data.summary import read_jsonl_summary
-from pubmedqa.reporting.layout import StudyLayout
-from pubmedqa.reporting.manifest import write_report_manifest
-from pubmedqa.reporting.readers import StudyArtifactReader
+from pubmedqa.eval.reports import StudyLayout
+from pubmedqa.eval.reports import write_report_manifest
+from pubmedqa.eval.reports import StudyArtifactReader
 
 
 class PubMedQAReportingDataTest(unittest.TestCase):
@@ -161,7 +161,7 @@ class PubMedQAReportingDataTest(unittest.TestCase):
                 sys.executable,
                 "-c",
                 (
-                    "import sys; import pubmedqa.data; import pubmedqa.reporting; "
+                    "import sys; import pubmedqa.data; import pubmedqa.eval.reports; "
                     "assert 'datasets' not in sys.modules; "
                     "assert 'matplotlib' not in sys.modules; "
                     "assert 'torch' not in sys.modules"

@@ -7,9 +7,13 @@ from typing import Any
 
 from datasets import load_dataset
 
-from pubmedqa.data.catalog import HF_DATASET, OFFICIAL_PQAL_TEST_URL, OFFICIAL_PQAL_URL
+from pubmedqa.data.prepare import (
+    HF_DATASET,
+    OFFICIAL_PQAL_TEST_URL,
+    OFFICIAL_PQAL_URL,
+    label_counts,
+)
 from pubmedqa.data.sources import fetch_json
-from pubmedqa.data.splits import label_counts
 
 
 def normalize_prediction(value: Any) -> str:
@@ -38,18 +42,26 @@ def verify_sources() -> dict[str, Any]:
         checks = {
             "question": hf_row.get("question") == github_row.get("QUESTION"),
             "long_answer": hf_row.get("long_answer") == github_row.get("LONG_ANSWER"),
-            "final_decision": hf_row.get("final_decision") == github_row.get("final_decision"),
-            "contexts": hf_row.get("context", {}).get("contexts") == github_row.get("CONTEXTS"),
-            "labels": hf_row.get("context", {}).get("labels") == github_row.get("LABELS"),
-            "meshes": hf_row.get("context", {}).get("meshes") == github_row.get("MESHES"),
+            "final_decision": hf_row.get("final_decision")
+            == github_row.get("final_decision"),
+            "contexts": hf_row.get("context", {}).get("contexts")
+            == github_row.get("CONTEXTS"),
+            "labels": hf_row.get("context", {}).get("labels")
+            == github_row.get("LABELS"),
+            "meshes": hf_row.get("context", {}).get("meshes")
+            == github_row.get("MESHES"),
             "reasoning_required_pred": normalize_prediction(
                 hf_row.get("context", {}).get("reasoning_required_pred")
-            ) == github_row.get("reasoning_required_pred"),
+            )
+            == github_row.get("reasoning_required_pred"),
             "reasoning_free_pred": normalize_prediction(
                 hf_row.get("context", {}).get("reasoning_free_pred")
-            ) == github_row.get("reasoning_free_pred"),
+            )
+            == github_row.get("reasoning_free_pred"),
         }
-        field_mismatches.extend((pmid, field) for field, matches in checks.items() if not matches)
+        field_mismatches.extend(
+            (pmid, field) for field, matches in checks.items() if not matches
+        )
 
     label_mismatches = [
         pmid

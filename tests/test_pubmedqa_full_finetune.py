@@ -7,13 +7,15 @@ from unittest.mock import Mock, patch
 
 import torch
 
-from pubmedqa.training.data import (
+from pubmedqa.data.supervised import (
     SupervisedDataCollator,
     SupervisedExample,
     longest_common_prefix_length,
 )
-from pubmedqa.training.schedules import build_checkpoint_schedule
-from pubmedqa.training.strategies.full import PubMedQAFullFineTuner
+from pubmedqa.train.checkpoints import build_checkpoint_schedule
+from pubmedqa.train.distributed import TrainingSession, RuntimeSettings
+from pubmedqa.train.pipeline import _run_training
+from pubmedqa.eval.validation import evaluate_split
 
 
 class FakeTokenizer:
@@ -69,18 +71,23 @@ class PubMedQAFullFineTuneTest(unittest.TestCase):
             build_checkpoint_schedule(1250, (25, 50, 75, 100)),
         )
 
-    def test_fsdp_evaluation_does_not_run_forward_inside_summon_full_params(self) -> None:
-        source = inspect.getsource(PubMedQAFullFineTuner.evaluate_split)
+    def test_fsdp_evaluation_does_not_run_forward_inside_summon_full_params(
+        self,
+    ) -> None:
+        source = inspect.getsource(evaluate_split)
         self.assertNotIn("FSDP.summon_full_params", source)
 
     def test_main_process_operation_broadcasts_to_distributed_ranks(self) -> None:
-        trainer = object.__new__(PubMedQAFullFineTuner)
+        trainer = TrainingSession(RuntimeSettings(), torch.device("cpu"))
         trainer.config = SimpleNamespace(distributed_mode="fsdp")
         trainer.rank = 0
+        trainer.control_group = object()
 
-        with patch("pubmedqa.training.engine.dist.broadcast_object_list") as broadcast:
-            with patch("pubmedqa.training.engine.dist.is_initialized", return_value=True):
-                result = trainer._run_on_main_process(
+        with patch("pubmedqa.train.distributed.dist.broadcast_object_list") as broadcast:
+            with patch(
+                "pubmedqa.train.distributed.dist.is_initialized", return_value=True
+            ):
+                result = trainer.run_on_main_process(
                     lambda: "completed",
                     operation_name="validation",
                 )
@@ -89,25 +96,30 @@ class PubMedQAFullFineTuneTest(unittest.TestCase):
         broadcast.assert_called_once_with(
             [{"ok": True, "result": "completed"}],
             src=0,
+            group=trainer.control_group,
         )
 
     def test_non_main_process_does_not_execute_main_process_operation(self) -> None:
-        trainer = object.__new__(PubMedQAFullFineTuner)
+        trainer = TrainingSession(RuntimeSettings(), torch.device("cpu"))
         trainer.config = SimpleNamespace(distributed_mode="fsdp")
         trainer.rank = 1
-        operation = Mock(side_effect=AssertionError("rank 1 must not execute the operation"))
+        trainer.control_group = object()
+        operation = Mock(
+            side_effect=AssertionError("rank 1 must not execute the operation")
+        )
 
-        def receive_result(payload, *, src):
+        def receive_result(payload, *, src, group):
+            self.assertIs(trainer.control_group, group)
             payload[0] = {"ok": True, "result": "rank-zero-result"}
 
         with (
-            patch("pubmedqa.training.engine.dist.is_initialized", return_value=True),
+            patch("pubmedqa.train.distributed.dist.is_initialized", return_value=True),
             patch(
-                "pubmedqa.training.engine.dist.broadcast_object_list",
+                "pubmedqa.train.distributed.dist.broadcast_object_list",
                 side_effect=receive_result,
             ),
         ):
-            result = trainer._run_on_main_process(
+            result = trainer.run_on_main_process(
                 operation,
                 operation_name="validation",
             )
@@ -116,19 +128,21 @@ class PubMedQAFullFineTuneTest(unittest.TestCase):
         operation.assert_not_called()
 
     def test_main_process_operation_propagates_python_errors_to_all_ranks(self) -> None:
-        trainer = object.__new__(PubMedQAFullFineTuner)
+        trainer = TrainingSession(RuntimeSettings(), torch.device("cpu"))
         trainer.config = SimpleNamespace(distributed_mode="fsdp")
         trainer.rank = 0
 
-        with patch("pubmedqa.training.engine.dist.is_initialized", return_value=False):
-            with self.assertRaisesRegex(RuntimeError, "validation failed on rank 0: ValueError: broken"):
-                trainer._run_on_main_process(
+        with patch("pubmedqa.train.distributed.dist.is_initialized", return_value=False):
+            with self.assertRaisesRegex(
+                RuntimeError, "validation failed on rank 0: ValueError: broken"
+            ):
+                trainer.run_on_main_process(
                     lambda: (_ for _ in ()).throw(ValueError("broken")),
                     operation_name="validation",
                 )
 
     def test_fsdp_wrap_preserves_full_shard_and_original_parameters(self) -> None:
-        trainer = object.__new__(PubMedQAFullFineTuner)
+        trainer = TrainingSession(RuntimeSettings(), torch.device("cpu"))
         trainer.config = SimpleNamespace(
             distributed_mode="fsdp",
             dtype=torch.bfloat16,
@@ -137,24 +151,31 @@ class PubMedQAFullFineTuneTest(unittest.TestCase):
         trainer.device = torch.device("cpu")
         trainer.local_rank = 0
         model = torch.nn.Linear(2, 2)
+        model._no_split_modules = ["Linear"]
 
-        with patch("pubmedqa.training.engine.FullyShardedDataParallel") as fsdp_constructor:
-            trainer.wrap_model_for_training(model)
+        with patch(
+            "pubmedqa.train.distributed.FullyShardedDataParallel"
+        ) as fsdp_constructor:
+            trainer.wrap_model(model)
 
         self.assertTrue(fsdp_constructor.call_args.kwargs["use_orig_params"])
 
-    def test_training_model_reference_is_deleted_before_best_checkpoint_load(self) -> None:
-        source = inspect.getsource(PubMedQAFullFineTuner.run)
+    def test_training_model_reference_is_deleted_before_best_checkpoint_load(
+        self,
+    ) -> None:
+        source = inspect.getsource(_run_training)
         self.assertIn("del model", source)
-        self.assertLess(source.index("del model"), source.index("def evaluate_best_checkpoint"))
+        self.assertLess(
+            source.index("del model"), source.index("def evaluate_best_checkpoint")
+        )
 
     def test_close_destroys_owned_default_process_group(self) -> None:
-        trainer = object.__new__(PubMedQAFullFineTuner)
+        trainer = TrainingSession(RuntimeSettings(), torch.device("cpu"))
         trainer._owns_process_group = True
 
         with (
-            patch("pubmedqa.training.engine.dist.is_initialized", return_value=True),
-            patch("pubmedqa.training.engine.dist.destroy_process_group") as destroy,
+            patch("pubmedqa.train.distributed.dist.is_initialized", return_value=True),
+            patch("pubmedqa.train.distributed.dist.destroy_process_group") as destroy,
         ):
             trainer.close()
 

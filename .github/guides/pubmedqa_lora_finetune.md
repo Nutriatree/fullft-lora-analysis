@@ -1,6 +1,14 @@
 # PubMedQA LoRA 실행 가이드
 
-이 문서는 [LoRA strategy](../../src/pubmedqa/training/strategies/lora.py)와 [LoRA CLI](../../scripts/run_pubmedqa_lora_finetune.py)를 사용해 PubMedQA LoRA 학습을 실행하는 방법을 설명한다.
+이 문서는 [학습 파이프라인](../../src/pubmedqa/train/pipeline.py)와 [LoRA CLI](../../scripts/run_pubmedqa_lora_finetune.py)를 사용해 PubMedQA LoRA 학습을 실행하는 방법을 설명한다.
+
+코드를 수정할 때 설정은 `config/lora.py`, 모델·adapter 구성은 `model/lora.py`,
+공통 학습 step은 `train/loop.py`, LoRA delta 분석은 `train/lora.py`에서 수정한다.
+Full/LoRA CLI는 `run_training(config, environment)`을 직접 호출한다.
+학습 순서는 `train/pipeline.py`의 지역 상태와 명시적 호출로 구성하고,
+분석 기록은 `AdapterHistory`에만 보관한다. 기존 Trainer 클래스와 import는 호환 진입점이며
+그 메서드를 override하는 방식은 새 파이프라인의 확장 지점이 아니다. 로컬 동작 검증은
+`python scripts/test_pubmedqa_offline.py`로 수행하며, 실제 PEFT를 적용한 소형 CPU 모델을 사용한다.
 
 기준 환경은 서버의 `conda` 환경 `jw` 이다.
 
@@ -91,7 +99,19 @@ CUDA_VISIBLE_DEVICES=0,1 PYTHONPATH=src \
   --no-save-optimizer-state
 ```
 
-FSDP에서 validation과 layer-wise LoRA `A/B`, `Delta W` 분석은 모든 rank가 full-parameter gather에 참여하고 rank 0이 기록한다. 따라서 결과 artifact는 단일 GPU 실행과 같은 위치에 한 번만 생성된다.
+FSDP checkpoint 수집과 layer-wise LoRA `A/B`, `Delta W` 분석용 unshard에는 모든 rank가
+참여하며 rank 0만 파일을 기록한다. validation/test는 수집된 adapter를 rank 0의 CPU
+모델에 로드해 실행한다. generation을 `summon_full_params` 안에서 실행하지 않는다.
+
+FSDP의 frozen base와 trainable adapter는 float32 master weight로 통일한다. 한 FSDP unit에
+base bf16/fp16과 adapter float32를 섞지 않으며 `use_orig_params=True`로 frozen/trainable
+혼합을 지원한다. `--dtype`는 학습 mixed precision이고 CPU 평가는 float32/eager이다.
+FSDP accumulation의 `no_sync`는 full gradient를 유지할 수 있으므로 GPU 메모리 비용이 있다.
+CPU 적재도 rank별 full-model RAM을 요구한다. single/DDP dtype 정책은 기존과 같다.
+
+분석 schema 2는 float32 delta/snapshot을 사용하며 메모리 바이트 수를 기록한다.
+`track_layerwise_updates=false`는 reference와 adapter dynamics 할당·파일을 생략한다.
+일반 loss/memory 결과는 계속 기록한다. `optimizer.pt`는 FSDP full resume 상태가 아니다.
 
 ## run별 권장 설정
 

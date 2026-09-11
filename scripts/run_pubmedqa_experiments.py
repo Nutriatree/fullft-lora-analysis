@@ -9,14 +9,14 @@ from dataclasses import replace
 from pathlib import Path
 
 from pubmedqa.config import EnvironmentConfig
-from pubmedqa.experiments.orchestrator import (
+from pubmedqa.train.study import (
     ExperimentStudy,
     execute_study,
     print_run_table as _print_run_table,
     to_jsonable as _jsonable,
     validate_target_layer_overrides as _validate_target_layer_overrides,
 )
-from pubmedqa.experiments.specs import (
+from pubmedqa.experiment_runs import (
     DEFAULT_BASELINE_OUTPUT_DIR,
     DEFAULT_PATHS,
     DEFAULT_SHARED_DEFAULTS,
@@ -24,7 +24,7 @@ from pubmedqa.experiments.specs import (
     SharedTrainDefaults,
     list_run_tags,
 )
-from pubmedqa.runtime.distributed import (
+from pubmedqa.train.distributed import (
     destroy_process_groups as _destroy_distributed_process_groups,
     initialize_control_group as _initialize_distributed_control_group,
     run_on_rank_zero as _run_on_rank_zero,

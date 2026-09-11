@@ -10,13 +10,13 @@ from typing import Any
 
 from datasets import Dataset, load_dataset
 
-from pubmedqa.data.catalog import (
+from pubmedqa.data.prepare import (
     HF_DATASET,
     HF_DATASET_URL,
     OFFICIAL_PQAL_TEST_URL,
     OFFICIAL_PQAL_URL,
+    CanonicalSourcePort,
 )
-from pubmedqa.data.ports import CanonicalSourcePort
 
 
 def fetch_json(url: str) -> dict[str, Any]:
@@ -103,7 +103,11 @@ class RemotePubMedQASource(CanonicalSourcePort):
         return load_hf_config("pqa_artificial")
 
     def load_labeled(self) -> OrderedDict[str, dict[str, Any]]:
-        return load_github_pqal() if self.pqal_source == "github" else load_hf_config("pqa_labeled")
+        return (
+            load_github_pqal()
+            if self.pqal_source == "github"
+            else load_hf_config("pqa_labeled")
+        )
 
     def load_official_test_labels(self) -> dict[str, str] | None:
         return load_official_pqal_test_labels(

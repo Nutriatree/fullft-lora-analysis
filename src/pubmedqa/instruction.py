@@ -1,6 +1,6 @@
-"""Compatibility facade for :mod:`pubmedqa.domain.instructions`."""
+"""Compatibility facade for :mod:`pubmedqa.data.prompts`."""
 
-from pubmedqa.domain.instructions import (
+from pubmedqa.data.prompts import (
     DIRECT_ASSISTANT_ANSWER_TEMPLATE,
     SYSTEM_PROMPT_TEMPLATE,
     USER_PROMPT_TEMPLATE,

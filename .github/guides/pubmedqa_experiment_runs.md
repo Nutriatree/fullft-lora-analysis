@@ -2,7 +2,13 @@
 
 이 문서는 [scripts/run_pubmedqa_experiments.py](../../scripts/run_pubmedqa_experiments.py)를 사용해 PubMedQA의 baseline, Full Fine-Tuning, LoRA run들을 중앙 정의 기반으로 실행하는 방법을 설명한다.
 
-실험 정의의 단일 기준은 [src/pubmedqa/experiments/specs.py](../../src/pubmedqa/experiments/specs.py)이다.
+실험 정의의 단일 기준은 [src/pubmedqa/config/experiments.py](../../src/pubmedqa/config/experiments.py)이다.
+`train/study.py::build_training_config`는 설정만 반환하고,
+`train/study.py`는 `train/pipeline.py::run_training`을 직접 호출한다.
+`build_runner`와 기존 Trainer는 공개 import 호환용이며 핵심 학습 경로에서 사용하지 않는다.
+study는 통신 그룹을 소유하고 각 `TrainingSession`에 빌려준다. 학습 성공·실패 모두
+세션을 정리하되 빌린 그룹은 study 종료 시에만 정리한다.
+`--dry-run`은 manifest/표만 만들고 모델 적재나 분산 초기화를 실행하지 않는다.
 
 기준 환경은 서버의 `conda` 환경 `jw` 이다. 이 문서의 실행 예시는 모두 이 환경 안에서 바로 실행한다고 가정한다.
 
@@ -10,7 +16,7 @@
 
 전체 run 실행 스크립트는 다음 목적을 가진다.
 
-- `B0`, `F1`, `L1`, `L2`, `L3`, `L4`, `LL1`, `F2`, `L5` 같은 run 정의를 한 곳에서 관리
+- `B0`, `F1`, `L1`, `L2`, `L3`, `L4`, `LL1`, `LL2`, `F2`, `L5` 같은 run 정의를 한 곳에서 관리
 - 공통 학습 조건을 한 번만 지정하고 각 run이 참조하도록 유지
 - 실행 전 `manifest`를 생성해서 실제 사용된 조건을 기록
 - `--dry-run` 으로 실행 계획만 확인
@@ -35,7 +41,7 @@
 | `F2` | Full FT | `full-ft-low-data` | low-data Full FT |
 | `L5` | LoRA | `lora-low-data` | low-data LoRA |
 
-실제 정의는 [src/pubmedqa/experiments/specs.py](../../src/pubmedqa/experiments/specs.py)의 `RUN_SPECS`를 기준으로 한다.
+실제 정의는 [src/pubmedqa/config/experiments.py](../../src/pubmedqa/config/experiments.py)의 `RUN_SPECS`를 기준으로 한다.
 
 ## 기본 데이터 경로
 
@@ -66,6 +72,11 @@ PYTHONPATH=src python scripts/run_pubmedqa_experiments.py --list-runs
 ## dry-run
 
 실제 학습 전에 manifest와 run 계획만 확인하려면 `--dry-run` 을 사용한다.
+
+이 옵션은 optimizer나 모델 평가를 실행하지 않는다. 코드 변경 후에는 별도로
+`python scripts/test_pubmedqa_offline.py`를 실행해 소형 CPU 모델의 실제 학습·저장·재로딩을 검증한다.
+로컬 dry-run의 `--train-output-dir`과 `--baseline-output-dir`은 임시 디렉터리로 지정해
+기존 실험 결과와 분리한다. 실행 환경 준비와 정적 검사 명령은 README의 Validation 절을 참고한다.
 
 ```bash
 PYTHONPATH=src python scripts/run_pubmedqa_experiments.py \
@@ -136,11 +147,22 @@ CUDA_VISIBLE_DEVICES=0,1 PYTHONPATH=src \
 
 각 `train-batch-size` 는 GPU당 micro-batch다. 위 예시의 유효 global batch는 `1 x 2 GPU x 16 accumulation = 32` 이다. 이전 단일 GPU 기준과 유효 batch를 맞추려면 `world_size` 변화까지 포함해 accumulation을 조정해야 하며, 실제 값은 `run_manifest.json` 에 남는다.
 
-FSDP 모드에서 checkpoint 저장에는 모든 rank가 참여한다. 이후 validation은 저장된 checkpoint를 rank 0의 독립 모델로 다시 불러와 실행하고, 다른 rank는 장시간 대기에 안전한 Gloo control group에서 결과를 기다린다. Layer-wise 분석용 full parameter는 rank 0 CPU에만 materialize한다. 기존 `summary.json`, `checkpoints/`, `layerwise_updates/` 구조는 그대로 유지한다.
+FSDP 모드에서 checkpoint full-state 수집에는 모든 rank가 참여하고 rank 0만 파일을 쓴다.
+초기 모델은 float32 CPU에 로드한 뒤 Transformer block별로 GPU에 옮겨 sharding한다.
+validation/test는 rank 0 CPU의 독립 float32/eager 모델로 실행하며 다른 rank는 전용 Gloo
+control group에서 결과를 기다린다. 학습 계산 dtype은 `--dtype`의 mixed precision이다.
+CPU full-model RAM은 각 rank에 필요하다. Layer-wise 분석도 모든 rank가 unshard에
+참여하고 rank 0만 CPU full values를 분석한다. 기존 artifact 디렉터리 구조는 유지한다.
 
 `distributed_runtime.json` 에는 각 GPU의 idle, model-loaded, peak allocated/reserved VRAM과 두 GPU 중 최대 peak 값이 저장된다. `summary.json` 의 memory 값은 rank 0 값이므로, 2-GPU memory 비교에는 이 artifact를 사용한다.
 
-`--no-save-optimizer-state` 는 첫 실행에서 권장한다. FSDP full optimizer state는 GPU가 아니라 rank 0 CPU 메모리와 디스크에 모이므로, 재개 학습이 필요할 때만 optimizer checkpoint 저장을 켠다.
+`--no-save-optimizer-state`를 권장한다. 현재 `optimizer.pt`는 rank 0 로컬 optimizer 상태이며
+FSDP full optimizer state 수집·정확한 resume 기능은 제공하지 않는다.
+
+DDP도 같은 저장/오류 제어 흐름을 사용하지만 모델은 GPU별로 복제한다. study와 standalone
+CLI 모두 `PUBMEDQA_CONTROL_TIMEOUT_SECONDS`(기본 86400초)를 평가·저장 제어 통신에 사용한다.
+이는 NCCL 학습 timeout을 늘리는 옵션이 아니다. `--continue-on-error`는 모든 rank가
+확인한 로컬 I/O/검증 오류에만 적용하며 collective 실패나 rank crash에서는 study를 중단한다.
 
 중간에 실패가 나면 기본적으로 거기서 중단한다.
 
@@ -159,7 +181,7 @@ PYTHONPATH=src python scripts/run_pubmedqa_experiments.py \
 `F2`, `L5`는 별도 하드코딩된 subset 파일을 쓰지 않는다.  
 중앙 run 정의의 `max_train_examples` 값을 참조한다.
 
-현재 기본값은 [src/pubmedqa/experiments/specs.py](../../src/pubmedqa/experiments/specs.py)의
+현재 기본값은 [src/pubmedqa/config/experiments.py](../../src/pubmedqa/config/experiments.py)의
 
 - `DEFAULT_LOW_DATA_MAX_TRAIN_EXAMPLES = 2048`
 
@@ -197,7 +219,7 @@ PYTHONPATH=src python scripts/run_pubmedqa_experiments.py \
 | `--max-input-tokens` | 공통 입력 길이 제한 |
 | `--max-new-tokens` | 공통 생성 길이 제한 |
 | `--device` | 공통 device |
-| `--distributed-mode` | `single` 또는 2-GPU FSDP `fsdp` |
+| `--distributed-mode` | `single`, `ddp`, `fsdp` |
 | `--fsdp-cpu-offload` | FSDP parameter CPU offload. PCIe 환경에서는 기본값 `false` 권장 |
 | `--dtype` | 공통 dtype |
 | `--checkpoint-percents` | checkpoint 저장 비율 |

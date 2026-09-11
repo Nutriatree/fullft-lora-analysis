@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import ast
 import os
 import subprocess
 import sys
@@ -11,30 +12,79 @@ from unittest.mock import patch
 
 import torch
 
-from pubmedqa.config import EVAL_CONFIG, TRAIN_FULL_FINE_TUNE_CONFIG
-from pubmedqa.domain.labels import VALID_LABELS, normalize_label
-from pubmedqa.domain.metrics import accuracy, classwise_f1, confusion_matrix, macro_f1
-from pubmedqa.domain.prompts import build_messages, example_from_record
+from pubmedqa.config.eval import EVAL_CONFIG
+from pubmedqa.config.full_ft import TRAIN_FULL_FINE_TUNE_CONFIG
+from pubmedqa.labels import VALID_LABELS, normalize_label
+from pubmedqa.eval.metrics import accuracy, classwise_f1, confusion_matrix, macro_f1
+from pubmedqa.prompt_builder import build_messages, example_from_record
 from pubmedqa.evaluation import EvalSummary as LegacyEvalSummary
 from pubmedqa.full_finetune import TrainingSummary as LegacyTrainingSummary
-from pubmedqa.inference import EvalSummary
+from pubmedqa.eval import EvalSummary
 from pubmedqa.labels import normalize_label as legacy_normalize_label
 from pubmedqa.prompt_builder import PubMedQAExample as LegacyPubMedQAExample
-from pubmedqa.runtime.io import safe_name, write_json, write_jsonl
+from pubmedqa.data.records import safe_name, write_json, write_jsonl
 from pubmedqa.runtime_settings import EVAL_CONFIG as LEGACY_EVAL_CONFIG
-from pubmedqa.training import TrainingSummary
-from pubmedqa.runtime.distributed import destroy_process_groups, run_on_rank_zero
-from pubmedqa.runtime.torch_runtime import count_parameters, memory_snapshot, resolve_dtype
+from pubmedqa.train import TrainingSummary
+from pubmedqa.train.distributed import destroy_process_groups, run_on_rank_zero
+from pubmedqa.model.device import count_parameters, memory_snapshot, resolve_dtype
 
 
 class PubMedQABoundaryTest(unittest.TestCase):
+    def test_eager_module_imports_have_no_cycles(self) -> None:
+        graph = {}
+        for path in Path("src/pubmedqa").rglob("*.py"):
+            name = ".".join(path.relative_to("src").with_suffix("").parts)
+            name = name.removesuffix(".__init__")
+            dependencies = set()
+            # Function-local compatibility imports are lazy, not startup edges.
+            for node in ast.parse(path.read_text()).body:
+                if isinstance(node, ast.ImportFrom) and node.module:
+                    dependencies.add(node.module)
+                elif isinstance(node, ast.Import):
+                    dependencies.update(alias.name for alias in node.names)
+            graph[name] = dependencies
+        visited = set()
+
+        def visit(name, chain):
+            self.assertNotIn(name, chain, " -> ".join([*chain, name]))
+            if name in visited or name not in graph:
+                return
+            for dependency in graph[name]:
+                visit(dependency, [*chain, name])
+            visited.add(name)
+
+        for name in graph:
+            visit(name, [])
+
+    def test_pipeline_capabilities_do_not_import_the_engine(self) -> None:
+        paths = [*Path("src/pubmedqa/train").glob("model.py"),
+                 Path("src/pubmedqa/train/loop.py"),
+                 Path("src/pubmedqa/config/full_ft.py"),
+                 Path("src/pubmedqa/train/checkpoints.py"),
+                 Path("src/pubmedqa/train/full_ft.py"),
+                 Path("src/pubmedqa/train/lora.py")]
+        for path in paths:
+            for node in ast.walk(ast.parse(path.read_text())):
+                if isinstance(node, ast.ImportFrom):
+                    self.assertNotEqual("pubmedqa.full_finetune", node.module, str(path))
+                    self.assertFalse((node.module or "").startswith("pubmedqa.training.strategies"), str(path))
+
+    def test_optimizer_update_has_one_owner(self) -> None:
+        owners = []
+        for path in Path("src/pubmedqa/train").rglob("*.py"):
+            for node in ast.walk(ast.parse(path.read_text())):
+                if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+                    if node.func.attr == "step" and isinstance(node.func.value, ast.Name) and node.func.value.id == "optimizer":
+                        owners.append(path.name)
+        self.assertEqual(["loop.py"], owners)
+
     def test_domain_package_is_independent_from_ml_frameworks(self) -> None:
         process = subprocess.run(
             [
                 sys.executable,
                 "-c",
                 (
-                    "import sys; import pubmedqa.domain; "
+                    "import sys; import pubmedqa.prompt_builder; "
                     "assert 'torch' not in sys.modules; "
                     "assert 'transformers' not in sys.modules; "
                     "assert 'peft' not in sys.modules"
@@ -134,7 +184,7 @@ class PubMedQABoundaryTest(unittest.TestCase):
 
     def test_distributed_runtime_broadcasts_rank_zero_result(self) -> None:
         control_group = object()
-        with patch("pubmedqa.runtime.distributed.dist.broadcast_object_list") as broadcast:
+        with patch("pubmedqa.train.distributed.dist.broadcast_object_list") as broadcast:
             result = run_on_rank_zero(
                 lambda: "complete",
                 is_main_process=True,
@@ -152,8 +202,8 @@ class PubMedQABoundaryTest(unittest.TestCase):
     def test_distributed_runtime_destroys_control_then_default_group(self) -> None:
         control_group = object()
         with (
-            patch("pubmedqa.runtime.distributed.dist.is_initialized", return_value=True),
-            patch("pubmedqa.runtime.distributed.dist.destroy_process_group") as destroy,
+            patch("pubmedqa.train.distributed.dist.is_initialized", return_value=True),
+            patch("pubmedqa.train.distributed.dist.destroy_process_group") as destroy,
         ):
             destroy_process_groups(control_group)
 

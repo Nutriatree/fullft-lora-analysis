@@ -6,20 +6,12 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from pubmedqa.config import (
-    EnvironmentConfig,
-    TRAIN_FULL_FINE_TUNE_CONFIG,
-    TRAIN_LAYER_CONFIG,
-    TRAIN_LORA_CONFIG,
-    parse_checkpoint_percents,
-)
-from pubmedqa.training.strategies.lora import (
-    LoRAFineTuneConfig,
-    PubMedQALoRAFineTuner,
-    load_target_layers,
-    normalize_lora_target_modules,
-)
-from pubmedqa.runtime.torch_runtime import resolve_dtype as _resolve_dtype
+from pubmedqa.config import EnvironmentConfig
+from pubmedqa.config.full_ft import TRAIN_FULL_FINE_TUNE_CONFIG, TRAIN_LAYER_CONFIG, parse_checkpoint_percents
+from pubmedqa.config.lora import TRAIN_LORA_CONFIG
+from pubmedqa.train.pipeline import run_training
+from pubmedqa.config.lora import LoRAFineTuneConfig, load_target_layers, normalize_lora_target_modules
+from pubmedqa.model.device import resolve_dtype as _resolve_dtype
 
 CLI_DEFAULT_DTYPE = (
     "bfloat16"
@@ -164,11 +156,7 @@ def main() -> None:
         distributed_mode=args.distributed_mode,
         fsdp_cpu_offload=args.fsdp_cpu_offload,
     )
-    trainer = PubMedQALoRAFineTuner(config, EnvironmentConfig(hf_token=args.hf_token))
-    try:
-        summary = trainer.run()
-    finally:
-        trainer.close()
+    summary = run_training(config, EnvironmentConfig(hf_token=args.hf_token))
     print(summary.title)
     print(f"Best checkpoint: {summary.best_checkpoint_dir}")
     print(f"Best validation ACC: {summary.best_validation_accuracy:.4f}")

@@ -190,27 +190,62 @@ LL1과 LL2는 같은 parameter 수를 사용하지만 high-update layer를 선�
 
 ## Architecture
 
-실험 결과와 보고서 산출물을 분리하고, domain → application service → runtime adapter 방향으로 의존하도록 구성했습니다.
+학습 프로그램은 Modular Monolith이며 실행 흐름은 Pipeline / Data-flow로 구성합니다.
+코드는 Conceptual Cohesion + Locality에 따라 관련 개념과 타입을 가까이 두고,
+PyTorch 모델은 Module-based OOP(`nn.Module`·PEFT 조합)를 사용합니다.
+Full FT와 LoRA는 동일한 optimizer-step 루프를 사용하며, 실험 결과와 보고서 산출물은 분리합니다.
 
 ```text
 src/pubmedqa/
-├── domain/       # labels, records, prompts, pure metrics
-├── config/       # typed settings and environment parsing
-├── data/         # source adapters, split preparation and validation
-├── inference/    # evaluation service and Torch/MLX backends
-├── training/     # shared engine, checkpoints, validation, strategies
-├── experiments/  # data-only run registry, runner factory, orchestration
-├── runtime/      # device, distributed lifecycle, artifact I/O
-└── reporting/    # typed readers, plot services, report manifest
+├── data/         # records, prompts, prepare, supervised; source/inspection
+├── model/        # loading, full_ft, lora, device
+├── train/        # pipeline, loop, distributed, checkpoints, study; method analysis
+├── eval/         # inference, validation, metrics, reports, flat RQ plots
+└── config/       # full_ft, lora, eval, experiments; shared environment parsing
 
 scripts/          # thin CLI adapters
-outputs/          # immutable experiment logs, metrics and model artifacts
+outputs/          # experiment logs, metrics and model artifacts
 reports/          # figures derived from outputs/
 .github/          # versioned guides, report and README assets
 docs/             # local drafts and internal plans (Git-ignored)
 ```
 
-기존 import path는 compatibility facade로 유지합니다. 상세한 ownership과 안정성 계약은 [ARCHITECTURE.md](.github/ARCHITECTURE.md)를 참고하세요.
+다섯 패키지 안에는 하위 패키지를 만들지 않습니다. 같은 변경 이유를 가진 작은 파일은 합칩니다.
+예를 들어 record·label·JSON 입출력은 `data/records.py`, split/canonical/posttrain 준비는
+`data/prepare.py`, 학습 step·메모리 구간 측정은 `train/loop.py`,
+checkpoint 스케줄·저장은 `train/checkpoints.py`에 둡니다.
+
+Full FT와 LoRA의 전용 설정·모델 준비·분석은 구분하고, 동일한 학습 루프는 복제하지 않습니다.
+실제 실행 경계가 다른 원격 source, 오프라인 점검, Torch/MLX backend와 독립 RQ plot은
+별도 파일로 유지합니다. 상세한 기준은 [ARCHITECTURE.md](.github/ARCHITECTURE.md)에 정리했습니다.
+
+학습 방식 수정은 [공통 루프](src/pubmedqa/train/loop.py), 입력·loss mask 수정은
+[supervised data](src/pubmedqa/data/supervised.py), LoRA 구성 수정은
+[모델 준비](src/pubmedqa/model/lora.py)에서 시작합니다.
+[학습 프로그램](src/pubmedqa/train/pipeline.py)의 `run_training(config, environment)`이
+준비 → reference 평가 → 학습·검증·저장 → 학습 모델 해제 → best checkpoint test → 결과 저장을
+명시적으로 조립하고 세션을 `finally`에서 정리합니다. CLI와 `train/study.py`도 직접 호출합니다.
+
+| 수정할 목적 | 실제 소유자 |
+|---|---|
+| Full FT / LoRA 모델 준비 | `model/full_ft.py`, `model/lora.py`; 공통 적재는 `model/loading.py` |
+| Full FT / LoRA 설정·환경 변수·기본값 | `config/full_ft.py`, `config/lora.py` |
+| 추론 설정 / 데이터-only 실험 정의 | `config/eval.py`, `config/experiments.py` |
+| 학습 세션, DDP/FSDP wrapping·분석 unshard·정리 | `train/distributed.py` |
+| 학습 step·학습 구간 메모리 측정 | `train/loop.py` |
+| checkpoint 평가 / Full FT·LoRA 분석 | `eval/validation.py`, `train/full_ft.py`, `train/lora.py` |
+| run 구성·순차 study / 최종 artifact | `train/study.py`, `train/artifacts.py` |
+
+`TrainingSession`은 통신 자원, `EvaluationSettings`는 평가 설정, `RunFiles`는 경로,
+`AdapterHistory`는 분석 기록만 보관합니다. 모델·optimizer·scheduler는 실행 함수의 지역 상태입니다.
+설정 조회는 torch-free이며 `config/__init__.py`는 공용 환경 파싱만 담당합니다.
+
+기존 내부 호환 디렉토리는 제거했습니다. `domain`, `models`, `training`, `inference`,
+`reporting`, `runtime`, `experiments`, `compat` 및 옛 내부 shim import는 지원하지 않습니다.
+공개 notebook API인 `full_finetune.py`, `lora_finetune.py`, `evaluation.py`,
+`experiment_runs.py`, `runtime_settings.py`, label/prompt/parser 모듈은 root에 유지합니다.
+이 compatibility 표면으로 core가 역의존하지 않습니다. 기존 Trainer 메서드 override 대신
+위 실제 소유자를 수정합니다. CLI 인자와 결과 artifact 형식은 유지됩니다.
 
 ## Quick Start
 
@@ -325,20 +360,66 @@ manifest를 저장합니다.
 
 ## Validation
 
-```bash
-conda run -n AutoAI env PYTHONPATH=src \
-  python -m unittest discover -s tests -v
+Python 3.10 이상과 PyTorch가 있는 환경에서 개발 의존성을 준비합니다. 로컬 검증용 환경의 예시입니다.
 
-conda run -n AutoAI python -m compileall -q src scripts tests
-bash -n scripts/run_pubmedqa_full_study.sh
-bash -n scripts/run_pubmedqa_fsdp_smoke.sh
+```bash
+python3.10 -m venv .venv
+.venv/bin/python -m pip install torch -r requirements.txt -e '.[dev]'
 ```
 
-GPU 학습 전에는 run registry와 override를 dry-run으로 확인할 수 있습니다.
+정적 검사는 매 변경 단계의 시작과 끝에 실행합니다.
 
 ```bash
-PYTHONPATH=src python scripts/run_pubmedqa_experiments.py \
+.venv/bin/python -m compileall -q src scripts tests
+.venv/bin/python -m ruff check src scripts tests
+bash -n scripts/run_pubmedqa_full_study.sh
+bash -n scripts/run_pubmedqa_fsdp_smoke.sh
+git diff --check
+```
+
+동적 검사는 [offline CPU 테스트](scripts/test_pubmedqa_offline.py)를 실행합니다.
+임시 데이터·2-layer 소형 모델로 Full FT, 실제 PEFT LoRA, selective LoRA의 학습·저장·재로딩·평가를 수행합니다.
+네트워크와 CUDA/MPS 실행을 차단하고, 테스트 cache와 결과는 임시 디렉터리에서 정리합니다.
+
+```bash
+.venv/bin/python scripts/test_pubmedqa_offline.py
+.venv/bin/python -m coverage run --source=src/pubmedqa scripts/test_pubmedqa_offline.py
+.venv/bin/python -m coverage report -m
+```
+
+이 검사는 실제 GPU 수렴성·처리량·메모리 및 다중 GPU 통신을 검증하지 않습니다.
+DDP/FSDP는 fake를 통한 제어 흐름 검사만 포함합니다.
+
+### 학습·분산 실행의 정확성 계약
+
+- DDP/FSDP의 평가·저장 결과와 복구 가능한 오류는 전용 Gloo group으로 공유합니다.
+  `PUBMEDQA_CONTROL_TIMEOUT_SECONDS`로 제어 통신 timeout을 설정합니다(기본 86400초).
+  collective 실패·rank crash는 `continue_on_error`로 다음 run을 계속하지 않습니다.
+- FSDP는 CPU pretrained weight를 Transformer block별로 GPU에 옮겨 sharding합니다.
+  master weight와 rank 0 CPU 평가는 **float32**, 학습 계산은 설정한 mixed precision입니다.
+  각 rank의 CPU full-model RAM과 가장 큰 FSDP unit을 담을 GPU 메모리는 여전히 필요합니다.
+- checkpoint full-state 수집과 분석용 unshard에는 모든 rank가 참여하고 파일은 rank 0만 씁니다.
+  `optimizer.pt`는 기존 rank 0 로컬 상태이며 완전한 FSDP resume checkpoint가 아닙니다.
+- 유효한 shifted target가 없는 row는 pubid·length를 포함한 오류로 학습 전에 거절합니다.
+  validation loss는 `token_mean`, 학습 로그는 기존 microbatch 평균입니다.
+  평가 실패 후에도 모델 모드와 tokenizer padding을 복원합니다.
+- 분석 `schema_version=2`는 원본 dtype reference와 float32 delta 연산을 사용합니다.
+  tracking을 끄면 weight/adapter dynamics 할당·쓰기를 생략합니다. 학습 peak는 평가 peak와
+  분리하며 `distributed_runtime.json`은 모든 rank의 측정값을 포함합니다.
+
+기존 보고서와 실험 산출물은 재생성하지 않았습니다. 과거 batch-mean loss·float16 reference
+분석·혼합 peak와 새 값을 직접 동일시하지 마세요. 상세 조건은
+[분산 실행 가이드](.github/guides/pubmedqa_fsdp_troubleshooting.md)를 참고하세요.
+
+기존 CLI `--dry-run`은 manifest만 생성하며 학습 루프를 실행하지 않습니다.
+실험 결과와 섞이지 않도록 출력 경로를 별도로 지정합니다.
+
+```bash
+PUBMEDQA_CHECK_DIR=$(mktemp -d)
+PYTHONPATH=src .venv/bin/python scripts/run_pubmedqa_experiments.py \
   --dry-run \
+  --train-output-dir "$PUBMEDQA_CHECK_DIR/train" \
+  --baseline-output-dir "$PUBMEDQA_CHECK_DIR/eval" \
   --runs B0,F1,L1,L2,L3,L4,LL1,LL2 \
   --target-layer-override LL1=7,8,9,10 \
   --target-layer-override LL2=21,22,26,27

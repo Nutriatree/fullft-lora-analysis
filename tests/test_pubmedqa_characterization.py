@@ -37,10 +37,10 @@ class PubMedQACharacterizationTest(unittest.TestCase):
         self.assertEqual((25, 100), cli_config.config.checkpoint_percents)
 
     def test_checkpoint_directory_schema_remains_stable(self) -> None:
-        trainer = object.__new__(PubMedQAFullFineTuner)
-        trainer.checkpoints_dir = Path("run/checkpoints")
+        from pubmedqa.train.checkpoints import checkpoint_directory
 
-        checkpoint_dir = trainer._checkpoint_directory(
+        checkpoint_dir = checkpoint_directory(
+            Path("run/checkpoints"),
             checkpoint_kind="scheduled",
             checkpoint_percent=25.0,
             epoch=1,

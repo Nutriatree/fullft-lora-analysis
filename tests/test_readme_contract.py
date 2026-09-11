@@ -14,6 +14,87 @@ EVALUATION_GUIDE_PATH = REPOSITORY_ROOT / ".github/guides/pubmedqa_evaluation.md
 
 
 class ReadmeContractTests(unittest.TestCase):
+    def test_documents_physical_training_ownership_and_remaining_compatibility(self):
+        architecture = (REPOSITORY_ROOT / ".github/ARCHITECTURE.md").read_text()
+        for relative in (
+            "train/distributed.py", "train/loop.py",
+            "config/full_ft.py", "config/lora.py", "config/eval.py",
+            "model/full_ft.py", "model/lora.py",
+            "full_finetune.py", "lora_finetune.py",
+        ):
+            self.assertIn(relative, self.readme)
+            self.assertIn(relative, architecture)
+            self.assertTrue((REPOSITORY_ROOT / "src/pubmedqa" / relative).is_file())
+        self.assertIn("기존 내부 호환 디렉토리는 제거", self.readme)
+        self.assertIn("하위 패키지를 만들지", self.readme)
+        for package in ("data", "model", "train", "eval", "config"):
+            self.assertIn(f"{package}/", self.readme)
+        guide = (
+            REPOSITORY_ROOT / ".github/guides/pubmedqa_fsdp_troubleshooting.md"
+        ).read_text()
+        self.assertIn("train/distributed.py::TrainingSession", guide)
+        # A substring assertion alone would accept a stale double-prefix path.
+        for document in (self.readme, architecture, guide):
+            for package in ("data", "model", "train", "eval", "config"):
+                self.assertNotIn(f"{package}/{package}/", document)
+        self.assertNotIn("runtime/training.py::TrainingSession", guide)
+
+    def test_documents_functional_training_and_bounded_state_ownership(self) -> None:
+        architecture = (REPOSITORY_ROOT / ".github/ARCHITECTURE.md").read_text()
+        for expected in (
+            "Modular Monolith",
+            "Pipeline / Data-flow",
+            "Conceptual Cohesion",
+            "Locality",
+            "Module-based OOP",
+        ):
+            self.assertIn(expected, self.readme)
+            self.assertIn(expected, architecture)
+        for expected in (
+            "run_training",
+            "TrainingSession",
+            "EvaluationSettings",
+            "RunFiles",
+            "AdapterHistory",
+            "compatibility",
+        ):
+            self.assertIn(expected, architecture)
+        self.assertIn("src/pubmedqa/train/pipeline.py", self.readme)
+        self.assertNotIn("기존 strategy override", self.readme)
+        self.assertNotIn("Strategy classes bind extracted functions", architecture)
+
+    def test_documents_distributed_fixes_and_metric_provenance(self) -> None:
+        for expected in (
+            "PUBMEDQA_CONTROL_TIMEOUT_SECONDS",
+            "token_mean",
+            "schema_version=2",
+        ):
+            self.assertIn(expected, self.readme)
+        guide = (
+            REPOSITORY_ROOT / ".github/guides/pubmedqa_fsdp_troubleshooting.md"
+        ).read_text()
+        for expected in (
+            "float32",
+            "CPU",
+            "continue_on_error",
+            "rank0_only",
+            "optimizer.pt",
+        ):
+            self.assertIn(expected, guide)
+        self.assertNotIn("Model state is gathered only on rank 0", guide)
+
+    def test_documents_executable_offline_checks_and_training_owners(self) -> None:
+        for path in (
+            "scripts/test_pubmedqa_offline.py",
+            "src/pubmedqa/train/loop.py",
+            "src/pubmedqa/data/supervised.py",
+            "src/pubmedqa/model/lora.py",
+        ):
+            self.assertIn(path, self.readme)
+            self.assertTrue((REPOSITORY_ROOT / path).is_file())
+        self.assertIn("ruff check", self.readme)
+        self.assertIn("coverage run", self.readme)
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.readme = README_PATH.read_text(encoding="utf-8")
@@ -54,7 +135,9 @@ class ReadmeContractTests(unittest.TestCase):
         self.assertIn(".github/reports/Full-FT%20VS%20LoRA%20Report.pdf", self.readme)
         self.assertTrue(REPORT_PATH.is_file())
         self.assertIn(".github/ARCHITECTURE.md", self.readme)
-        image_paths = re.findall(r"!\[[^\]]*\]\((\.github/assets/readme/[^)]+)\)", self.readme)
+        image_paths = re.findall(
+            r"!\[[^\]]*\]\((\.github/assets/readme/[^)]+)\)", self.readme
+        )
         self.assertGreaterEqual(len(image_paths), 3)
         for relative_path in image_paths:
             with self.subTest(path=relative_path):
@@ -66,9 +149,14 @@ class ReadmeContractTests(unittest.TestCase):
         self.assertNotIn("](docs/", self.readme)
 
     def test_superseded_combined_plot_cli_is_removed(self) -> None:
-        self.assertFalse((REPOSITORY_ROOT / "scripts/plot_pubmedqa_learning_curves.py").exists())
         self.assertFalse(
-            (REPOSITORY_ROOT / "src/pubmedqa/reporting/figures/all_learning_curves.py").exists()
+            (REPOSITORY_ROOT / "scripts/plot_pubmedqa_learning_curves.py").exists()
+        )
+        self.assertFalse(
+            (
+                REPOSITORY_ROOT
+                / "src/pubmedqa/reporting/figures/all_learning_curves.py"
+            ).exists()
         )
 
     def test_explains_artifact_boundary(self) -> None:
@@ -121,7 +209,9 @@ class ReadmeContractTests(unittest.TestCase):
 
         prompt_guide = PROMPT_GUIDE_PATH.read_text(encoding="utf-8")
         evaluation_guide = EVALUATION_GUIDE_PATH.read_text(encoding="utf-8")
-        self.assertNotIn("출력은 반드시 `yes`, `no`, `maybe` 중 하나여야 합니다", prompt_guide)
+        self.assertNotIn(
+            "출력은 반드시 `yes`, `no`, `maybe` 중 하나여야 합니다", prompt_guide
+        )
         self.assertIn("출력하도록 prompt에서 지시", prompt_guide)
         self.assertIn("direct-answer-only 형식을 유도", prompt_guide)
         self.assertIn("최종 prediction label", evaluation_guide)

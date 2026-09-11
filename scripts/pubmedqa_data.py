@@ -12,7 +12,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from pubmedqa.data.canonical import CanonicalSplitConfig, prepare_canonical_splits
+from pubmedqa.data.prepare import CanonicalSplitConfig, prepare_canonical_splits
 from pubmedqa.data.sources import RemotePubMedQASource
 from pubmedqa.data.summary import describe_directory
 from pubmedqa.data.verification import verify_sources

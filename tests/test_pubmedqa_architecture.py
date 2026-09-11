@@ -16,7 +16,7 @@ class PubMedQAArchitectureTest(unittest.TestCase):
                 sys.executable,
                 "-c",
                 (
-                    "import sys; import pubmedqa.experiments.specs; "
+                    "import sys; import pubmedqa.experiment_runs; "
                     "assert 'torch' not in sys.modules; "
                     "assert 'transformers' not in sys.modules; "
                     "assert 'peft' not in sys.modules"
@@ -29,33 +29,43 @@ class PubMedQAArchitectureTest(unittest.TestCase):
         )
         self.assertEqual(0, process.returncode, process.stderr)
 
-    def test_full_ft_and_lora_use_common_training_engine(self) -> None:
-        from pubmedqa.training.engine import PubMedQATrainingEngine
-        from pubmedqa.training.strategies.full import PubMedQAFullFineTuner
-        from pubmedqa.training.strategies.lora import PubMedQALoRAFineTuner
+    def test_legacy_trainers_delegate_to_the_same_functional_program(self) -> None:
+        from types import SimpleNamespace
+        from pubmedqa.full_finetune import PubMedQAFullFineTuner
+        from pubmedqa.lora_finetune import PubMedQALoRAFineTuner
 
-        self.assertTrue(issubclass(PubMedQAFullFineTuner, PubMedQATrainingEngine))
-        self.assertTrue(issubclass(PubMedQALoRAFineTuner, PubMedQATrainingEngine))
-        self.assertFalse(issubclass(PubMedQALoRAFineTuner, PubMedQAFullFineTuner))
+        for adapter in (PubMedQAFullFineTuner, PubMedQALoRAFineTuner):
+            caller = SimpleNamespace(
+                config=object(), environment=object(), session=object()
+            )
+            with patch(
+                "pubmedqa.full_finetune.run_training", return_value="summary"
+            ) as run:
+                self.assertEqual("summary", adapter.run(caller))
+            run.assert_called_once_with(
+                caller.config, caller.environment, session=caller.session
+            )
 
     def test_lora_strategy_does_not_import_private_engine_symbols(self) -> None:
-        source_path = Path("src/pubmedqa/training/strategies/lora.py")
+        source_path = Path("src/pubmedqa/lora_finetune.py")
         module = ast.parse(source_path.read_text(encoding="utf-8"))
         private_imports: list[str] = []
         for node in ast.walk(module):
             if not isinstance(node, ast.ImportFrom):
                 continue
-            if node.module != "pubmedqa.training.engine":
+            if node.module != "pubmedqa.full_finetune":
                 continue
-            private_imports.extend(alias.name for alias in node.names if alias.name.startswith("_"))
+            private_imports.extend(
+                alias.name for alias in node.names if alias.name.startswith("_")
+            )
 
         self.assertEqual([], private_imports)
 
     def test_legacy_training_imports_are_compatibility_aliases(self) -> None:
         from pubmedqa.full_finetune import PubMedQAFullFineTuner as LegacyFull
         from pubmedqa.lora_finetune import PubMedQALoRAFineTuner as LegacyLoRA
-        from pubmedqa.training.strategies.full import PubMedQAFullFineTuner
-        from pubmedqa.training.strategies.lora import PubMedQALoRAFineTuner
+        from pubmedqa.full_finetune import PubMedQAFullFineTuner
+        from pubmedqa.lora_finetune import PubMedQALoRAFineTuner
 
         self.assertIs(PubMedQAFullFineTuner, LegacyFull)
         self.assertIs(PubMedQALoRAFineTuner, LegacyLoRA)
@@ -86,7 +96,7 @@ class PubMedQAArchitectureTest(unittest.TestCase):
         self.assertEqual("bfloat16", runtime.dtype)
 
     def test_lora_cli_uses_lora_specific_environment(self) -> None:
-        from pubmedqa.training.strategies.lora import LoRAFineTuneCliConfig
+        from pubmedqa.lora_finetune import LoRAFineTuneCliConfig
 
         environment = {
             "PUBMEDQA_TRAIN_PATH": "train.jsonl",

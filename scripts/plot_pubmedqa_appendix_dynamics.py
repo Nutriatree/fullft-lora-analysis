@@ -6,9 +6,9 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from pubmedqa.reporting.figures.appendix_dynamics import generate_appendix_figures
-from pubmedqa.reporting.layout import StudyLayout
-from pubmedqa.reporting.manifest import write_report_manifest
+from pubmedqa.eval.plot_appendix import generate_appendix_figures
+from pubmedqa.eval.reports import StudyLayout
+from pubmedqa.eval.reports import write_report_manifest
 
 
 def parse_args() -> argparse.Namespace:

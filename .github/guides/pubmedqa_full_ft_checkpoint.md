@@ -12,7 +12,10 @@
 - `F2`: Full Fine-Tuning low-data
 
 이 문서는 특히 `F1`의 중간 checkpoint 저장과 layer-wise / temporal adaptation 분석 가능 여부를 확인하는 용도로 사용한다.  
-기준 코드는 [src/pubmedqa/training/engine.py](../../src/pubmedqa/training/engine.py)이다.
+실행 순서는 [train/pipeline.py](../../src/pubmedqa/train/pipeline.py),
+checkpoint 저장은 [train/checkpoints.py](../../src/pubmedqa/train/checkpoints.py),
+분석은 [train/full_ft.py](../../src/pubmedqa/train/full_ft.py)가 소유한다.
+이전 `training/engine.py`는 제거했다. 기존 notebook은 공개 `pubmedqa.full_finetune` API를 사용한다.
 
 ## 1. 연구 목적과 checkpoint의 역할
 
@@ -247,7 +250,8 @@ $$
 
 ## 7. 현재 구현 기준 점검 항목
 
-아래 표는 현재 `src/pubmedqa/full_finetune.py` 기준으로 요구사항 충족 여부를 확인하기 위한 체크리스트다.
+아래 표는 `train/pipeline.py`, `train/checkpoints.py`, `train/full_ft.py`의
+산출물을 기준으로 요구사항 충족 여부를 확인하기 위한 체크리스트다.
 
 상태 정의:
 
